@@ -1,8 +1,22 @@
+/* Keep the new Next.js Tailwind import */
 @import "tailwindcss";
 
+/* ---- Brand + base ---- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffffff;      /* force light background */
+  --foreground: #111827;      /* neutral-900 */
+  --brand: #d90429;           /* primary red */
+  --brand-600: #bf0323;       /* hover red */
+  --muted: #6b7280;           /* gray-500/600 text */
+  --wash: #f9fafb;            /* gray-50 */
+}
+
+/* Remove dark-mode auto swap so it never goes black */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    --foreground: #111827;
+  }
 }
 
 @theme inline {
@@ -12,15 +26,60 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
+html, body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ---- Components (lightweight helpers; structure stays in JSX) ---- */
+
+/* Header nav link */
+.nav-link {
+  @apply text-gray-800 hover:text-red-600 transition-colors;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply inline-flex items-center rounded-lg px-5 py-3 font-semibold text-white shadow-sm transition-colors;
+  background-color: var(--brand);
+}
+.btn-primary:hover { background-color: var(--brand-600); }
+
+.btn-outline {
+  @apply inline-flex items-center rounded-lg px-5 py-3 font-semibold border transition-colors;
+  border-color: var(--brand); color: var(--brand);
+}
+.btn-outline:hover { background-color: #fdecee; }
+
+/* Cards */
+.card {
+  @apply rounded-2xl border bg-white p-6 shadow-sm;
+}
+
+/* Soft section background */
+.section-soft {
+  @apply rounded-xl border bg-white p-4 shadow-sm;
+}
+
+/* Tiny pill/badge */
+.badge {
+  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
+  background-color: #fdecee; color: var(--brand);
+}
+
+/* KPI tiles */
+.kpi {
+  @apply rounded-xl border p-4;
+}
+.kpi-title {
+  @apply mt-2 font-semibold;
+}
+.kpi-sub {
+  @apply mt-1 text-sm text-gray-600;
+}
+
+/* Simple icon bubble (for inline SVGs) */
+.icon-bubble {
+  @apply inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-900;
 }

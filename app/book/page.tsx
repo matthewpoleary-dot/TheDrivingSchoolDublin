@@ -50,16 +50,8 @@ export default function BookPage() {
   };
 
   const confirmBooking = async () => {
-    if (!serviceId || !selectedSlot) {
-      setToast("Please pick a service and time");
-      setTimeout(() => setToast(""), 2000);
-      return;
-    }
-    if (!clientName || !clientEmail) {
-      setToast("Please enter your name and email");
-      setTimeout(() => setToast(""), 2000);
-      return;
-    }
+    if (!serviceId || !selectedSlot) return msg("Please pick a service and time");
+    if (!clientName || !clientEmail) return msg("Please enter your name and email");
 
     const res = await fetch("/api/book", {
       method: "POST",
@@ -72,17 +64,16 @@ export default function BookPage() {
     });
 
     const data = await res.json();
-    if (!res.ok) {
-      setToast(data.error || "Something went wrong");
-      setTimeout(() => setToast(""), 2500);
-      return;
-    }
+    if (!res.ok) return msg(data.error || "Something went wrong");
 
-    setToast("Booking confirmed! Check your email.");
-    setTimeout(() => setToast(""), 3000);
-    // Refresh slots so the chosen one disappears
-    await showTimes();
+    msg("Booking confirmed! Check your email.");
+    await showTimes(); // hide chosen slot
   };
+
+  function msg(text: string) {
+    setToast(text);
+    setTimeout(() => setToast(""), 2500);
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -115,10 +106,7 @@ export default function BookPage() {
             onChange={(e) => setDate(e.target.value)}
           />
 
-          <button
-            onClick={showTimes}
-            className="mt-3 inline-flex items-center rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-          >
+          <button onClick={showTimes} className="mt-3 btn-primary">
             Show times
           </button>
         </div>
@@ -135,13 +123,15 @@ export default function BookPage() {
             {slots.map((iso) => {
               const d = new Date(iso);
               const label = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              const active = selectedSlot === iso;
               return (
                 <button
                   key={iso}
                   onClick={() => setSelectedSlot(iso)}
-                  className={`rounded border px-3 py-2 text-sm ${
-                    selectedSlot === iso ? "bg-black text-white" : "bg-white hover:bg-gray-50"
-                  }`}
+                  className={`rounded-full border px-4 py-2 text-sm transition
+                    ${active
+                      ? "bg-red-600 text-white border-red-600"
+                      : "bg-white text-gray-900 border-gray-300 hover:bg-gray-50"}`}
                 >
                   {label}
                 </button>
@@ -180,26 +170,18 @@ export default function BookPage() {
           </p>
         )}
 
-        <button
-          onClick={confirmBooking}
-          className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
-        >
-          Confirm booking
-        </button>
-
-        {toast && <p className="mt-3 text-sm text-indigo-700">{toast}</p>}
+        <button onClick={confirmBooking} className="btn-primary">Confirm booking</button>
+        {toast && <p className="mt-3 text-sm text-red-700">{toast}</p>}
       </div>
 
       {/* Summary card */}
       <aside className="md:col-span-1">
-        <div className="rounded-2xl border bg-white p-4 shadow-sm">
+        <div className="card">
           <h3 className="font-semibold text-gray-800 mb-2">Booking Summary</h3>
           <p className="text-sm text-gray-700">
             {selectedService ? `Service: ${selectedService.name}` : "Pick a service"}
           </p>
-          <p className="text-sm text-gray-700">
-            Date: {date || "-"}
-          </p>
+          <p className="text-sm text-gray-700">Date: {date || "-"}</p>
           <p className="text-sm text-gray-700">
             Time: {selectedSlot ? new Date(selectedSlot).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
           </p>

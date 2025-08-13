@@ -10,27 +10,33 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 text-gray-900">
+      <body className="min-h-screen bg-white text-gray-900">
+        {/* Header */}
         <header className="border-b bg-white">
           <nav className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold tracking-tight">
-              <span className="text-black">The</span>
-              <span className="text-indigo-600">DrivingSchoolDublin</span>
+            <Link href="/" className="text-xl font-extrabold tracking-tight" aria-label="Home">
+              <span className="text-gray-900">The</span>{" "}
+              <span className="text-red-600">Driving</span>
+              <span className="text-gray-900">School</span>
+              <span className="text-gray-900">Dublin</span>
             </Link>
-            <div className="space-x-4 text-sm">
-              <Link href="/book" className="text-gray-700 hover:text-black">Book</Link>
-              <Link href="/prices" className="text-gray-700 hover:text-black">Prices</Link>
-              <a href="#contact" className="text-gray-700 hover:text-black">Contact</a>
+
+            <div className="space-x-5 text-sm font-medium">
+              <Link href="/book" className="nav-link">Book</Link>
+              <Link href="/prices" className="nav-link">Prices</Link>
+              <a href="#contact" className="nav-link">Contact</a>
             </div>
           </nav>
         </header>
 
+        {/* Page content */}
         <main className="mx-auto max-w-5xl px-4 py-10">{children}</main>
 
-        <footer className="mt-16 border-t bg-white">
+        {/* Footer */}
+        <footer className="mt-16 border-t bg-gray-50">
           <div className="mx-auto max-w-5xl px-4 py-6 text-sm text-gray-600 flex items-center justify-between">
             <p>© {new Date().getFullYear()} TheDrivingSchoolDublin. All rights reserved.</p>
-            <p>Made with ❤️ in Ireland</p>
+            <p>Made with <span className="text-red-600">♥</span> in Ireland</p>
           </div>
         </footer>
       </body>
