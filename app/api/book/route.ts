@@ -23,13 +23,11 @@ export async function POST(req: Request) {
     const startsAtISO = new Date(startsAt).toISOString();
     const dateISO = startsAtISO.slice(0, 10);
 
-    // re-validate slot still free
     const stillFree = await getAvailableSlots(serviceId, dateISO);
     if (!stillFree.includes(startsAtISO)) {
       return NextResponse.json({ error: "Slot no longer available" }, { status: 409 });
     }
 
-    // service info
     const { data: svc, error: svcErr } = await supabase
       .from("services")
       .select("name,duration_minutes,price_cents")
@@ -39,7 +37,6 @@ export async function POST(req: Request) {
 
     const endsAtISO = addMinutes(new Date(startsAtISO), Number(svc.duration_minutes)).toISOString();
 
-    // insert booking
     const { data: inserted, error } = await supabase
       .from("bookings")
       .insert({
@@ -59,7 +56,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Could not create booking" }, { status: 500 });
     }
 
-    // email (guarded)
     const canEmail =
       !!process.env.RESEND_API_KEY && !!process.env.FROM_EMAIL && !!process.env.ADI_EMAIL;
 
@@ -72,14 +68,15 @@ export async function POST(req: Request) {
         startsAtISO,
         endsAtISO,
         client: { name: client.name, email: client.email, phone: client.phone ?? null },
-      }).catch((e) => console.error("emailOnBooking failed:", e));
+      }).catch((err) => console.error("emailOnBooking failed:", err));
     } else {
       console.warn("Skipping emails: RESEND env vars not set");
     }
 
     return NextResponse.json({ ok: true, bookingId: inserted.id });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Bad request";
     console.error("book POST error:", e);
-    return NextResponse.json({ error: e?.message ?? "Bad request" }, { status: 400 });
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }

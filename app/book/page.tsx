@@ -1,282 +1,210 @@
+// app/book/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { format } from "date-fns";
 
 type Service = {
   id: string;
   name: string;
   duration_minutes: number;
   price_cents: number;
+  active?: boolean;
 };
 
-type ToastState = { msg: string; tone: "success" | "error" } | null;
-
 export default function BookPage() {
-  // Data
   const [services, setServices] = useState<Service[]>([]);
-  const [serviceId, setServiceId] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-
-  // Slots
+  const [serviceId, setServiceId] = useState<string>("");
+  const [date, setDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [slots, setSlots] = useState<string[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [toast, setToast] = useState<string>("");
 
-  // Client details
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const selectedService = useMemo(
+    () => services.find((s) => s.id === serviceId),
+    [services, serviceId]
+  );
 
-  // UI
-  const [toast, setToast] = useState<ToastState>(null);
-
-  // Load services on mount
+  // Load services
   useEffect(() => {
     (async () => {
-      try {
-        const res = await fetch("/api/services");
-        const rows = await res.json();
-        const list: Service[] = Array.isArray(rows) ? rows : rows.services ?? [];
-        setServices(list);
-        if (list.length) setServiceId(list[0].id);
-      } catch (e) {
-        setToast({ msg: "Failed to load services", tone: "error" });
-        setTimeout(() => setToast(null), 2200);
-      }
-    })();
-  }, []);
-
-  async function loadSlots() {
-    if (!serviceId || !date) {
-      setToast({ msg: "Pick a service and date first.", tone: "error" });
-      setTimeout(() => setToast(null), 2000);
-      return;
-    }
-    setLoadingSlots(true);
-    setSelectedSlot("");
-    setSlots([]);
-    try {
-      const url = `/api/slots?serviceId=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(
-        date
-      )}`;
-      const res = await fetch(url);
+      const res = await fetch("/api/services");
       const data = await res.json();
-      setSlots(data.slots ?? []);
-    } catch {
-      setToast({ msg: "Failed to load slots", tone: "error" });
-      setTimeout(() => setToast(null), 2000);
-    } finally {
-      setLoadingSlots(false);
-    }
-  }
+      setServices(data || []);
+      if (data?.length && !serviceId) setServiceId(data[0].id);
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function book() {
-    // Front-end guard so we don’t send a bad request
-    if (!serviceId || !selectedSlot || !name || !email) {
-      setToast({ msg: "Please pick a time and fill your name & email.", tone: "error" });
-      setTimeout(() => setToast(null), 2200);
+  const showTimes = async () => {
+    if (!serviceId || !date) return;
+    setSelectedSlot("");
+    const u = new URL("/api/slots", window.location.origin);
+    u.searchParams.set("serviceId", serviceId);
+    u.searchParams.set("date", date);
+    const res = await fetch(u.toString());
+    const data = await res.json();
+    setSlots(Array.isArray(data.slots) ? data.slots : []);
+  };
+
+  const confirmBooking = async () => {
+    if (!serviceId || !selectedSlot) {
+      setToast("Please pick a service and time");
+      setTimeout(() => setToast(""), 2000);
       return;
     }
-
-    const payload = {
-      serviceId,
-      startsAt: selectedSlot, // ISO string
-      client: { name, email, phone },
-    };
-
-    console.log("BOOK PAYLOAD →", payload);
+    if (!clientName || !clientEmail) {
+      setToast("Please enter your name and email");
+      setTimeout(() => setToast(""), 2000);
+      return;
+    }
 
     const res = await fetch("/api/book", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        serviceId,
+        startsAt: selectedSlot,
+        client: { name: clientName, email: clientEmail, phone: clientPhone || null },
+      }),
     });
 
-    const data = await res.json().catch(() => ({}));
-    console.log("BOOK RESPONSE →", res.status, data);
-
+    const data = await res.json();
     if (!res.ok) {
-      setToast({ msg: data.error || "Booking failed", tone: "error" });
-      setTimeout(() => setToast(null), 2400);
+      setToast(data.error || "Something went wrong");
+      setTimeout(() => setToast(""), 2500);
       return;
     }
 
-    setToast({ msg: "Booked! Check your email for confirmation.", tone: "success" });
-    setTimeout(() => setToast(null), 2600);
-
-    // Reset only the time selection; keep service/date
-    setSelectedSlot("");
-  }
-
-  const prettySlots = useMemo(
-    () =>
-      slots.map((iso) => {
-        const d = new Date(iso);
-        const hh = String(d.getHours()).padStart(2, "0");
-        const mm = String(d.getMinutes()).padStart(2, "0");
-        return { iso, label: `${hh}:${mm}` };
-      }),
-    [slots]
-  );
-
-  const selectedService = services.find((s) => s.id === serviceId);
+    setToast("Booking confirmed! Check your email.");
+    setTimeout(() => setToast(""), 3000);
+    // Refresh slots so the chosen one disappears
+    await showTimes();
+  };
 
   return (
-    <div className="mx-auto max-w-4xl grid gap-8 lg:grid-cols-3">
-      {/* Left: main card */}
-      <div className="lg:col-span-2 rounded-2xl border bg-white shadow-sm">
-        <div className="border-b p-5">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Book a Lesson</h1>
-          <p className="mt-1 text-sm text-gray-700">
-            Pick a service, choose a date & time, add your details, and confirm.
-          </p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="md:col-span-2">
+        <h1 className="text-2xl font-semibold mb-2">Book a Lesson</h1>
+        <p className="text-sm text-gray-600 mb-6">
+          Pick a service, choose a date & time, add your details, and confirm.
+        </p>
+
+        {/* 1. Choose service & date */}
+        <div className="mb-6 space-y-2">
+          <label className="block text-sm font-medium">Service</label>
+          <select
+            className="w-full rounded border px-3 py-2"
+            value={serviceId}
+            onChange={(e) => setServiceId(e.target.value)}
+          >
+            {services.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.duration_minutes}m) (€{(s.price_cents / 100).toFixed(2)})
+              </option>
+            ))}
+          </select>
+
+          <label className="block text-sm font-medium mt-4">Date</label>
+          <input
+            type="date"
+            className="w-full rounded border px-3 py-2"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+
+          <button
+            onClick={showTimes}
+            className="mt-3 inline-flex items-center rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+          >
+            Show times
+          </button>
         </div>
 
-        <div className="p-5 grid gap-6">
-          {/* Step 1 */}
-          <section>
-            <h2 className="font-semibold mb-3 text-gray-900">1. Choose your service & date</h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="text-sm text-gray-900">
-                <span>Service</span>
-                <select
-                  className="mt-1 w-full rounded-lg border px-3 py-2 text-gray-900"
-                  value={serviceId}
-                  onChange={(e) => setServiceId(e.target.value)}
-                >
-                  {services.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} (€{(s.price_cents / 100).toFixed(2)})
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="text-sm text-gray-900">
-                <span>Date</span>
-                <input
-                  type="date"
-                  className="mt-1 w-full rounded-lg border px-3 py-2 text-gray-900"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <button
-              onClick={loadSlots}
-              className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 transition disabled:opacity-50"
-              disabled={loadingSlots}
-            >
-              {loadingSlots ? "Loading…" : "Show times"}
-            </button>
-          </section>
-
-          {/* Step 2 */}
-          <section>
-            <h2 className="font-semibold mb-3 text-gray-900">2. Pick a time</h2>
-            {prettySlots.length === 0 && !loadingSlots && (
-              <p className="text-sm text-gray-700">
-                No times yet — choose a weekday within 09:00–17:00 and click “Show times”.
-              </p>
-            )}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {prettySlots.map((s) => (
+        {/* 2. Pick a time */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold mb-2">Pick a time</h2>
+          {!slots.length && (
+            <p className="text-sm text-gray-500">
+              No times yet — choose a weekday within 09:00–17:00 and click “Show times”.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {slots.map((iso) => {
+              const d = new Date(iso);
+              const label = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              return (
                 <button
-                  key={s.iso}
-                  onClick={() => setSelectedSlot(s.iso)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50 transition text-gray-900 ${
-                    selectedSlot === s.iso ? "ring-2 ring-indigo-600 border-indigo-600" : ""
+                  key={iso}
+                  onClick={() => setSelectedSlot(iso)}
+                  className={`rounded border px-3 py-2 text-sm ${
+                    selectedSlot === iso ? "bg-black text-white" : "bg-white hover:bg-gray-50"
                   }`}
                 >
-                  {s.label}
+                  {label}
                 </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Step 3 */}
-          <section>
-            <h2 className="font-semibold mb-3 text-gray-900">3. Your details</h2>
-            <div className="grid gap-3 md:grid-cols-3">
-              <input
-                className="rounded-lg border px-3 py-2 text-gray-900"
-                placeholder="Full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <input
-                className="rounded-lg border px-3 py-2 text-gray-900"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <input
-                className="rounded-lg border px-3 py-2 text-gray-900"
-                placeholder="Phone (optional)"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-          </section>
-
-          {/* Step 4 */}
-          <section className="flex items-center justify-between">
-            <div className="text-sm text-gray-900">
-              {selectedService ? (
-                <>
-                  You’re booking <strong>{selectedService.name}</strong>. Total:{" "}
-                  <strong>€{(selectedService.price_cents / 100).toFixed(2)}</strong>
-                </>
-              ) : (
-                "Select a service."
-              )}
-            </div>
-            <button
-              onClick={book}
-              className="inline-flex items-center rounded-lg bg-black px-5 py-3 text-white font-semibold hover:bg-gray-900 transition"
-            >
-              Confirm booking
-            </button>
-          </section>
+              );
+            })}
+          </div>
         </div>
+
+        {/* 3. Your details */}
+        <div className="mb-6 space-y-3">
+          <h2 className="text-sm font-semibold">Your details</h2>
+          <input
+            placeholder="Full name"
+            className="w-full rounded border px-3 py-2"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+          />
+          <input
+            placeholder="Email address"
+            className="w-full rounded border px-3 py-2"
+            value={clientEmail}
+            onChange={(e) => setClientEmail(e.target.value)}
+          />
+          <input
+            placeholder="Phone (optional)"
+            className="w-full rounded border px-3 py-2"
+            value={clientPhone}
+            onChange={(e) => setClientPhone(e.target.value)}
+          />
+        </div>
+
+        {selectedService && (
+          <p className="text-sm text-gray-700 mb-4">
+            You’re booking <strong>{selectedService.name}</strong>. Total:{" "}
+            <strong>€{(selectedService.price_cents / 100).toFixed(2)}</strong>.
+          </p>
+        )}
+
+        <button
+          onClick={confirmBooking}
+          className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
+        >
+          Confirm booking
+        </button>
+
+        {toast && <p className="mt-3 text-sm text-indigo-700">{toast}</p>}
       </div>
 
-      {/* Right: summary */}
-      <aside className="rounded-2xl border bg-white p-5 shadow-sm h-fit">
-        <h3 className="font-semibold mb-3 text-gray-900">Booking Summary</h3>
-        <ul className="space-y-2 text-sm text-gray-900">
-          <li>
-            <span className="text-gray-700">Service:</span> {selectedService?.name ?? "—"}
-          </li>
-          <li>
-            <span className="text-gray-700">Duration:</span>{" "}
-            {selectedService?.duration_minutes ?? "—"} minutes
-          </li>
-          <li>
-            <span className="text-gray-700">Price:</span>{" "}
-            {selectedService ? `€${(selectedService.price_cents / 100).toFixed(2)}` : "—"}
-          </li>
-          <li>
-            <span className="text-gray-700">Date & time:</span>{" "}
-            {selectedSlot ? new Date(selectedSlot).toLocaleString() : date}
-          </li>
-        </ul>
-        <p className="mt-4 text-xs text-gray-500">
-          By confirming, you agree to our cancellation policy.
-        </p>
-      </aside>
-
-      {/* Toast */}
-      {toast && (
-        <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 text-white rounded-md shadow ${
-            toast.tone === "success" ? "bg-green-600" : "bg-red-600"
-          }`}
-        >
-          {toast.msg}
+      {/* Summary card */}
+      <aside className="md:col-span-1">
+        <div className="rounded-2xl border bg-white p-4 shadow-sm">
+          <h3 className="font-semibold text-gray-800 mb-2">Booking Summary</h3>
+          <p className="text-sm text-gray-700">
+            {selectedService ? `Service: ${selectedService.name}` : "Pick a service"}
+          </p>
+          <p className="text-sm text-gray-700">
+            Date: {date || "-"}
+          </p>
+          <p className="text-sm text-gray-700">
+            Time: {selectedSlot ? new Date(selectedSlot).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+          </p>
         </div>
-      )}
+      </aside>
     </div>
   );
 }
