@@ -2,7 +2,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
-const fromEmail = process.env.FROM_EMAIL!;   // e.g. onboarding@resend.dev (for dev) or bookings@yourdomain.com (prod)
+const fromEmail = process.env.FROM_EMAIL!;   // e.g. onboarding@resend.dev (dev) or bookings@yourdomain.com (prod)
 const adiEmail  = process.env.ADI_EMAIL!;    // your inbox
 
 export type BookingEmailPayload = {
@@ -39,7 +39,7 @@ export async function emailOnBooking(p: BookingEmailPayload) {
   await resend.emails.send({
     from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: adiEmail,
-    reply_to: adiEmail, // Resend Node SDK uses snake_case
+    replyTo: adiEmail, // ✅ camelCase for current Resend SDK
     subject: `New booking — ${p.serviceName}`,
     text: `New booking received\n\n${details}`,
   });
@@ -48,7 +48,7 @@ export async function emailOnBooking(p: BookingEmailPayload) {
   await resend.emails.send({
     from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: p.client.email,
-    reply_to: adiEmail,
+    replyTo: adiEmail,
     subject: `Your lesson is booked — ${p.serviceName}`,
     text: [
       `Hi ${p.client.name},`,
@@ -114,7 +114,7 @@ export async function emailOnStatusChange(p: {
   await resend.emails.send({
     from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: adiEmail,
-    reply_to: adiEmail,
+    replyTo: adiEmail, // ✅ camelCase
     subject: subj,
     text: textADI,
   });
@@ -123,7 +123,7 @@ export async function emailOnStatusChange(p: {
   await resend.emails.send({
     from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: p.client.email,
-    reply_to: adiEmail,
+    replyTo: adiEmail, // ✅ camelCase
     subject: subj,
     text: textClient,
   });
