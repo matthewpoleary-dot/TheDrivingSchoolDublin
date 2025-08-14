@@ -1,96 +1,138 @@
-// app/prices/page.tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-
-type Service = {
-  id: string;
-  name: string;
-  duration_minutes: number;
-  price_cents: number;
-  active?: boolean;
+export const metadata = {
+  title: "Prices | TheDrivingSchoolDublin",
+  description: "Lesson prices, pre-test, car hire and EDT bundle.",
 };
 
-function euro(cents: number) {
-  return `€${(cents / 100).toFixed(2)}`;
-}
-
 export default function PricesPage() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/services");
-        const data: Service[] = await res.json();
-        const list = Array.isArray(data) ? data : [];
-        setServices(
-          list
-            .filter((s) => s.active !== false)
-            .sort((a, b) => a.price_cents - b.price_cents)
-        );
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
   return (
-    <div>
-      {/* Heading */}
-      <header className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">Prices</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Clear, upfront pricing. Choose a lesson that suits and book in under a minute.
+    <section className="space-y-10">
+      <header>
+        <h1 className="text-3xl font-extrabold tracking-tight">Prices</h1>
+        <p className="mt-2 text-gray-600">
+          Straightforward pricing with no surprises. Book online in seconds.
         </p>
       </header>
 
-      {/* Grid of services */}
-      {loading ? (
-        <p className="text-gray-600">Loading prices…</p>
-      ) : services.length === 0 ? (
-        <p className="text-gray-600">No services available right now.</p>
-      ) : (
-        <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((s) => (
-            <article
-              key={s.id}
-              className="rounded-2xl border bg-white p-6 shadow-sm flex flex-col"
-            >
-              <h2 className="text-lg font-semibold text-gray-900">{s.name}</h2>
+      {/* Main grid of products */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Standard Lesson */}
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold">Standard Lesson</h3>
+          <p className="mt-1 text-sm text-gray-600">Manual or Automatic</p>
+          <div className="mt-4">
+            <div className="text-3xl font-bold">€65</div>
+            <div className="text-sm text-gray-500">per hour / lesson</div>
+          </div>
+          <ul className="mt-4 space-y-1 text-sm text-gray-700">
+            <li>• One-to-one, structured coaching</li>
+            <li>• Pick-up in local area</li>
+          </ul>
+          <a
+            href="/book"
+            className="mt-6 inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700"
+          >
+            Book this
+          </a>
+        </div>
 
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-gray-900">
-                  {euro(s.price_cents)}
-                </span>
-                <span className="text-sm text-gray-500">/ {s.duration_minutes} min</span>
-              </div>
+        {/* Pre-Test Lesson */}
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold">Pre‑Test Lesson</h3>
+          <p className="mt-1 text-sm text-gray-600">Test route familiarisation</p>
+          <div className="mt-4">
+            <div className="text-3xl font-bold">€80</div>
+            <div className="text-sm text-gray-500">pre‑test session</div>
+          </div>
+          <ul className="mt-4 space-y-1 text-sm text-gray-700">
+            <li>• Focus on likely test items</li>
+            <li>• Last‑minute refresher & tips</li>
+          </ul>
+          <a
+            href="/book"
+            className="mt-6 inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700"
+          >
+            Book this
+          </a>
+        </div>
 
-              <ul className="mt-4 text-sm text-gray-700 space-y-1">
-                <li>• One-to-one session</li>
-                <li>• Flexible weekday times</li>
-                <li>• Email confirmation + calendar invite</li>
+        {/* Car Hire for Test */}
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold">Car Hire for Test</h3>
+          <p className="mt-1 text-sm text-gray-600">Car provided for test</p>
+          <div className="mt-4">
+            <div className="text-3xl font-bold">€100</div>
+            <div className="text-sm text-gray-500">on test day</div>
+          </div>
+          <ul className="mt-4 space-y-1 text-sm text-gray-700">
+            <li>• Roadworthy, fully insured vehicle</li>
+            <li>• Meet at the test centre</li>
+          </ul>
+          <a
+            href="/book"
+            className="mt-6 inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700"
+          >
+            Book this
+          </a>
+        </div>
+
+        {/* EDT Lessons (per-lesson) */}
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold">EDT Lessons (12)</h3>
+          <p className="mt-1 text-sm text-gray-600">Essential Driver Training</p>
+          <div className="mt-4">
+            <div className="text-3xl font-bold">€65</div>
+            <div className="text-sm text-gray-500">per lesson</div>
+          </div>
+          <ul className="mt-4 space-y-1 text-sm text-gray-700">
+            <li>• 12 mandatory modules</li>
+            <li>• Logbook: <span className="font-medium">€5</span></li>
+          </ul>
+          <a
+            href="/book"
+            className="mt-6 inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700"
+          >
+            Book EDT lesson
+          </a>
+        </div>
+
+        {/* EDT Bundle */}
+        <div className="rounded-2xl border bg-white p-6 shadow-sm sm:col-span-2">
+          <h3 className="text-lg font-semibold">EDT Bundle (12 lessons)</h3>
+          <p className="mt-1 text-sm text-gray-600">Best value</p>
+          <div className="mt-4">
+            <div className="text-3xl font-bold">€705</div>
+            <div className="text-sm text-gray-500">includes €5 logbook</div>
+          </div>
+          <ul className="mt-4 space-y-1 text-sm text-gray-700">
+            <li>• Save vs paying individually</li>
+            <li>• Split payments:
+              <ul className="ml-5 list-disc">
+                <li>Pay €355 on the <strong>first</strong> lesson</li>
+                <li>Pay €350 on the <strong>7th</strong> lesson</li>
               </ul>
+            </li>
+          </ul>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href="/book"
+              className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700"
+            >
+              Book bundle
+            </a>
+            <a
+              href="/book"
+              className="inline-flex rounded-lg border px-4 py-2 font-medium hover:bg-gray-50"
+            >
+              Book single EDT lesson
+            </a>
+          </div>
+        </div>
+      </div>
 
-              <div className="mt-6">
-                <Link href="/book" className="btn-primary w-full text-center">
-                  Book this lesson
-                </Link>
-              </div>
-            </article>
-          ))}
-        </section>
-      )}
-
-      {/* Info strip */}
-      <section className="mt-10 rounded-xl border bg-white p-4 shadow-sm text-sm text-gray-700">
-        <p>
-          Need multiple lessons? Book one first and we’ll arrange a bundle afterwards. Gift vouchers
-          available on request.
-        </p>
-      </section>
-    </div>
+      {/* Small note */}
+      <p className="text-xs text-gray-500">
+        Prices include VAT where applicable. Cancellation policy applies. For questions, use the contact link in the header.
+      </p>
+    </section>
   );
 }
