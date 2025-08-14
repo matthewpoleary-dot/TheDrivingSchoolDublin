@@ -24,6 +24,18 @@ type BookingRow = {
   services?: Service; // if joined
 };
 
+type ApiOk = { ok: true } | { ok?: false; error?: string };
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Unknown error";
+  }
+}
+
 export default function AdminPage() {
   const [token, setToken] = useState<string>("");
   const [inputToken, setInputToken] = useState<string>("");
@@ -48,13 +60,18 @@ export default function AdminPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
+        let body: { error?: string } | undefined;
+        try {
+          body = (await res.json()) as { error?: string };
+        } catch {
+          // ignore
+        }
         throw new Error(body?.error || `Failed to load (${res.status})`);
       }
-      const data = await res.json();
-      setRows(Array.isArray(data) ? data : []);
-    } catch (e: any) {
-      setErrorMsg(e.message || "Failed to load");
+      const data = (await res.json()) as unknown;
+      setRows(Array.isArray(data) ? (data as BookingRow[]) : []);
+    } catch (err: unknown) {
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -72,8 +89,18 @@ export default function AdminPage() {
         },
         body: JSON.stringify({ status }),
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || !body?.ok) throw new Error(body?.error || "Update failed");
+
+      let body: ApiOk | undefined;
+      try {
+        body = (await res.json()) as ApiOk;
+      } catch {
+        // ignore
+      }
+
+      if (!res.ok || !body || (body as { ok?: boolean }).ok !== true) {
+        throw new Error((body as { error?: string })?.error || "Update failed");
+      }
+
       await load();
       setToast(
         status === "completed"
@@ -81,8 +108,8 @@ export default function AdminPage() {
           : "Marked as cancelled and emails sent."
       );
       setTimeout(() => setToast(""), 2500);
-    } catch (e: any) {
-      setErrorMsg(e.message || "Failed to update booking");
+    } catch (err: unknown) {
+      setErrorMsg(getErrorMessage(err) || "Failed to update booking");
       setTimeout(() => setErrorMsg(""), 3000);
     } finally {
       setSavingId(null);
@@ -161,7 +188,8 @@ export default function AdminPage() {
             <tbody>
               {rows.map((r) => {
                 const when = new Date(r.starts_at).toLocaleString();
-                const serviceLabel = r.services?.name ?? `${r.service_id.slice(0, 6)}…`;
+                const serviceLabel =
+                  r.services?.name ?? `${r.service_id.slice(0, 6)}…`;
                 const badge =
                   r.status === "confirmed"
                     ? "bg-green-100 text-green-700"
@@ -177,7 +205,9 @@ export default function AdminPage() {
                     </td>
                     <td className="px-3 py-2">{serviceLabel}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge}`}>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge}`}
+                      >
                         {r.status}
                       </span>
                     </td>

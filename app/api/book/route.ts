@@ -19,6 +19,16 @@ const BookingInput = z.object({
   }),
 });
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Bad request";
+  }
+}
+
 export async function POST(req: Request) {
   try {
     // Validate input
@@ -94,12 +104,14 @@ export async function POST(req: Request) {
         email: client.email,
         phone: client.phone ?? null,
       },
-    }).catch((e) => console.error("emailOnBooking failed:", e));
+    }).catch((e: unknown) =>
+      console.error("emailOnBooking failed:", getErrorMessage(e))
+    );
 
     return NextResponse.json({ ok: true, bookingId: inserted.id });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return NextResponse.json(
-      { error: e?.message || "Bad request" },
+      { error: getErrorMessage(e) },
       { status: 400 }
     );
   }
