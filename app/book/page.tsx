@@ -27,30 +27,32 @@ function normalizeServices(list: Service[]): Service[] {
   );
 
   const byName = new Map<string, Service>();
-  for (const s of filtered) {
-    const key = s.name.trim().toLowerCase();
 
-    if (key === "standard lesson") {
-      const existing = byName.get(key);
+  for (const s of filtered) {
+    // Remove things in parentheses from name for matching
+    const baseName = s.name.trim().replace(/\(.*?\)/g, "").trim().toLowerCase();
+
+    if (baseName === "standard lesson") {
+      const existing = byName.get(baseName);
       if (!existing) {
-        byName.set(key, s);
+        byName.set(baseName, s);
       } else {
-        // Prefer the 60-minute variant if both exist
+        // Prefer the "1 hour" variant if available
         const pick =
-          s.duration_minutes === 60
+          /1\s*hour/i.test(s.name) ||
+          (existing && !/1\s*hour/i.test(existing.name) && s.duration_minutes === 60)
             ? s
-            : existing.duration_minutes === 60
-            ? existing
-            : existing; // fall back to the first one we had
-        byName.set(key, pick);
+            : existing;
+        byName.set(baseName, pick);
       }
     } else {
-      if (!byName.has(key)) byName.set(key, s);
+      if (!byName.has(baseName)) byName.set(baseName, s);
     }
   }
 
   return Array.from(byName.values());
 }
+
 
 /** Build the dropdown label:
  * - Standard Lesson: show "(60 min)"
