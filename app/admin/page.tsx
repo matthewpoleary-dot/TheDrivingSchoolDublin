@@ -1,7 +1,7 @@
 // app/admin/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { formatZoned } from "@/lib/time";
 
 type BookingStatus = "confirmed" | "cancelled" | "completed";
@@ -38,18 +38,15 @@ function getErrorMessage(err: unknown): string {
 }
 
 export default function AdminPage() {
+  // token only lives in memory for this tab session
   const [token, setToken] = useState<string>("");
   const [inputToken, setInputToken] = useState<string>("");
+
   const [rows, setRows] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [toast, setToast] = useState<string>("");
   const [savingId, setSavingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const saved = sessionStorage.getItem("adminToken");
-    if (saved) setToken(saved);
-  }, []);
 
   const isAuthed = useMemo(() => token.trim().length > 0, [token]);
 
@@ -62,11 +59,7 @@ export default function AdminPage() {
       });
       if (!res.ok) {
         let body: { error?: string } | undefined;
-        try {
-          body = (await res.json()) as { error?: string };
-        } catch {
-          // ignore
-        }
+        try { body = (await res.json()) as { error?: string }; } catch {}
         throw new Error(body?.error || `Failed to load (${res.status})`);
       }
       const data = (await res.json()) as unknown;
@@ -92,11 +85,7 @@ export default function AdminPage() {
       });
 
       let body: ApiOk | undefined;
-      try {
-        body = (await res.json()) as ApiOk;
-      } catch {
-        // ignore
-      }
+      try { body = (await res.json()) as ApiOk; } catch {}
 
       if (!res.ok || !body || (body as { ok?: boolean }).ok !== true) {
         throw new Error((body as { error?: string })?.error || "Update failed");
@@ -127,14 +116,14 @@ export default function AdminPage() {
         <input
           className="w-full rounded border px-3 py-2 mb-3"
           placeholder="Admin token"
+          type="password"
           value={inputToken}
           onChange={(e) => setInputToken(e.target.value)}
         />
         <button
           onClick={() => {
             if (!inputToken.trim()) return;
-            sessionStorage.setItem("adminToken", inputToken.trim());
-            setToken(inputToken.trim());
+            setToken(inputToken.trim()); // lives only in memory
           }}
           className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
         >
@@ -149,17 +138,15 @@ export default function AdminPage() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Admin — Bookings</h1>
         <div className="flex items-center gap-2">
-          <button
-            onClick={load}
-            className="rounded border px-3 py-2 hover:bg-gray-50"
-          >
+          <button onClick={load} className="rounded border px-3 py-2 hover:bg-gray-50">
             Refresh
           </button>
           <button
             onClick={() => {
-              sessionStorage.removeItem("adminToken");
+              // wipe the in-memory token and table data
               setToken("");
               setRows([]);
+              setInputToken("");
             }}
             className="rounded border px-3 py-2 hover:bg-gray-50"
           >
@@ -188,9 +175,8 @@ export default function AdminPage() {
             </thead>
             <tbody>
               {rows.map((r) => {
-                const when = formatZoned(r.starts_at); // ✅ consistent timezone
-                const serviceLabel =
-                  r.services?.name ?? `${r.service_id.slice(0, 6)}…`;
+                const when = formatZoned(r.starts_at);
+                const serviceLabel = r.services?.name ?? `${r.service_id.slice(0, 6)}…`;
                 const badge =
                   r.status === "confirmed"
                     ? "bg-green-100 text-green-700"
@@ -206,9 +192,7 @@ export default function AdminPage() {
                     </td>
                     <td className="px-3 py-2">{serviceLabel}</td>
                     <td className="px-3 py-2">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge}`}
-                      >
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge}`}>
                         {r.status}
                       </span>
                     </td>
