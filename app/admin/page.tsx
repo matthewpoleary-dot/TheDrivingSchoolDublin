@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatZoned } from "@/lib/time";
 
 type BookingStatus = "confirmed" | "cancelled" | "completed";
 
@@ -187,7 +188,7 @@ export default function AdminPage() {
             </thead>
             <tbody>
               {rows.map((r) => {
-                const when = new Date(r.starts_at).toLocaleString();
+                const when = formatZoned(r.starts_at); // ✅ consistent timezone
                 const serviceLabel =
                   r.services?.name ?? `${r.service_id.slice(0, 6)}…`;
                 const badge =

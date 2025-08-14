@@ -1,5 +1,6 @@
 // lib/email.ts
 import { Resend } from "resend";
+import { formatZoned } from "@/lib/time";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const fromEmail = process.env.FROM_EMAIL!;   // e.g. onboarding@resend.dev (dev) or bookings@yourdomain.com (prod)
@@ -17,7 +18,7 @@ export type BookingEmailPayload = {
 
 /** Send confirmation emails when a new booking is created */
 export async function emailOnBooking(p: BookingEmailPayload) {
-  const when = new Date(p.startsAtISO).toLocaleString();
+  const when = formatZoned(p.startsAtISO); // ✅ consistent timezone
   const priceLine =
     p.priceCents != null ? `Price: €${(p.priceCents / 100).toFixed(2)}` : "";
   const durationLine =
@@ -39,7 +40,7 @@ export async function emailOnBooking(p: BookingEmailPayload) {
   await resend.emails.send({
     from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: adiEmail,
-    replyTo: adiEmail, // ✅ camelCase for current Resend SDK
+    replyTo: adiEmail,
     subject: `New booking — ${p.serviceName}`,
     text: `New booking received\n\n${details}`,
   });
@@ -75,7 +76,7 @@ export async function emailOnStatusChange(p: {
   const status = p.newStatus ?? p.status;
   if (!status) throw new Error("emailOnStatusChange: status missing");
 
-  const when = new Date(p.startsAtISO).toLocaleString();
+  const when = formatZoned(p.startsAtISO); // ✅ consistent timezone
   const subj =
     status === "cancelled"
       ? `Booking cancelled — ${p.serviceName}`
@@ -114,7 +115,7 @@ export async function emailOnStatusChange(p: {
   await resend.emails.send({
     from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: adiEmail,
-    replyTo: adiEmail, // ✅ camelCase
+    replyTo: adiEmail,
     subject: subj,
     text: textADI,
   });
@@ -123,7 +124,7 @@ export async function emailOnStatusChange(p: {
   await resend.emails.send({
     from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: p.client.email,
-    replyTo: adiEmail, // ✅ camelCase
+    replyTo: adiEmail,
     subject: subj,
     text: textClient,
   });
