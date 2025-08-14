@@ -16,45 +16,28 @@ function euros(cents: number) {
   return `€${(cents / 100).toFixed(2)}`;
 }
 
-const isMotorway = (name: string) => /motorway/i.test(name);
-const isStandard = (name: string) => /standard\s*lesson/i.test(name);
+// Prefer “Standard Lesson (1 hour)” and hide motorway/duplicates in UI
+function normaliseServices(list: Service[]): Service[] {
+  // remove motorway entirely
+  let filtered = list.filter(
+    (s) => !s.name.toLowerCase().includes("motorway")
+  );
 
-/** Normalize services for the dropdown:
- *  - Exclude anything with "Motorway" in the name (case-insensitive)
- *  - Keep only one "Standard Lesson" (prefer name containing "1 hour", else duration 60)
- *  - Keep only active (if active flag exists)
- *  - Put Standard Lesson first for convenience
- */
-function normalizeServices(list: Service[]): Service[] {
-  const cleaned = list
-    .filter((s) => s.active !== false)
-    .filter((s) => !isMotorway(s.name));
-
-  const standards = cleaned.filter((s) => isStandard(s.name));
-  let chosenStandard: Service | undefined;
-  if (standards.length) {
-    chosenStandard =
-      standards.find((s) => /1\s*hour/i.test(s.name)) ||
-      standards.find((s) => s.duration_minutes === 60) ||
-      standards[0];
+  // if two “Standard Lesson” variants exist, keep the “1 hour” version
+  const stds = filtered.filter((s) =>
+    s.name.toLowerCase().includes("standard lesson")
+  );
+  if (stds.length > 1) {
+    const keep = stds.find((s) => s.name.toLowerCase().includes("1 hour"));
+    if (keep) {
+      filtered = filtered.filter((s) => {
+        const isStd = s.name.toLowerCase().includes("standard lesson");
+        return !isStd || s.id === keep.id;
+      });
+    }
   }
 
-  const others = cleaned.filter((s) => !isStandard(s.name));
-  const result = chosenStandard ? [chosenStandard, ...others] : others;
-  return result;
-}
-
-/** Display name for UI:
- *  - Standard Lesson => force "Standard Lesson (1 hour)"
- *  - Others => keep DB name
- *  - Prices always shown
- */
-function displayNameWithPrice(s: Service) {
-  const name = isStandard(s.name) ? "Standard Lesson (1 hour)" : s.name;
-  return `${name} (${euros(s.price_cents)})`;
-}
-function displayNamePlain(s: Service) {
-  return isStandard(s.name) ? "Standard Lesson (1 hour)" : s.name;
+  return filtered;
 }
 
 export default function BookPage() {
@@ -67,6 +50,7 @@ export default function BookPage() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+
   const [toast, setToast] = useState<string>("");
 
   const selectedService = useMemo(
@@ -74,15 +58,24 @@ export default function BookPage() {
     [services, serviceId]
   );
 
-  // Load and normalize services
+  // Load services (and preselect via ?serviceId=... if present)
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/services", { cache: "no-store" });
-      const raw = await res.json();
-      const list = Array.isArray(raw) ? (raw as Service[]) : [];
-      const normalized = normalizeServices(list);
-      setServices(normalized);
-      if (normalized.length && !serviceId) setServiceId(normalized[0].id);
+      const res = await fetch("/api/services");
+      const data: Service[] = (await res.json()) || [];
+      const cleaned = normaliseServices(data);
+
+      setServices(cleaned);
+
+      // Try preselect from query string
+      const u = new URL(window.location.href);
+      const qsId = u.searchParams.get("serviceId");
+
+      if (qsId && cleaned.find((s) => s.id === qsId)) {
+        setServiceId(qsId);
+      } else if (cleaned.length && !serviceId) {
+        setServiceId(cleaned[0].id);
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -101,12 +94,12 @@ export default function BookPage() {
   const confirmBooking = async () => {
     if (!serviceId || !selectedSlot) {
       setToast("Please pick a service and time");
-      setTimeout(() => setToast(""), 2000);
+      setTimeout(() => setToast(""), 2200);
       return;
     }
     if (!clientName || !clientEmail) {
       setToast("Please enter your name and email");
-      setTimeout(() => setToast(""), 2000);
+      setTimeout(() => setToast(""), 2200);
       return;
     }
 
@@ -116,7 +109,11 @@ export default function BookPage() {
       body: JSON.stringify({
         serviceId,
         startsAt: selectedSlot,
-        client: { name: clientName, email: clientEmail, phone: clientPhone || null },
+        client: {
+          name: clientName,
+          email: clientEmail,
+          phone: clientPhone || null,
+        },
       }),
     });
 
@@ -129,121 +126,142 @@ export default function BookPage() {
 
     setToast("Booking confirmed! Check your email.");
     setTimeout(() => setToast(""), 3000);
-    await showTimes(); // refresh to remove the chosen slot
+    await showTimes(); // remove the chosen slot
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Left: form */}
       <div className="md:col-span-2">
-        <h1 className="text-2xl font-semibold mb-2">Book a Lesson</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight mb-2">
+          Book a Lesson
+        </h1>
         <p className="text-sm text-gray-600 mb-6">
           Pick a service, choose a date & time, add your details, and confirm.
         </p>
 
-        {/* 1. Choose service & date */}
-        <div className="mb-6 space-y-2">
-          <label className="block text-sm font-medium">Service</label>
-          <select
-            className="w-full rounded border px-3 py-2"
-            value={serviceId}
-            onChange={(e) => setServiceId(e.target.value)}
-          >
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {displayNameWithPrice(s)}
-              </option>
-            ))}
-          </select>
+        {/* Card wrapper in white with subtle border to keep theme consistent */}
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          {/* 1. Service & date */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium">Service</label>
+            <select
+              className="mt-1 w-full rounded border px-3 py-2"
+              value={serviceId}
+              onChange={(e) => setServiceId(e.target.value)}
+            >
+              {services.map((s) => {
+                // Build clean label: hide minutes except mention 1 hour for standard
+                let label = s.name;
+                if (/standard lesson/i.test(s.name) && !/1 hour/i.test(s.name)) {
+                  label = "Standard Lesson (1 hour)";
+                }
+                return (
+                  <option key={s.id} value={s.id}>
+                    {label} — {euros(s.price_cents)}
+                  </option>
+                );
+              })}
+            </select>
 
-          <label className="block text-sm font-medium mt-4">Date</label>
-          <input
-            type="date"
-            className="w-full rounded border px-3 py-2"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+            <label className="block text-sm font-medium mt-4">Date</label>
+            <input
+              type="date"
+              className="mt-1 w-full rounded border px-3 py-2"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
 
-          <button
-            onClick={showTimes}
-            className="mt-3 inline-flex items-center rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
-          >
-            Show times
-          </button>
-        </div>
+            <button
+              onClick={showTimes}
+              className="mt-3 inline-flex items-center rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+            >
+              Show times
+            </button>
+          </div>
 
-        {/* 2. Pick a time */}
-        <div className="mb-6">
-          <h2 className="text-sm font-semibold mb-2">Pick a time</h2>
-          {!slots.length && (
-            <p className="text-sm text-gray-500">
-              No times yet — choose a weekday within 09:00–17:00 and click “Show times”.
+          {/* 2. Pick a time */}
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold mb-2">Pick a time</h2>
+            {!slots.length && (
+              <p className="text-sm text-gray-500">
+                No times yet — choose a weekday within 09:00–17:00 and click “Show times”.
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {slots.map((iso) => {
+                const d = new Date(iso);
+                const label = d.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                const active = selectedSlot === iso;
+                return (
+                  <button
+                    key={iso}
+                    onClick={() => setSelectedSlot(iso)}
+                    className={`rounded border px-3 py-2 text-sm transition ${
+                      active
+                        ? "bg-black text-white border-black"
+                        : "bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Details */}
+          <div className="mb-6 space-y-3">
+            <h2 className="text-sm font-semibold">Your details</h2>
+            <input
+              placeholder="Full name"
+              className="w-full rounded border px-3 py-2"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+            />
+            <input
+              placeholder="Email address"
+              className="w-full rounded border px-3 py-2"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+            />
+            <input
+              placeholder="Phone (optional)"
+              className="w-full rounded border px-3 py-2"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+            />
+          </div>
+
+          {selectedService && (
+            <p className="text-sm text-gray-700 mb-4">
+              You’re booking <strong>{selectedService.name}</strong>. Total:{" "}
+              <strong>{euros(selectedService.price_cents)}</strong>.
             </p>
           )}
-          <div className="flex flex-wrap gap-2">
-            {slots.map((iso) => {
-              const d = new Date(iso);
-              const label = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-              return (
-                <button
-                  key={iso}
-                  onClick={() => setSelectedSlot(iso)}
-                  className={`rounded border px-3 py-2 text-sm ${
-                    selectedSlot === iso ? "bg-black text-white" : "bg-white hover:bg-gray-50"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
+
+          <button
+            onClick={confirmBooking}
+            className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
+          >
+            Confirm booking
+          </button>
+
+          {toast && (
+            <p className="mt-3 text-sm text-red-700 font-medium">{toast}</p>
+          )}
         </div>
-
-        {/* 3. Your details */}
-        <div className="mb-6 space-y-3">
-          <h2 className="text-sm font-semibold">Your details</h2>
-          <input
-            placeholder="Full name"
-            className="w-full rounded border px-3 py-2"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-          />
-          <input
-            placeholder="Email address"
-            className="w-full rounded border px-3 py-2"
-            value={clientEmail}
-            onChange={(e) => setClientEmail(e.target.value)}
-          />
-          <input
-            placeholder="Phone (optional)"
-            className="w-full rounded border px-3 py-2"
-            value={clientPhone}
-            onChange={(e) => setClientPhone(e.target.value)}
-          />
-        </div>
-
-        {selectedService && (
-          <p className="text-sm text-gray-700 mb-4">
-            You’re booking <strong>{displayNamePlain(selectedService)}</strong>. Total:{" "}
-            <strong>{euros(selectedService.price_cents)}</strong>.
-          </p>
-        )}
-
-        <button
-          onClick={confirmBooking}
-          className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
-        >
-          Confirm booking
-        </button>
-
-        {toast && <p className="mt-3 text-sm text-indigo-700">{toast}</p>}
       </div>
 
-      {/* Summary card */}
+      {/* Right: summary card */}
       <aside className="md:col-span-1">
-        <div className="rounded-2xl border bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <h3 className="font-semibold text-gray-800 mb-2">Booking Summary</h3>
           <p className="text-sm text-gray-700">
-            {selectedService ? `Service: ${displayNamePlain(selectedService)}` : "Pick a service"}
+            {selectedService ? `Service: ${selectedService.name}` : "Pick a service"}
           </p>
           <p className="text-sm text-gray-700">Date: {date || "-"}</p>
           <p className="text-sm text-gray-700">

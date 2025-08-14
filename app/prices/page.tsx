@@ -1,193 +1,202 @@
 // app/prices/page.tsx
-"use client";
+import Link from "next/link";
 
-import { useEffect, useMemo, useState } from "react";
-
-// Shape returned by /api/services
 type Service = {
   id: string;
   name: string;
-  duration_minutes: number;
+  duration_minutes: number | null;
   price_cents: number;
   active?: boolean;
 };
 
-// Helper to find a service ID by fuzzy name
-function findServiceId(services: Service[], keys: string[]): string | undefined {
-  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
-  const svc = services.find((s) => {
-    const n = norm(s.name);
-    return keys.some((k) => n.includes(norm(k)));
-  });
-  return svc?.id;
+// Helper to format euro
+function euros(cents: number) {
+  return `€${(cents / 100).toFixed(0)}`;
 }
 
-// Builds a booking link. Falls back to /book if we don't find the service.
-function bookingHref(serviceId?: string) {
-  return serviceId ? `/book?serviceId=${encodeURIComponent(serviceId)}` : "/book";
+// Try to find a service by fuzzy name (case-insensitive, simple includes)
+function findByName(services: Service[], needle: string) {
+  const n = needle.toLowerCase();
+  return services.find((s) => s.name.toLowerCase().includes(n));
 }
 
-export default function PricesPage() {
-  const [services, setServices] = useState<Service[]>([]);
+// Prefer “1 hour” standard lesson and exclude “60m” variant
+function pickStandard(services: Service[]) {
+  const stdHour = services.find(
+    (s) =>
+      s.name.toLowerCase().includes("standard") &&
+      s.name.toLowerCase().includes("1 hour")
+  );
+  if (stdHour) return stdHour;
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/services", { cache: "no-store" });
-        const data = await res.json();
-        if (Array.isArray(data)) setServices(data);
-      } catch {
-        // ignore; page still renders with plain /book links
-      }
-    })();
-  }, []);
+  // Fallback: any “standard lesson” that is not explicitly “60m”
+  const std = services.find(
+    (s) =>
+      s.name.toLowerCase().includes("standard") &&
+      !s.name.toLowerCase().includes("60m")
+  );
+  return std ?? services.find((s) => s.name.toLowerCase().includes("standard"));
+}
 
-  // Resolve service IDs dynamically (so buttons deep-link to /book preselected)
-  const standardId = useMemo(
-    () => findServiceId(services, ["standard lesson", "60m", "standard"]),
-    [services]
+export default async function PricesPage() {
+  // Pull services from your API at runtime (server component)
+  let services: Service[] = [];
+  try {
+    // Works in Vercel and locally because it’s a relative URL in the same app
+    const res = await fetch(`${process.env.APP_ORIGIN ?? ""}/api/services`, {
+      cache: "no-store",
+    });
+    services = (await res.json()) ?? [];
+  } catch {
+    services = [];
+  }
+
+  // Filter out “Motorway” or any unwanted extras
+  services = services.filter(
+    (s) => !s.name.toLowerCase().includes("motorway")
   );
 
-  const pretestId = useMemo(
-    () => findServiceId(services, ["pre-test", "pre test", "pretest"]),
-    [services]
+  const standard = pickStandard(services);
+  const pretest = findByName(services, "pre-test");
+  const carHire = services.find((s) =>
+    /car.*test|hire.*test/i.test(s.name)
   );
 
-  const carHireId = useMemo(
-    () => findServiceId(services, ["car hire", "car for test"]),
-    [services]
-  );
-
-  const edtBundleId = useMemo(
-    () => findServiceId(services, ["edt bundle", "12 lessons", "edt (12)"]),
-    [services]
-  );
+  // For the bundle (705) we don’t need a specific service to deep-link; we can just send them to /book
+  // If you *do* create a “bundle” service later, wire it the same way:
+  const edtSingle = findByName(services, "edt");
+  const bookHref = (svc?: Service) =>
+    svc ? `/book?serviceId=${encodeURIComponent(svc.id)}` : "/book";
 
   return (
-    <main className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-extrabold tracking-tight text-center text-black">
-        Prices & Packages
+    <section className="mx-auto max-w-5xl">
+      <h1 className="text-3xl font-extrabold tracking-tight mb-6">
+        Prices
       </h1>
-      <p className="text-center text-gray-700 mt-2">
-        Clear, simple pricing. Secure booking with instant email confirmation.
-      </p>
 
-      {/* Top row — 3 products */}
-      <div className="grid md:grid-cols-3 gap-6 mt-8">
+      {/* Top three products */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {/* Standard Lesson */}
-        <article className="border border-black rounded-2xl bg-white shadow-sm p-6 flex flex-col">
-          <h2 className="text-xl font-bold text-black">Standard Lesson</h2>
-          <p className="text-sm text-gray-700">Manual or Automatic</p>
+        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+          <div>
+            <h3 className="text-lg font-semibold">Standard Lesson</h3>
+            <p className="text-sm text-gray-600">Manual or Automatic</p>
 
-          <div className="mt-3">
-            <div className="text-4xl font-extrabold text-red-600 leading-none">€65</div>
-            <div className="text-sm text-gray-700">per hour / lesson</div>
+            <p className="mt-4 text-4xl font-extrabold text-red-600">
+              {standard ? euros(standard.price_cents) : "€65"}
+            </p>
+            <p className="text-sm text-gray-500">per hour / lesson</p>
+
+            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
+              <li>One-to-one, structured coaching</li>
+              <li>Pick-up in local area</li>
+            </ul>
           </div>
 
-          <ul className="mt-4 list-disc list-inside text-gray-800 space-y-1">
-            <li>One-to-one, structured coaching</li>
-            <li>Pick-up in local area</li>
-          </ul>
-
-          <a
-            href={bookingHref(standardId)}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-white font-semibold hover:bg-black transition"
+          <Link
+            href={bookHref(standard)}
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
             Book this
-          </a>
-        </article>
-
-        {/* Pre-Test Lesson */}
-        <article className="border border-black rounded-2xl bg-white shadow-sm p-6 flex flex-col">
-          <h2 className="text-xl font-bold text-black">Pre-Test Lesson</h2>
-          <p className="text-sm text-gray-700">Test route familiarisation</p>
-
-          <div className="mt-3">
-            <div className="text-4xl font-extrabold text-red-600 leading-none">€80</div>
-            <div className="text-sm text-gray-700">pre-test session</div>
-          </div>
-
-          <ul className="mt-4 list-disc list-inside text-gray-800 space-y-1">
-            <li>Focus on likely test items</li>
-            <li>Last-minute refresher & tips</li>
-          </ul>
-
-          <a
-            href={bookingHref(pretestId)}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-white font-semibold hover:bg-black transition"
-          >
-            Book this
-          </a>
-        </article>
-
-        {/* Car Hire for Test */}
-        <article className="border border-black rounded-2xl bg-white shadow-sm p-6 flex flex-col">
-          <h2 className="text-xl font-bold text-black">Car Hire for Test</h2>
-          <p className="text-sm text-gray-700">Car provided for test</p>
-
-          <div className="mt-3">
-            <div className="text-4xl font-extrabold text-red-600 leading-none">€100</div>
-            <div className="text-sm text-gray-700">on test day</div>
-          </div>
-
-          <ul className="mt-4 list-disc list-inside text-gray-800 space-y-1">
-            <li>Roadworthy, fully insured vehicle</li>
-            <li>Meet at the test centre</li>
-          </ul>
-
-          <a
-            href={bookingHref(carHireId)}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-white font-semibold hover:bg-black transition"
-          >
-            Book this
-          </a>
-        </article>
-      </div>
-
-      {/* EDT Bundle */}
-      <section className="mt-8 border border-black rounded-2xl bg-white shadow-sm p-6">
-        <h2 className="text-xl font-bold text-black">EDT Bundle (12 lessons)</h2>
-        <p className="text-sm text-gray-700">Best value</p>
-
-        <div className="mt-3">
-          <div className="text-4xl font-extrabold text-red-600 leading-none">€705</div>
-          <div className="text-sm text-gray-700">includes €5 logbook</div>
+          </Link>
         </div>
 
-        <ul className="mt-4 list-disc list-inside text-gray-800 space-y-1">
-          <li>Save vs paying individually</li>
-          <li>
-            Split payments:
-            <ul className="list-disc list-inside ml-4">
-              <li>
+        {/* Pre-Test Lesson */}
+        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+          <div>
+            <h3 className="text-lg font-semibold">Pre-Test Lesson</h3>
+            <p className="text-sm text-gray-600">Test route familiarisation</p>
+
+            <p className="mt-4 text-4xl font-extrabold text-red-600">
+              {pretest ? euros(pretest.price_cents) : "€80"}
+            </p>
+            <p className="text-sm text-gray-500">pre-test session</p>
+
+            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
+              <li>Focus on likely test items</li>
+              <li>Last-minute refresher & tips</li>
+            </ul>
+          </div>
+
+          <Link
+            href={bookHref(pretest)}
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800 transition"
+          >
+            Book this
+          </Link>
+        </div>
+
+        {/* Car Hire for Test */}
+        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+          <div>
+            <h3 className="text-lg font-semibold">Car Hire for Test</h3>
+            <p className="text-sm text-gray-600">Car provided for test</p>
+
+            <p className="mt-4 text-4xl font-extrabold text-red-600">
+              {carHire ? euros(carHire.price_cents) : "€100"}
+            </p>
+            <p className="text-sm text-gray-500">on test day</p>
+
+            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
+              <li>Roadworthy, fully insured vehicle</li>
+              <li>Meet at the test centre</li>
+            </ul>
+          </div>
+
+          <Link
+            href={bookHref(carHire)}
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
+          >
+            Book this
+          </Link>
+        </div>
+      </div>
+
+      {/* EDT / bundle row */}
+      <div className="mt-8 grid grid-cols-1 gap-6">
+        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+          <div>
+            <h3 className="text-lg font-semibold">
+              EDT Bundle (12 lessons)
+            </h3>
+            <p className="text-sm text-gray-600">Best value</p>
+
+            <p className="mt-4 text-4xl font-extrabold text-red-600">€705</p>
+            <p className="text-sm text-gray-500">includes €5 logbook</p>
+
+            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
+              <li>Save vs paying individually</li>
+              <li>Split payments:</li>
+              <li className="ml-4">
                 Pay <strong>€355</strong> on the <strong>first</strong> lesson
               </li>
-              <li>
+              <li className="ml-4">
                 Pay <strong>€350</strong> on the <strong>7th</strong> lesson
               </li>
             </ul>
-          </li>
-        </ul>
+          </div>
 
-        <div className="mt-6 flex gap-3 flex-wrap">
-          <a
-            href={bookingHref(edtBundleId)}
-            className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-white font-semibold hover:bg-black transition"
-          >
-            Book bundle
-          </a>
-          <a
-            href={bookingHref(standardId)}
-            className="inline-flex items-center justify-center rounded-lg border border-black px-5 py-2.5 text-black font-semibold hover:bg-black hover:text-white transition"
-          >
-            Book single EDT lesson
-          </a>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/book"
+              className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
+            >
+              Book bundle
+            </Link>
+
+            <Link
+              href={bookHref(edtSingle)}
+              className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50 transition"
+            >
+              Book single EDT lesson
+            </Link>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <p className="text-xs text-gray-600 mt-8">
-        Prices include VAT where applicable. Cancellation policy applies. For questions, use the contact link in the header.
+      <p className="mt-8 text-sm text-gray-600">
+        Prices include VAT where applicable. For questions, use the contact link in the header.
       </p>
-    </main>
+    </section>
   );
 }
