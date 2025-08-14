@@ -2,7 +2,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
+
+type BookingStatus = "confirmed" | "cancelled" | "completed";
 
 type Service = {
   id: string;
@@ -14,261 +15,197 @@ type Service = {
 type BookingRow = {
   id: string;
   service_id: string;
-  starts_at: string;
-  ends_at: string;
-  status: "confirmed" | "cancelled" | "completed" | string;
   client_name: string;
   client_email: string;
   client_phone: string | null;
-  service?: Service | null;
+  starts_at: string; // ISO
+  ends_at: string;   // ISO
+  status: BookingStatus;
+  services?: Service; // if joined
 };
 
 export default function AdminPage() {
-  // Token handling
-  const [token, setToken] = useState("");
-  const [hasToken, setHasToken] = useState(false);
-
-  // Filters
-  const today = format(new Date(), "yyyy-MM-dd");
-  const [dateFrom, setDateFrom] = useState(today);
-  const [dateTo, setDateTo] = useState(
-    format(new Date(Date.now() + 14 * 86400000), "yyyy-MM-dd")
-  );
-
-  // Data
+  const [token, setToken] = useState<string>("");
+  const [inputToken, setInputToken] = useState<string>("");
   const [rows, setRows] = useState<BookingRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [toast, setToast] = useState<string>("");
+  const [savingId, setSavingId] = useState<string | null>(null);
 
-  // Load stored token once
   useEffect(() => {
-    const t = localStorage.getItem("adminToken") || "";
-    if (t) {
-      setToken(t);
-      setHasToken(true);
-    }
+    const saved = sessionStorage.getItem("adminToken");
+    if (saved) setToken(saved);
   }, []);
 
-  function toast(t: string) {
-    setMsg(t);
-    setTimeout(() => setMsg(""), 2200);
-  }
+  const isAuthed = useMemo(() => token.trim().length > 0, [token]);
 
-  function saveToken() {
-    const t = token.trim();
-    if (!t) return;
-    localStorage.setItem("adminToken", t);
-    setHasToken(true);
-    toast("Token saved");
-  }
-
-  async function fetchBookings() {
-    if (!hasToken) return;
+  async function load() {
+    setLoading(true);
+    setErrorMsg("");
     try {
-      setLoading(true);
-      const u = new URL("/api/admin/bookings", window.location.origin);
-      if (dateFrom) u.searchParams.set("date_from", dateFrom);
-      if (dateTo) u.searchParams.set("date_to", dateTo);
-
-      const res = await fetch(u.toString(), {
-        headers: { Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}` },
+      const res = await fetch("/api/admin/bookings", {
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `Failed to load (${res.status})`);
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load bookings");
       setRows(Array.isArray(data) ? data : []);
     } catch (e: any) {
-      toast(e.message || "Failed to load bookings");
+      setErrorMsg(e.message || "Failed to load");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    if (hasToken) fetchBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasToken]);
-
-  async function updateStatus(id: string, status: "cancelled" | "confirmed" | "completed") {
+  async function updateStatus(id: string, status: BookingStatus) {
     try {
+      setSavingId(id);
+      setToast("");
       const res = await fetch(`/api/admin/bookings/${id}`, {
         method: "PATCH",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,
         },
         body: JSON.stringify({ status }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Update failed");
-      toast("Updated");
-      await fetchBookings();
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body?.ok) throw new Error(body?.error || "Update failed");
+      await load();
+      setToast(
+        status === "completed"
+          ? "Marked as completed and emails sent."
+          : "Marked as cancelled and emails sent."
+      );
+      setTimeout(() => setToast(""), 2500);
     } catch (e: any) {
-      toast(e.message || "Update failed");
+      setErrorMsg(e.message || "Failed to update booking");
+      setTimeout(() => setErrorMsg(""), 3000);
+    } finally {
+      setSavingId(null);
     }
   }
 
-  // Derived lists
-  const upcoming = useMemo(
-    () =>
-      rows
-        .slice()
-        .sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at)),
-    [rows]
-  );
-
-  // ============== RENDER ==============
-
-  if (!hasToken) {
+  if (!isAuthed) {
     return (
-      <section className="mx-auto max-w-md py-8">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">Admin login</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          Enter your admin token (set as <code>ADMIN_TOKEN</code> in your env).
+      <div className="max-w-md mx-auto">
+        <h1 className="text-2xl font-semibold mb-4">Admin login</h1>
+        <p className="text-sm text-gray-600 mb-3">
+          Paste your admin token to view and manage bookings.
         </p>
-
         <input
-          type="password"
-          placeholder="Admin token"
           className="w-full rounded border px-3 py-2 mb-3"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
+          placeholder="Admin token"
+          value={inputToken}
+          onChange={(e) => setInputToken(e.target.value)}
         />
-
         <button
-          onClick={saveToken}
-          className="inline-flex items-center rounded-lg px-5 py-2.5 font-semibold text-white bg-red-600 hover:bg-red-700"
+          onClick={() => {
+            if (!inputToken.trim()) return;
+            sessionStorage.setItem("adminToken", inputToken.trim());
+            setToken(inputToken.trim());
+          }}
+          className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
         >
           Continue
         </button>
-
-        {msg && <p className="mt-4 text-sm text-red-700">{msg}</p>}
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="py-6">
-      <header className="mb-6 flex flex-wrap items-end gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-gray-600">Manage bookings</p>
-        </div>
-
-        <div className="ml-auto flex items-end gap-3">
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">From</label>
-            <input
-              type="date"
-              className="rounded border px-3 py-2"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">To</label>
-            <input
-              type="date"
-              className="rounded border px-3 py-2"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
-          </div>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Admin — Bookings</h1>
+        <div className="flex items-center gap-2">
           <button
-            onClick={fetchBookings}
-            className="inline-flex items-center rounded-lg px-5 py-2.5 font-semibold text-white bg-red-600 hover:bg-red-700"
+            onClick={load}
+            className="rounded border px-3 py-2 hover:bg-gray-50"
           >
             Refresh
           </button>
+          <button
+            onClick={() => {
+              sessionStorage.removeItem("adminToken");
+              setToken("");
+              setRows([]);
+            }}
+            className="rounded border px-3 py-2 hover:bg-gray-50"
+          >
+            Sign out
+          </button>
         </div>
-      </header>
+      </div>
 
-      <div className="rounded-2xl border bg-white overflow-hidden">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-left text-gray-700">
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Time</th>
-              <th className="px-4 py-3">Service</th>
-              <th className="px-4 py-3">Client</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+      {toast && <p className="text-sm text-green-700 mb-3">{toast}</p>}
+      {loading && <p className="text-sm text-gray-600 mb-3">Loading…</p>}
+      {errorMsg && <p className="text-sm text-red-600 mb-3">{errorMsg}</p>}
+
+      {!rows.length ? (
+        <p className="text-sm text-gray-600">No bookings yet.</p>
+      ) : (
+        <div className="overflow-x-auto rounded border bg-white">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-50 text-left">
               <tr>
-                <td className="px-4 py-6 text-gray-600" colSpan={6}>
-                  Loading…
-                </td>
+                <th className="px-3 py-2">When</th>
+                <th className="px-3 py-2">Client</th>
+                <th className="px-3 py-2">Service</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2">Actions</th>
               </tr>
-            ) : upcoming.length === 0 ? (
-              <tr>
-                <td className="px-4 py-6 text-gray-600" colSpan={6}>
-                  No bookings in this range.
-                </td>
-              </tr>
-            ) : (
-              upcoming.map((b) => {
-                const d = new Date(b.starts_at);
-                const dateLabel = d.toLocaleDateString(undefined, {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                });
-                const timeLabel = d.toLocaleTimeString(undefined, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                });
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const when = new Date(r.starts_at).toLocaleString();
+                const serviceLabel = r.services?.name ?? `${r.service_id.slice(0, 6)}…`;
+                const badge =
+                  r.status === "confirmed"
+                    ? "bg-green-100 text-green-700"
+                    : r.status === "completed"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-red-100 text-red-700";
                 return (
-                  <tr key={b.id} className="border-t">
-                    <td className="px-4 py-3">{dateLabel}</td>
-                    <td className="px-4 py-3">{timeLabel}</td>
-                    <td className="px-4 py-3">{b.service?.name ?? b.service_id}</td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{b.client_name}</div>
-                      <div className="text-gray-600">
-                        {b.client_email}
-                        {b.client_phone ? ` · ${b.client_phone}` : ""}
-                      </div>
+                  <tr key={r.id} className="border-t">
+                    <td className="px-3 py-2">{when}</td>
+                    <td className="px-3 py-2">
+                      {r.client_name}
+                      <div className="text-gray-500">{r.client_email}</div>
                     </td>
-                    <td className="px-4 py-3 capitalize">{b.status}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
-                        {b.status !== "cancelled" && (
-                          <button
-                            className="inline-flex rounded border px-3 py-1 hover:bg-gray-50"
-                            onClick={() => updateStatus(b.id, "cancelled")}
-                          >
-                            Cancel
-                          </button>
-                        )}
-                        {b.status !== "confirmed" && (
-                          <button
-                            className="inline-flex rounded border px-3 py-1 hover:bg-gray-50"
-                            onClick={() => updateStatus(b.id, "confirmed")}
-                          >
-                            Confirm
-                          </button>
-                        )}
-                        {b.status !== "completed" && (
-                          <button
-                            className="inline-flex rounded border px-3 py-1 hover:bg-gray-50"
-                            onClick={() => updateStatus(b.id, "completed")}
-                          >
-                            Completed
-                          </button>
-                        )}
+                    <td className="px-3 py-2">{serviceLabel}</td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateStatus(r.id, "completed")}
+                          disabled={savingId === r.id}
+                          className="rounded border px-3 py-1 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {savingId === r.id ? "Saving…" : "Completed"}
+                        </button>
+                        <button
+                          onClick={() => updateStatus(r.id, "cancelled")}
+                          disabled={savingId === r.id}
+                          className="rounded border px-3 py-1 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {savingId === r.id ? "Saving…" : "Cancel"}
+                        </button>
                       </div>
                     </td>
                   </tr>
                 );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {msg && <p className="mt-3 text-sm text-red-700">{msg}</p>}
-    </section>
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }

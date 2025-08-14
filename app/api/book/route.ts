@@ -1,43 +1,66 @@
 // app/api/book/route.ts
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { supabase } from "@/lib/supabase";
+import { addMinutes } from "date-fns";
+import { getAvailableSlots } from "@/lib/availability";
+import { emailOnBooking } from "@/lib/email";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
-import { getAvailableSlots } from "@/lib/availability";
-import { addMinutes } from "date-fns";
-import emailOnBooking from "@/lib/email";
-
-export async function GET() {
-  return NextResponse.json({ ok: true, route: "/api/book", expects: "POST" });
-}
+const BookingInput = z.object({
+  serviceId: z.string().uuid("Invalid service"),
+  startsAt: z.string().datetime("Invalid start time"),
+  client: z.object({
+    name: z.string().min(2, "Name required"),
+    email: z.string().email("Valid email required"),
+    phone: z.string().optional().nullable(),
+  }),
+});
 
 export async function POST(req: Request) {
   try {
-    const { serviceId, startsAt, client } = await req.json();
-
-    if (!serviceId || !startsAt || !client?.name || !client?.email) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    // Validate input
+    const parsed = BookingInput.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      );
     }
+    const { serviceId, startsAt, client } = parsed.data;
 
     const startsAtISO = new Date(startsAt).toISOString();
     const dateISO = startsAtISO.slice(0, 10);
 
+    // Server-side guard: ensure slot still free
     const stillFree = await getAvailableSlots(serviceId, dateISO);
     if (!stillFree.includes(startsAtISO)) {
-      return NextResponse.json({ error: "Slot no longer available" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Slot no longer available" },
+        { status: 409 }
+      );
     }
 
+    // Fetch service info
     const { data: svc, error: svcErr } = await supabase
       .from("services")
-      .select("name,duration_minutes,price_cents")
+      .select("id,name,duration_minutes,price_cents")
       .eq("id", serviceId)
       .single();
-    if (svcErr || !svc) return NextResponse.json({ error: "Service not found" }, { status: 404 });
 
-    const endsAtISO = addMinutes(new Date(startsAtISO), Number(svc.duration_minutes)).toISOString();
+    if (svcErr || !svc) {
+      return NextResponse.json({ error: "Service not found" }, { status: 404 });
+    }
 
-    const { data: inserted, error } = await supabase
+    const endsAtISO = addMinutes(
+      new Date(startsAtISO),
+      Number(svc.duration_minutes)
+    ).toISOString();
+
+    // Insert booking
+    const { data: inserted, error: insErr } = await supabase
       .from("bookings")
       .insert({
         service_id: serviceId,
@@ -51,32 +74,33 @@ export async function POST(req: Request) {
       .select("id")
       .single();
 
-    if (error) {
-      console.error("DB insert failed:", error);
-      return NextResponse.json({ error: "Could not create booking" }, { status: 500 });
+    if (insErr || !inserted) {
+      return NextResponse.json(
+        { error: insErr?.message || "Could not save booking" },
+        { status: 500 }
+      );
     }
 
-    const canEmail =
-      !!process.env.RESEND_API_KEY && !!process.env.FROM_EMAIL && !!process.env.ADI_EMAIL;
-
-    if (canEmail) {
-      emailOnBooking({
-        bookingId: inserted.id,
-        serviceName: svc.name,
-        durationMinutes: Number(svc.duration_minutes),
-        priceCents: Number(svc.price_cents),
-        startsAtISO,
-        endsAtISO,
-        client: { name: client.name, email: client.email, phone: client.phone ?? null },
-      }).catch((err) => console.error("emailOnBooking failed:", err));
-    } else {
-      console.warn("Skipping emails: RESEND env vars not set");
-    }
+    // Fire-and-forget confirmation emails
+    emailOnBooking({
+      bookingId: inserted.id,
+      serviceName: svc.name,
+      durationMinutes: Number(svc.duration_minutes),
+      priceCents: Number(svc.price_cents),
+      startsAtISO,
+      endsAtISO,
+      client: {
+        name: client.name,
+        email: client.email,
+        phone: client.phone ?? null,
+      },
+    }).catch((e) => console.error("emailOnBooking failed:", e));
 
     return NextResponse.json({ ok: true, bookingId: inserted.id });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Bad request";
-    console.error("book POST error:", e);
-    return NextResponse.json({ error: msg }, { status: 400 });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message || "Bad request" },
+      { status: 400 }
+    );
   }
 }

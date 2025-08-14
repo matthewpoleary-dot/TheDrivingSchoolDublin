@@ -1,180 +1,130 @@
 // lib/email.ts
 import { Resend } from "resend";
 
-const resendKey = process.env.RESEND_API_KEY!;
-const fromEmail = process.env.FROM_EMAIL!;
-const adiEmail = process.env.ADI_EMAIL!;
-const tz = process.env.TIMEZONE || "Europe/Dublin";
-
-const resend = new Resend(resendKey);
+const resend = new Resend(process.env.RESEND_API_KEY!);
+const fromEmail = process.env.FROM_EMAIL!;   // e.g. onboarding@resend.dev (for dev) or bookings@yourdomain.com (prod)
+const adiEmail  = process.env.ADI_EMAIL!;    // your inbox
 
 export type BookingEmailPayload = {
   bookingId: string;
   serviceName: string;
-  durationMinutes: number;
-  priceCents: number;
-  startsAtISO: string; // UTC ISO string
-  endsAtISO: string;   // UTC ISO string
+  durationMinutes?: number;
+  priceCents?: number;
+  startsAtISO: string;
+  endsAtISO?: string;
   client: { name: string; email: string; phone?: string | null };
 };
 
-function euro(cents: number) {
-  return `€${(cents / 100).toFixed(2)}`;
-}
-function fmt(dtISO: string) {
-  return new Date(dtISO).toLocaleString("en-IE", { timeZone: tz, hour12: false });
-}
-
-// Simple ICS generator (calendar invite)
-function makeICS(p: BookingEmailPayload) {
-  const start = new Date(p.startsAtISO);
-  const end = new Date(p.endsAtISO);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const toICS = (d: Date) =>
-    `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
-
-  const uid = `booking-${p.bookingId}@thedrivingschooldublin`;
-  const summary = `Lesson: ${p.serviceName}`;
-  const description = `Client: ${p.client.name} (${p.client.email}${p.client.phone ? ", " + p.client.phone : ""})
-Service: ${p.serviceName}
-Duration: ${p.durationMinutes} minutes
-Price: ${euro(p.priceCents)}
-Booking ID: ${p.bookingId}`;
-
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//TheDrivingSchoolDublin//Booking//EN",
-    "METHOD:PUBLISH",
-    "BEGIN:VEVENT",
-    `UID:${uid}`,
-    `DTSTAMP:${toICS(new Date())}`,
-    `DTSTART:${toICS(start)}`,
-    `DTEND:${toICS(end)}`,
-    `SUMMARY:${summary}`,
-    `DESCRIPTION:${description.replace(/\n/g, "\\n")}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-}
-
+/** Send confirmation emails when a new booking is created */
 export async function emailOnBooking(p: BookingEmailPayload) {
-  // Email to ADI
+  const when = new Date(p.startsAtISO).toLocaleString();
+  const priceLine =
+    p.priceCents != null ? `Price: €${(p.priceCents / 100).toFixed(2)}` : "";
+  const durationLine =
+    p.durationMinutes != null ? `Duration: ${p.durationMinutes} min` : "";
+
+  const details = [
+    `Service: ${p.serviceName}`,
+    `When:   ${when}`,
+    durationLine,
+    priceLine,
+    ``,
+    `Client: ${p.client.name} (${p.client.email}${p.client.phone ? ", " + p.client.phone : ""})`,
+    `Booking ID: ${p.bookingId}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  // To ADI
   await resend.emails.send({
-    from: fromEmail,
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: adiEmail,
-    subject: `New booking: ${p.serviceName} — ${fmt(p.startsAtISO)}`,
-    text: [
-      `New booking received`,
-      ``,
-      `Service: ${p.serviceName}`,
-      `Duration: ${p.durationMinutes} minutes`,
-      `Price: ${euro(p.priceCents)}`,
-      `Starts: ${fmt(p.startsAtISO)}`,
-      `Ends:   ${fmt(p.endsAtISO)}`,
-      ``,
-      `Client: ${p.client.name}`,
-      `Email:  ${p.client.email}`,
-      `Phone:  ${p.client.phone || "-"}`,
-      ``,
-      `Booking ID: ${p.bookingId}`,
-    ].join("\n"),
-    attachments: [{ filename: "lesson.ics", content: makeICS(p) }],
+    reply_to: adiEmail, // Resend Node SDK uses snake_case
+    subject: `New booking — ${p.serviceName}`,
+    text: `New booking received\n\n${details}`,
   });
 
-  // Confirmation to client
+  // To Client
   await resend.emails.send({
-    from: fromEmail,
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: p.client.email,
+    reply_to: adiEmail,
     subject: `Your lesson is booked — ${p.serviceName}`,
-    text: [
-      `Thanks ${p.client.name}, your lesson is confirmed.`,
-      ``,
-      `Service: ${p.serviceName}`,
-      `When:   ${fmt(p.startsAtISO)}`,
-      `Duration: ${p.durationMinutes} minutes`,
-      `Price: ${euro(p.priceCents)}`,
-      ``,
-      `If you need to change your booking, reply to this email.`,
-      ``,
-      `Booking ID: ${p.bookingId}`,
-    ].join("\n"),
-    attachments: [{ filename: "lesson.ics", content: makeICS(p) }],
-  });
-}
-
-// ---- New: status-change emails ----
-
-export async function emailOnCancel(p: BookingEmailPayload) {
-  // Notify ADI
-  await resend.emails.send({
-    from: fromEmail,
-    to: adiEmail,
-    subject: `Booking cancelled — ${p.serviceName} (${fmt(p.startsAtISO)})`,
-    text: [
-      `A booking was cancelled.`,
-      ``,
-      `Service: ${p.serviceName}`,
-      `When:    ${fmt(p.startsAtISO)} - ${fmt(p.endsAtISO)}`,
-      `Client:  ${p.client.name} (${p.client.email}${p.client.phone ? ", " + p.client.phone : ""})`,
-      `Price:   ${euro(p.priceCents)}`,
-      ``,
-      `Booking ID: ${p.bookingId}`,
-    ].join("\n"),
-  });
-
-  // Inform client
-  await resend.emails.send({
-    from: fromEmail,
-    to: p.client.email,
-    subject: `Your lesson has been cancelled — ${p.serviceName}`,
     text: [
       `Hi ${p.client.name},`,
       ``,
-      `Your lesson scheduled for ${fmt(p.startsAtISO)} has been cancelled.`,
+      `Your lesson is confirmed.`,
+      details,
       ``,
-      `Service: ${p.serviceName}`,
-      `Duration: ${p.durationMinutes} minutes`,
-      `Price: ${euro(p.priceCents)}`,
-      ``,
-      `If this is unexpected, reply to this email and we’ll help reschedule.`,
-      ``,
-      `Booking ID: ${p.bookingId}`,
+      `If you need to change your booking, just reply to this email.`,
     ].join("\n"),
   });
 }
 
-export async function emailOnCompleted(p: BookingEmailPayload) {
-  // Notify ADI (optional)
+type Status = "cancelled" | "completed";
+
+/** Send emails when a booking is cancelled or completed */
+export async function emailOnStatusChange(p: {
+  bookingId: string;
+  newStatus?: Status; // tolerate both names
+  status?: Status;
+  serviceName: string;
+  startsAtISO: string;
+  client: { name: string; email: string; phone?: string | null };
+}) {
+  const status = p.newStatus ?? p.status;
+  if (!status) throw new Error("emailOnStatusChange: status missing");
+
+  const when = new Date(p.startsAtISO).toLocaleString();
+  const subj =
+    status === "cancelled"
+      ? `Booking cancelled — ${p.serviceName}`
+      : `Booking completed — ${p.serviceName}`;
+
+  const textADI = [
+    `Booking ${status.toUpperCase()}`,
+    ``,
+    `Service: ${p.serviceName}`,
+    `When:   ${when}`,
+    ``,
+    `Client: ${p.client.name} (${p.client.email}${p.client.phone ? ", " + p.client.phone : ""})`,
+    `Booking ID: ${p.bookingId}`,
+  ].join("\n");
+
+  const textClient =
+    status === "cancelled"
+      ? [
+          `Hi ${p.client.name},`,
+          ``,
+          `Your ${p.serviceName} lesson for ${when} has been CANCELLED.`,
+          `If this seems wrong, reply to this email.`,
+          ``,
+          `Booking ID: ${p.bookingId}`,
+        ].join("\n")
+      : [
+          `Hi ${p.client.name},`,
+          ``,
+          `Thanks for your ${p.serviceName} lesson (${when}).`,
+          `If you’d like to book again, reply to this email or use the booking page.`,
+          ``,
+          `Booking ID: ${p.bookingId}`,
+        ].join("\n");
+
+  // To ADI
   await resend.emails.send({
-    from: fromEmail,
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: adiEmail,
-    subject: `Lesson marked completed — ${p.serviceName} (${fmt(p.startsAtISO)})`,
-    text: [
-      `A lesson was marked completed.`,
-      ``,
-      `Service: ${p.serviceName}`,
-      `When:    ${fmt(p.startsAtISO)} - ${fmt(p.endsAtISO)}`,
-      `Client:  ${p.client.name} (${p.client.email}${p.client.phone ? ", " + p.client.phone : ""})`,
-      `Price:   ${euro(p.priceCents)}`,
-      ``,
-      `Booking ID: ${p.bookingId}`,
-    ].join("\n"),
+    reply_to: adiEmail,
+    subject: subj,
+    text: textADI,
   });
 
-  // Congratulate client (and invite to next step)
+  // To Client
   await resend.emails.send({
-    from: fromEmail,
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
     to: p.client.email,
-    subject: `Thanks — your lesson is complete`,
-    text: [
-      `Nice work ${p.client.name}!`,
-      ``,
-      `Your lesson (${p.serviceName}) on ${fmt(p.startsAtISO)} is now marked complete.`,
-      ``,
-      `If you’d like to book your next session, just reply to this email or use the booking link.`,
-      ``,
-      `Booking ID: ${p.bookingId}`,
-    ].join("\n"),
+    reply_to: adiEmail,
+    subject: subj,
+    text: textClient,
   });
 }
