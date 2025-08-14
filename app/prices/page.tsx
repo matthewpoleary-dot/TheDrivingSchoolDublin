@@ -120,7 +120,7 @@ export default async function PricesPage() {
 
           <Link
             href={bookHref(pretest)}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800 transition"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
             Book this
           </Link>

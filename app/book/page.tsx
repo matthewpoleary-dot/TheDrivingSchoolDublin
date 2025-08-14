@@ -174,7 +174,7 @@ export default function BookPage() {
 
             <button
               onClick={showTimes}
-              className="mt-3 inline-flex items-center rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
             >
               Show times
             </button>
@@ -245,7 +245,7 @@ export default function BookPage() {
 
           <button
             onClick={confirmBooking}
-            className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
           >
             Confirm booking
           </button>
