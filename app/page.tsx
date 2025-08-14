@@ -1,5 +1,6 @@
 // app/page.tsx
 import Link from "next/link";
+import Image from "next/image";
 
 function IconCalendar() {
   return (
@@ -22,17 +23,17 @@ function IconCheck() {
     </svg>
   );
 }
-function CarVisual() {
+function LogoVisual() {
   return (
     <div className="aspect-video w-full rounded-xl bg-gradient-to-br from-red-50 to-gray-50 grid place-items-center">
-      <svg viewBox="0 0 420 180" className="w-[84%] max-w-[520px]" aria-hidden="true">
-        <rect x="0" y="30" width="420" height="120" rx="16" fill="#ffffff" stroke="#e5e7eb" />
-        <rect x="70" y="70" width="210" height="50" rx="12" fill="#111827" />
-        <rect x="90" y="60" width="140" height="35" rx="8" fill="#d90429" />
-        <circle cx="110" cy="130" r="16" fill="#111827" />
-        <circle cx="230" cy="130" r="16" fill="#111827" />
-        <rect x="240" y="70" width="90" height="24" rx="6" fill="#e5e7eb" />
-      </svg>
+      <Image 
+        src="/Logo.jpg" 
+        alt="The Driving School Dublin Logo" 
+        width={400} 
+        height={400}
+        priority 
+        className="rounded-lg"
+      />
     </div>
   );
 }
@@ -65,7 +66,7 @@ export default function Home() {
 
       {/* Visual card */}
       <div className="card">
-        <CarVisual />
+        <LogoVisual />
 
         {/* Highlights */}
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
