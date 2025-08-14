@@ -16,52 +16,45 @@ function euros(cents: number) {
   return `€${(cents / 100).toFixed(2)}`;
 }
 
-/** Normalize services:
- * - exclude "Motorway"
- * - dedupe "Standard Lesson" to just one (prefer 60 min if duplicates)
- * - keep only active (if your data uses active=false to hide)
+const isMotorway = (name: string) => /motorway/i.test(name);
+const isStandard = (name: string) => /standard\s*lesson/i.test(name);
+
+/** Normalize services for the dropdown:
+ *  - Exclude anything with "Motorway" in the name (case-insensitive)
+ *  - Keep only one "Standard Lesson" (prefer name containing "1 hour", else duration 60)
+ *  - Keep only active (if active flag exists)
+ *  - Put Standard Lesson first for convenience
  */
 function normalizeServices(list: Service[]): Service[] {
-  const filtered = list.filter(
-    (s) => s.active !== false && s.name.trim().toLowerCase() !== "motorway"
-  );
+  const cleaned = list
+    .filter((s) => s.active !== false)
+    .filter((s) => !isMotorway(s.name));
 
-  const byName = new Map<string, Service>();
-
-  for (const s of filtered) {
-    // Remove things in parentheses from name for matching
-    const baseName = s.name.trim().replace(/\(.*?\)/g, "").trim().toLowerCase();
-
-    if (baseName === "standard lesson") {
-      const existing = byName.get(baseName);
-      if (!existing) {
-        byName.set(baseName, s);
-      } else {
-        // Prefer the "1 hour" variant if available
-        const pick =
-          /1\s*hour/i.test(s.name) ||
-          (existing && !/1\s*hour/i.test(existing.name) && s.duration_minutes === 60)
-            ? s
-            : existing;
-        byName.set(baseName, pick);
-      }
-    } else {
-      if (!byName.has(baseName)) byName.set(baseName, s);
-    }
+  const standards = cleaned.filter((s) => isStandard(s.name));
+  let chosenStandard: Service | undefined;
+  if (standards.length) {
+    chosenStandard =
+      standards.find((s) => /1\s*hour/i.test(s.name)) ||
+      standards.find((s) => s.duration_minutes === 60) ||
+      standards[0];
   }
 
-  return Array.from(byName.values());
+  const others = cleaned.filter((s) => !isStandard(s.name));
+  const result = chosenStandard ? [chosenStandard, ...others] : others;
+  return result;
 }
 
-
-/** Build the dropdown label:
- * - Standard Lesson: show "(60 min)"
- * - Others: no duration text
+/** Display name for UI:
+ *  - Standard Lesson => force "Standard Lesson (1 hour)"
+ *  - Others => keep DB name
+ *  - Prices always shown
  */
-function serviceLabel(s: Service) {
-  const isStandard = s.name.trim().toLowerCase() === "standard lesson";
-  const namePart = isStandard ? `Standard Lesson (60 min)` : s.name;
-  return `${namePart} (${euros(s.price_cents)})`;
+function displayNameWithPrice(s: Service) {
+  const name = isStandard(s.name) ? "Standard Lesson (1 hour)" : s.name;
+  return `${name} (${euros(s.price_cents)})`;
+}
+function displayNamePlain(s: Service) {
+  return isStandard(s.name) ? "Standard Lesson (1 hour)" : s.name;
 }
 
 export default function BookPage() {
@@ -84,9 +77,9 @@ export default function BookPage() {
   // Load and normalize services
   useEffect(() => {
     (async () => {
-      const res = await fetch("/api/services");
+      const res = await fetch("/api/services", { cache: "no-store" });
       const raw = await res.json();
-      const list = Array.isArray(raw) ? raw : [];
+      const list = Array.isArray(raw) ? (raw as Service[]) : [];
       const normalized = normalizeServices(list);
       setServices(normalized);
       if (normalized.length && !serviceId) setServiceId(normalized[0].id);
@@ -157,7 +150,7 @@ export default function BookPage() {
           >
             {services.map((s) => (
               <option key={s.id} value={s.id}>
-                {serviceLabel(s)}
+                {displayNameWithPrice(s)}
               </option>
             ))}
           </select>
@@ -230,7 +223,7 @@ export default function BookPage() {
 
         {selectedService && (
           <p className="text-sm text-gray-700 mb-4">
-            You’re booking <strong>{selectedService.name}</strong>. Total:{" "}
+            You’re booking <strong>{displayNamePlain(selectedService)}</strong>. Total:{" "}
             <strong>{euros(selectedService.price_cents)}</strong>.
           </p>
         )}
@@ -250,7 +243,7 @@ export default function BookPage() {
         <div className="rounded-2xl border bg-white p-4 shadow-sm">
           <h3 className="font-semibold text-gray-800 mb-2">Booking Summary</h3>
           <p className="text-sm text-gray-700">
-            {selectedService ? `Service: ${selectedService.name}` : "Pick a service"}
+            {selectedService ? `Service: ${displayNamePlain(selectedService)}` : "Pick a service"}
           </p>
           <p className="text-sm text-gray-700">Date: {date || "-"}</p>
           <p className="text-sm text-gray-700">
