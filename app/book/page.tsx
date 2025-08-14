@@ -12,12 +12,63 @@ type Service = {
   active?: boolean;
 };
 
+function euros(cents: number) {
+  return `€${(cents / 100).toFixed(2)}`;
+}
+
+/** Normalize services:
+ * - exclude "Motorway"
+ * - dedupe "Standard Lesson" to just one (prefer 60 min if duplicates)
+ * - keep only active (if your data uses active=false to hide)
+ */
+function normalizeServices(list: Service[]): Service[] {
+  const filtered = list.filter(
+    (s) => s.active !== false && s.name.trim().toLowerCase() !== "motorway"
+  );
+
+  const byName = new Map<string, Service>();
+  for (const s of filtered) {
+    const key = s.name.trim().toLowerCase();
+
+    if (key === "standard lesson") {
+      const existing = byName.get(key);
+      if (!existing) {
+        byName.set(key, s);
+      } else {
+        // Prefer the 60-minute variant if both exist
+        const pick =
+          s.duration_minutes === 60
+            ? s
+            : existing.duration_minutes === 60
+            ? existing
+            : existing; // fall back to the first one we had
+        byName.set(key, pick);
+      }
+    } else {
+      if (!byName.has(key)) byName.set(key, s);
+    }
+  }
+
+  return Array.from(byName.values());
+}
+
+/** Build the dropdown label:
+ * - Standard Lesson: show "(60 min)"
+ * - Others: no duration text
+ */
+function serviceLabel(s: Service) {
+  const isStandard = s.name.trim().toLowerCase() === "standard lesson";
+  const namePart = isStandard ? `Standard Lesson (60 min)` : s.name;
+  return `${namePart} (${euros(s.price_cents)})`;
+}
+
 export default function BookPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState<string>("");
   const [date, setDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [slots, setSlots] = useState<string[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
+
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -28,15 +79,18 @@ export default function BookPage() {
     [services, serviceId]
   );
 
-  // Load services
+  // Load and normalize services
   useEffect(() => {
     (async () => {
       const res = await fetch("/api/services");
-      const data = await res.json();
-      setServices(data || []);
-      if (data?.length && !serviceId) setServiceId(data[0].id);
+      const raw = await res.json();
+      const list = Array.isArray(raw) ? raw : [];
+      const normalized = normalizeServices(list);
+      setServices(normalized);
+      if (normalized.length && !serviceId) setServiceId(normalized[0].id);
     })();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const showTimes = async () => {
     if (!serviceId || !date) return;
@@ -50,8 +104,16 @@ export default function BookPage() {
   };
 
   const confirmBooking = async () => {
-    if (!serviceId || !selectedSlot) return msg("Please pick a service and time");
-    if (!clientName || !clientEmail) return msg("Please enter your name and email");
+    if (!serviceId || !selectedSlot) {
+      setToast("Please pick a service and time");
+      setTimeout(() => setToast(""), 2000);
+      return;
+    }
+    if (!clientName || !clientEmail) {
+      setToast("Please enter your name and email");
+      setTimeout(() => setToast(""), 2000);
+      return;
+    }
 
     const res = await fetch("/api/book", {
       method: "POST",
@@ -64,16 +126,16 @@ export default function BookPage() {
     });
 
     const data = await res.json();
-    if (!res.ok) return msg(data.error || "Something went wrong");
+    if (!res.ok) {
+      setToast(data.error || "Something went wrong");
+      setTimeout(() => setToast(""), 2500);
+      return;
+    }
 
-    msg("Booking confirmed! Check your email.");
-    await showTimes(); // hide chosen slot
+    setToast("Booking confirmed! Check your email.");
+    setTimeout(() => setToast(""), 3000);
+    await showTimes(); // refresh to remove the chosen slot
   };
-
-  function msg(text: string) {
-    setToast(text);
-    setTimeout(() => setToast(""), 2500);
-  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -93,7 +155,7 @@ export default function BookPage() {
           >
             {services.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name} ({s.duration_minutes}m) (€{(s.price_cents / 100).toFixed(2)})
+                {serviceLabel(s)}
               </option>
             ))}
           </select>
@@ -106,7 +168,10 @@ export default function BookPage() {
             onChange={(e) => setDate(e.target.value)}
           />
 
-          <button onClick={showTimes} className="mt-3 btn-primary">
+          <button
+            onClick={showTimes}
+            className="mt-3 inline-flex items-center rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
+          >
             Show times
           </button>
         </div>
@@ -123,15 +188,13 @@ export default function BookPage() {
             {slots.map((iso) => {
               const d = new Date(iso);
               const label = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-              const active = selectedSlot === iso;
               return (
                 <button
                   key={iso}
                   onClick={() => setSelectedSlot(iso)}
-                  className={`rounded-full border px-4 py-2 text-sm transition
-                    ${active
-                      ? "bg-red-600 text-white border-red-600"
-                      : "bg-white text-gray-900 border-gray-300 hover:bg-gray-50"}`}
+                  className={`rounded border px-3 py-2 text-sm ${
+                    selectedSlot === iso ? "bg-black text-white" : "bg-white hover:bg-gray-50"
+                  }`}
                 >
                   {label}
                 </button>
@@ -166,24 +229,36 @@ export default function BookPage() {
         {selectedService && (
           <p className="text-sm text-gray-700 mb-4">
             You’re booking <strong>{selectedService.name}</strong>. Total:{" "}
-            <strong>€{(selectedService.price_cents / 100).toFixed(2)}</strong>.
+            <strong>{euros(selectedService.price_cents)}</strong>.
           </p>
         )}
 
-        <button onClick={confirmBooking} className="btn-primary">Confirm booking</button>
-        {toast && <p className="mt-3 text-sm text-red-700">{toast}</p>}
+        <button
+          onClick={confirmBooking}
+          className="rounded bg-black px-5 py-2 text-white hover:bg-gray-800"
+        >
+          Confirm booking
+        </button>
+
+        {toast && <p className="mt-3 text-sm text-indigo-700">{toast}</p>}
       </div>
 
       {/* Summary card */}
       <aside className="md:col-span-1">
-        <div className="card">
+        <div className="rounded-2xl border bg-white p-4 shadow-sm">
           <h3 className="font-semibold text-gray-800 mb-2">Booking Summary</h3>
           <p className="text-sm text-gray-700">
             {selectedService ? `Service: ${selectedService.name}` : "Pick a service"}
           </p>
           <p className="text-sm text-gray-700">Date: {date || "-"}</p>
           <p className="text-sm text-gray-700">
-            Time: {selectedSlot ? new Date(selectedSlot).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"}
+            Time:{" "}
+            {selectedSlot
+              ? new Date(selectedSlot).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "-"}
           </p>
         </div>
       </aside>
