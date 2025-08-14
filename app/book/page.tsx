@@ -174,7 +174,7 @@ export default function BookPage() {
 
             <button
               onClick={showTimes}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded mt-3"
             >
               Show times
             </button>
