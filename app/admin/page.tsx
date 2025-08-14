@@ -1,8 +1,8 @@
 // app/admin/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
-import { formatZoned } from "@/lib/time";
+import { useEffect, useMemo, useState } from "react";
+import { dateKeyZoned, formatZoned } from "@/lib/time";
 
 type BookingStatus = "confirmed" | "cancelled" | "completed";
 
@@ -38,15 +38,23 @@ function getErrorMessage(err: unknown): string {
 }
 
 export default function AdminPage() {
-  // token only lives in memory for this tab session
+  // token only in memory for this visit
   const [token, setToken] = useState<string>("");
   const [inputToken, setInputToken] = useState<string>("");
 
+  // data
   const [rows, setRows] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [toast, setToast] = useState<string>("");
   const [savingId, setSavingId] = useState<string | null>(null);
+
+  // view state
+  const [tab, setTab] = useState<"all" | "day">("day");
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    // default today in TIMEZONE
+    return dateKeyZoned(new Date().toISOString());
+  });
 
   const isAuthed = useMemo(() => token.trim().length > 0, [token]);
 
@@ -70,6 +78,19 @@ export default function AdminPage() {
       setLoading(false);
     }
   }
+
+  // Auto-load immediately after successful token entry
+  useEffect(() => {
+    if (isAuthed) {
+      void load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthed]);
+
+  const filtered = useMemo(() => {
+    if (tab === "all") return rows;
+    return rows.filter((r) => dateKeyZoned(r.starts_at) === selectedDate);
+  }, [rows, tab, selectedDate]);
 
   async function updateStatus(id: string, status: BookingStatus) {
     try {
@@ -111,7 +132,7 @@ export default function AdminPage() {
       <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-semibold mb-4">Admin login</h1>
         <p className="text-sm text-gray-600 mb-3">
-          Paste your admin token to view and manage bookings.
+          Enter your admin token to manage bookings.
         </p>
         <input
           className="w-full rounded border px-3 py-2 mb-3"
@@ -123,7 +144,7 @@ export default function AdminPage() {
         <button
           onClick={() => {
             if (!inputToken.trim()) return;
-            setToken(inputToken.trim()); // lives only in memory
+            setToken(inputToken.trim());
           }}
           className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
         >
@@ -134,8 +155,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Admin — Bookings</h1>
         <div className="flex items-center gap-2">
           <button onClick={load} className="rounded border px-3 py-2 hover:bg-gray-50">
@@ -143,7 +164,6 @@ export default function AdminPage() {
           </button>
           <button
             onClick={() => {
-              // wipe the in-memory token and table data
               setToken("");
               setRows([]);
               setInputToken("");
@@ -155,12 +175,46 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {toast && <p className="text-sm text-green-700 mb-3">{toast}</p>}
-      {loading && <p className="text-sm text-gray-600 mb-3">Loading…</p>}
-      {errorMsg && <p className="text-sm text-red-600 mb-3">{errorMsg}</p>}
+      {/* Tabs */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setTab("day")}
+          className={`rounded px-3 py-2 text-sm border ${
+            tab === "day" ? "bg-black text-white" : "bg-white hover:bg-gray-50"
+          }`}
+        >
+          Day
+        </button>
+        <button
+          onClick={() => setTab("all")}
+          className={`rounded px-3 py-2 text-sm border ${
+            tab === "all" ? "bg-black text-white" : "bg-white hover:bg-gray-50"
+          }`}
+        >
+          All
+        </button>
 
-      {!rows.length ? (
-        <p className="text-sm text-gray-600">No bookings yet.</p>
+        {tab === "day" && (
+          <div className="ml-3 flex items-center gap-2">
+            <label className="text-sm text-gray-700">Date</label>
+            <input
+              type="date"
+              className="rounded border px-3 py-2 text-sm"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+        )}
+      </div>
+
+      {toast && <p className="text-sm text-green-700">{toast}</p>}
+      {loading && <p className="text-sm text-gray-600">Loading…</p>}
+      {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
+
+      {!filtered.length ? (
+        <p className="text-sm text-gray-600">
+          {tab === "day" ? "No bookings for this day." : "No bookings yet."}
+        </p>
       ) : (
         <div className="overflow-x-auto rounded border bg-white">
           <table className="min-w-full text-sm">
@@ -174,7 +228,7 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => {
+              {filtered.map((r) => {
                 const when = formatZoned(r.starts_at);
                 const serviceLabel = r.services?.name ?? `${r.service_id.slice(0, 6)}…`;
                 const badge =
