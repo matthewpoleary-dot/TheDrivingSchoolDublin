@@ -12,6 +12,16 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+function errToString(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Server error";
+  }
+}
+
 // Next.js 15: params must be awaited.
 export async function PATCH(
   req: Request,
@@ -23,7 +33,7 @@ export async function PATCH(
     if (!token || token !== ADMIN_TOKEN) return unauthorized();
 
     const { id } = await ctx.params; // ✅ await params
-    const body: PatchBody = await req.json();
+    const body = (await req.json()) as PatchBody;
     const newStatus = body.status;
 
     if (!newStatus || !["cancelled", "completed"].includes(newStatus)) {
@@ -33,7 +43,9 @@ export async function PATCH(
     // Fetch booking for email context
     const { data: booking, error: bErr } = await supabase
       .from("bookings")
-      .select("id, service_id, starts_at, ends_at, client_name, client_email, client_phone")
+      .select(
+        "id, service_id, starts_at, ends_at, client_name, client_email, client_phone"
+      )
       .eq("id", id)
       .single();
 
@@ -69,10 +81,15 @@ export async function PATCH(
         email: booking.client_email,
         phone: booking.client_phone ?? null,
       },
-    }).catch((e) => console.error("emailOnStatusChange failed:", e));
+    }).catch((err: unknown) => {
+      console.error("emailOnStatusChange failed:", errToString(err));
+    });
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json(
+      { error: errToString(err) },
+      { status: 500 }
+    );
   }
 }
