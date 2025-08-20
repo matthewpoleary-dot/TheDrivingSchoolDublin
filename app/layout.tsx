@@ -22,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
 
             <div className="space-x-5 text-sm font-medium">
+              <Link href="/about" className="nav-link">About</Link>
               <Link href="/prices" className="nav-link">Prices</Link>
               <Link href="/contact" className="nav-link">Contact</Link>
             </div>

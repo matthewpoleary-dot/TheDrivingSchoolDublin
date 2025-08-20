@@ -62,11 +62,7 @@ export default async function PricesPage() {
     /car.*test|hire.*test/i.test(s.name)
   );
 
-  // For the bundle (705) we don’t need a specific service to deep-link; we can just send them to /book
-  // If you *do* create a “bundle” service later, wire it the same way:
-  const edtSingle = findByName(services, "edt");
-  const bookHref = (svc?: Service) =>
-    svc ? `/book?serviceId=${encodeURIComponent(svc.id)}` : "/book";
+  // Contact for all enquiries; booking is no longer available online
 
   return (
     <section className="mx-auto max-w-5xl">
@@ -94,10 +90,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href={bookHref(standard)}
+            href="/contact"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Book this
+            Contact us
           </Link>
         </div>
 
@@ -119,10 +115,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href={bookHref(pretest)}
+            href="/contact"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Book this
+            Contact us
           </Link>
         </div>
 
@@ -144,10 +140,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href={bookHref(carHire)}
+            href="/contact"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Book this
+            Contact us
           </Link>
         </div>
       </div>
@@ -178,17 +174,17 @@ export default async function PricesPage() {
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/book"
+              href="/contact"
               className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
             >
-              Book bundle
+              Contact us about bundle
             </Link>
 
             <Link
-              href={bookHref(edtSingle)}
+              href="/contact"
               className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50 transition"
             >
-              Book single EDT lesson
+              Ask about a single EDT lesson
             </Link>
           </div>
         </div>
