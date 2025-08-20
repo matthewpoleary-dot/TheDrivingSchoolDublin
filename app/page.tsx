@@ -52,7 +52,7 @@ export default function Home() {
         </p>
 
         <div className="mt-8 flex gap-3">
-          <Link href="/book" className="btn-primary">Book now</Link>
+          <Link href="/contact" className="btn-primary">Contact us</Link>
           <Link href="/prices" className="btn-outline">See prices</Link>
         </div>
 
