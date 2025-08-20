@@ -4,7 +4,8 @@ import Link from "next/link";
 const DISPLAY_PHONE = "086 0235 666";
 const INTL_PHONE = "+353 86 0235 666";
 const TEL_HREF = "tel:+353860235666";
-const WHATSAPP_HREF = "https://wa.me/353860235666?text=" +
+const WHATSAPP_HREF =
+  "https://wa.me/353860235666?text=" +
   encodeURIComponent("Hi! I'd like to arrange a driving lesson.");
 const EMAIL = "thedrivingschooldublin@gmail.com";
 const MAILTO = `mailto:${EMAIL}?subject=${encodeURIComponent("Lesson Enquiry")}`;
@@ -21,7 +22,9 @@ export default function Contact() {
           <p className="text-xs text-gray-500">Fastest response</p>
 
           <div className="mt-4">
-            <div className="text-3xl font-extrabold text-green-600 leading-none">Chat</div>
+            <div className="text-3xl font-extrabold text-green-600 leading-none">
+              Chat
+            </div>
             <p className="text-xs text-gray-500 mt-1">Mon–Sat</p>
           </div>
 
@@ -41,8 +44,8 @@ export default function Contact() {
           <p className="text-xs text-gray-500">Talk to an instructor</p>
 
           <div className="mt-4">
-            <div className="text-3xl font-extrabold text-gray-900 leading-tight">
-              +353 86 0235 666
+            <div className="text-2xl font-extrabold text-gray-900 leading-tight">
+              {INTL_PHONE}
             </div>
             <p className="text-xs text-gray-500 mt-1">9am–6pm</p>
           </div>
@@ -61,8 +64,12 @@ export default function Contact() {
           <p className="text-xs text-gray-500">We reply same day</p>
 
           <div className="mt-4">
-            <div className="text-xl font-bold text-red-600 break-all">{EMAIL}</div>
-            <p className="text-xs text-gray-500 mt-1">Include your area & car type</p>
+            <div className="text-base md:text-lg font-medium text-blue-700 break-words">
+              {EMAIL}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Include your area & car type
+            </p>
           </div>
 
           <a
@@ -75,19 +82,9 @@ export default function Contact() {
       </div>
 
       <p className="text-sm text-gray-600">
-        Prefer a call‑back? Send a WhatsApp or email with your availability and location.
+        Prefer a call-back? Send a WhatsApp or email with your availability and
+        location.
       </p>
-
-      {/* Handy quick links row */}
-      <div className="flex flex-wrap gap-3 text-sm">
-        <a className="underline" href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer">WhatsApp</a>
-        <span>•</span>
-        <a className="underline" href={TEL_HREF}>Call {DISPLAY_PHONE}</a>
-        <span>•</span>
-        <a className="underline" href={MAILTO}>Email {EMAIL}</a>
-        <span>•</span>
-        <Link className="underline" href="/prices">See prices</Link>
-      </div>
     </section>
   );
 }
