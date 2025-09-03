@@ -42,7 +42,6 @@ export default async function PricesPage() {
   // Pull services from your API at runtime (server component)
   let services: Service[] = [];
   try {
-    // Works in Vercel and locally because it’s a relative URL in the same app
     const res = await fetch(`${process.env.APP_ORIGIN ?? ""}/api/services`, {
       cache: "no-store",
     });
@@ -52,23 +51,14 @@ export default async function PricesPage() {
   }
 
   // Filter out “Motorway” or any unwanted extras
-  services = services.filter(
-    (s) => !s.name.toLowerCase().includes("motorway")
-  );
+  services = services.filter((s) => !s.name.toLowerCase().includes("motorway"));
 
   const standard = pickStandard(services);
   const pretest = findByName(services, "pre-test");
-  const carHire = services.find((s) =>
-    /car.*test|hire.*test/i.test(s.name)
-  );
-
-  // Contact for all enquiries; booking is no longer available online
 
   return (
     <section className="mx-auto max-w-5xl">
-      <h1 className="text-3xl font-extrabold tracking-tight mb-6">
-        Prices
-      </h1>
+      <h1 className="text-3xl font-extrabold tracking-tight mb-6">Prices</h1>
 
       {/* Top three products */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
@@ -122,20 +112,30 @@ export default async function PricesPage() {
           </Link>
         </div>
 
-        {/* Car Hire for Test */}
+        {/* Car Hire for Test (two options fixed) */}
         <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Car Hire for Test</h3>
-            <p className="text-sm text-gray-600">Car provided for test</p>
+            <p className="text-sm text-gray-600">Choose the option that suits you</p>
 
-            <p className="mt-4 text-4xl font-extrabold text-red-600">
-              {carHire ? euros(carHire.price_cents) : "€100"}
-            </p>
-            <p className="text-sm text-gray-500">on test day</p>
+            <div className="mt-4 space-y-4">
+              <div className="rounded-xl border p-4">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Option 1</p>
+                <p className="mt-1 text-3xl font-extrabold text-red-600">€100</p>
+                <p className="text-sm text-gray-700">Meet at the test centre</p>
+              </div>
+
+              <div className="rounded-xl border p-4">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Option 2</p>
+                <p className="mt-1 text-3xl font-extrabold text-red-600">€180</p>
+                <p className="text-sm text-gray-700">Local pick-up &amp; drop-off</p>
+              </div>
+            </div>
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>Roadworthy, fully insured vehicle</li>
-              <li>Meet at the test centre</li>
+              <li>Arrive early, paperwork checked</li>
+              <li>Instructor support before & after test</li>
             </ul>
           </div>
 
@@ -143,7 +143,7 @@ export default async function PricesPage() {
             href="/contact"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Contact us
+            Book car hire
           </Link>
         </div>
       </div>
@@ -152,9 +152,7 @@ export default async function PricesPage() {
       <div className="mt-8 grid grid-cols-1 gap-6">
         <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
-            <h3 className="text-lg font-semibold">
-              EDT Bundle (12 lessons)
-            </h3>
+            <h3 className="text-lg font-semibold">EDT Bundle (12 lessons)</h3>
             <p className="text-sm text-gray-600">Best value</p>
 
             <p className="mt-4 text-4xl font-extrabold text-red-600">€705</p>
