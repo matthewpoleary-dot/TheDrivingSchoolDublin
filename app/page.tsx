@@ -144,7 +144,7 @@ export default function Home() {
             Ready to start your driving journey?
           </h2>
           <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-            Contact us today to arrange your first lesson. We'll respond the same day.
+            Contact us today to arrange your first lesson. We&apos;ll respond the same day.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link href="/book" className="btn-primary">

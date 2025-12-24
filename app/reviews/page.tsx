@@ -8,8 +8,6 @@ type Review = {
   text: string;
 };
 
-const GOOGLE_REVIEWS_URL = "https://share.google/VNNwTb1ToVaKA03J0"; // replace if you get the Maps URL
-
 const REVIEWS: Review[] = [
   { name: "Aisling M.", date: "2025-07-18", rating: 5, text: "Conor is brilliant — super calm and gave me clear, actionable feedback every lesson. Passed first time in Tallaght." },
   { name: "Dylan O.", date: "2025-06-30", rating: 5, text: "Best instructor I’ve had. Pre‑test session covered exactly what the examiner looked for on the day." },

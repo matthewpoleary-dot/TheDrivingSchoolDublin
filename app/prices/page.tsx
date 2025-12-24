@@ -202,7 +202,7 @@ export default async function PricesPage() {
       <div className="mt-12 rounded-2xl border bg-gradient-to-br from-red-50 to-gray-50 p-8 text-center">
         <h2 className="text-2xl font-extrabold tracking-tight mb-4">Ready to book your lesson?</h2>
         <p className="text-gray-700 mb-6">
-          Request a lesson today and we'll get back to you the same day.
+          Request a lesson today and we&apos;ll get back to you the same day.
         </p>
         <Link href="/book" className="btn-primary">
           Request a lesson

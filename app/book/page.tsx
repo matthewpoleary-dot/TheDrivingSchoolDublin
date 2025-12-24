@@ -80,7 +80,7 @@ export default function BookPage() {
         <div className="rounded-2xl border bg-green-50 p-8 text-center">
           <h1 className="text-3xl font-extrabold tracking-tight mb-4">Request Sent!</h1>
           <p className="text-gray-700 mb-6">
-            Thank you for your request. We'll get back to you the same day to confirm your lesson time.
+            Thank you for your request. We&apos;ll get back to you the same day to confirm your lesson time.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link href="/" className="btn-primary">
@@ -100,7 +100,7 @@ export default function BookPage() {
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight">Request a Lesson</h1>
         <p className="text-gray-700">
-          Fill out the form below and we'll get back to you the same day to confirm your lesson time.
+          Fill out the form below and we&apos;ll get back to you the same day to confirm your lesson time.
         </p>
       </div>
 

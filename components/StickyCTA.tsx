@@ -4,7 +4,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const DISPLAY_PHONE = "+353 86 0235 666";
 const TEL_HREF = "tel:+353860235666";
 const WHATSAPP_HREF = "https://wa.me/353860235666?text=" + encodeURIComponent("Hi! I'd like to arrange a driving lesson.");
 
