@@ -1,0 +1,7 @@
+ttPOST http://localhost:3000/api/slots
+Content-Type: application/json
+
+{
+  "serviceId": "PUT-A-REAL-SERVICE-ID-HERE",
+  "date": "2025-08-15"
+}

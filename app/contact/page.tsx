@@ -36,8 +36,28 @@ function SecondaryButton(props: React.ComponentProps<"a">) {
 }
 
 export default function Contact() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "The Driving School Dublin",
+    telephone: "+353860235666",
+    email: "thedrivingschooldublin@gmail.com",
+    url: "https://thedrivingschooldublin.com",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Dublin",
+      addressCountry: "IE",
+    },
+    areaServed: {
+      "@type": "City",
+      name: "Dublin",
+    },
+    openingHours: "Mo-Sa 09:00-18:00",
+  };
+
   return (
-    <section className="mx-auto max-w-6xl space-y-10">
+    <>
+      <section className="mx-auto max-w-6xl space-y-10">
       <h1 className="text-3xl font-extrabold tracking-tight">Contact Us</h1>
 
       {/* Top row: WhatsApp + Call */}
@@ -123,6 +143,11 @@ export default function Contact() {
         <span>•</span>
         <Link className="underline" href="/prices">See prices</Link>
       </div>
-    </section>
+      </section>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+    </>
   );
 }

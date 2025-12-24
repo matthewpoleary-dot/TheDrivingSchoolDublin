@@ -1,5 +1,6 @@
 // app/prices/page.tsx
 import Link from "next/link";
+import FAQ from "@/components/FAQ";
 
 type Service = {
   id: string;
@@ -80,10 +81,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href="/contact"
+            href="/book"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Contact us
+            Request a lesson
           </Link>
         </div>
 
@@ -105,10 +106,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href="/contact"
+            href="/book"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Contact us
+            Request a lesson
           </Link>
         </div>
 
@@ -140,10 +141,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href="/contact"
+            href="/book"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Book car hire
+            Request car hire
           </Link>
         </div>
       </div>
@@ -172,17 +173,17 @@ export default async function PricesPage() {
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/contact"
+              href="/book"
               className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
             >
-              Contact us about bundle
+              Request bundle
             </Link>
 
             <Link
-              href="/contact"
+              href="/book"
               className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50 transition"
             >
-              Ask about a single EDT lesson
+              Request single EDT lesson
             </Link>
           </div>
         </div>
@@ -191,6 +192,23 @@ export default async function PricesPage() {
       <p className="mt-8 text-sm text-gray-600">
         Prices include VAT where applicable. For questions, use the contact link in the header.
       </p>
+
+      {/* FAQ Section */}
+      <div className="mt-16">
+        <FAQ />
+      </div>
+
+      {/* CTA Section */}
+      <div className="mt-12 rounded-2xl border bg-gradient-to-br from-red-50 to-gray-50 p-8 text-center">
+        <h2 className="text-2xl font-extrabold tracking-tight mb-4">Ready to book your lesson?</h2>
+        <p className="text-gray-700 mb-6">
+          Request a lesson today and we'll get back to you the same day.
+        </p>
+        <Link href="/book" className="btn-primary">
+          Request a lesson
+        </Link>
+      </div>
     </section>
   );
 }
+
