@@ -14,9 +14,9 @@ export default function PricingPreview() {
           <p className="mt-2 text-3xl font-extrabold text-red-600">€65</p>
           <p className="text-sm text-gray-500">per hour</p>
           <ul className="mt-4 space-y-1 text-sm text-gray-700">
-            <li>• Manual or Automatic</li>
+            <li>• Manual (instructor&apos;s car)</li>
+            <li>• Automatic (your car)</li>
             <li>• One-to-one coaching</li>
-            <li>• Local pick-up</li>
           </ul>
         </div>
         <div className="rounded-2xl border bg-white p-6 shadow-sm">

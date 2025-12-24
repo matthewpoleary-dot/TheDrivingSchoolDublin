@@ -39,8 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/contact" className="nav-link">Contact</Link>
                 <Link href="/about" className="nav-link">About</Link>
               </div>
-              <Link href="/book" className="btn-primary text-sm">
-                Request a lesson
+              <Link href="/contact" className="btn-primary text-sm">
+                Contact us
               </Link>
             </div>
           </nav>
@@ -64,7 +64,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
                 <ul className="space-y-2 text-sm">
                   <li><Link href="/prices" className="text-gray-600 hover:text-red-600">Prices</Link></li>
-                  <li><Link href="/book" className="text-gray-600 hover:text-red-600">Request a lesson</Link></li>
                   <li><Link href="/reviews" className="text-gray-600 hover:text-red-600">Reviews</Link></li>
                   <li><Link href="/about" className="text-gray-600 hover:text-red-600">About</Link></li>
                   <li><Link href="/contact" className="text-gray-600 hover:text-red-600">Contact</Link></li>

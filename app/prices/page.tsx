@@ -67,7 +67,7 @@ export default async function PricesPage() {
         <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Standard Lesson</h3>
-            <p className="text-sm text-gray-600">Manual or Automatic</p>
+            <p className="text-sm text-gray-600">Manual (instructor&apos;s car) or Automatic (your car)</p>
 
             <p className="mt-4 text-4xl font-extrabold text-red-600">
               {standard ? euros(standard.price_cents) : "€65"}
@@ -76,15 +76,17 @@ export default async function PricesPage() {
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>One-to-one, structured coaching</li>
-              <li>Pick-up in local area</li>
+              <li>Manual: dual-control instructor car</li>
+              <li>Automatic: use your own car</li>
+              <li>Pick-up in local area (manual only)</li>
             </ul>
           </div>
 
           <Link
-            href="/book"
+            href="/contact"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Request a lesson
+            Contact us
           </Link>
         </div>
 
@@ -106,10 +108,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href="/book"
+            href="/contact"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Request a lesson
+            Contact us
           </Link>
         </div>
 
@@ -141,10 +143,10 @@ export default async function PricesPage() {
           </div>
 
           <Link
-            href="/book"
+            href="/contact"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
           >
-            Request car hire
+            Contact us
           </Link>
         </div>
       </div>
@@ -173,17 +175,17 @@ export default async function PricesPage() {
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/book"
+              href="/contact"
               className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
             >
-              Request bundle
+              Contact us about bundle
             </Link>
 
             <Link
-              href="/book"
+              href="/contact"
               className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50 transition"
             >
-              Request single EDT lesson
+              Contact us about single EDT lesson
             </Link>
           </div>
         </div>
@@ -202,10 +204,10 @@ export default async function PricesPage() {
       <div className="mt-12 rounded-2xl border bg-gradient-to-br from-red-50 to-gray-50 p-8 text-center">
         <h2 className="text-2xl font-extrabold tracking-tight mb-4">Ready to book your lesson?</h2>
         <p className="text-gray-700 mb-6">
-          Request a lesson today and we&apos;ll get back to you the same day.
+          Contact us today and we&apos;ll get back to you the same day.
         </p>
-        <Link href="/book" className="btn-primary">
-          Request a lesson
+        <Link href="/contact" className="btn-primary">
+          Contact us
         </Link>
       </div>
     </section>

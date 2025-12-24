@@ -71,8 +71,8 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/book" className="btn-primary">
-                Request a lesson
+              <Link href="/contact" className="btn-primary">
+                Contact us
               </Link>
               <Link href="/prices" className="btn-outline">
                 View prices
@@ -83,7 +83,7 @@ export default function Home() {
             <ul className="mt-8 space-y-2 text-sm text-gray-800">
               <li className="flex items-center gap-2">
                 <IconCheck />
-                <span>RSA-approved ADI • Manual & Automatic</span>
+                <span>RSA-approved ADI • Manual (instructor&apos;s car) & Automatic (your car)</span>
               </li>
               <li className="flex items-center gap-2">
                 <IconCheck />
@@ -147,8 +147,8 @@ export default function Home() {
             Contact us today to arrange your first lesson. We&apos;ll respond the same day.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/book" className="btn-primary">
-              Request a lesson
+            <Link href="/contact" className="btn-primary">
+              Contact us
             </Link>
             <a
               href="https://wa.me/353860235666?text=Hi!%20I'd%20like%20to%20arrange%20a%20driving%20lesson."

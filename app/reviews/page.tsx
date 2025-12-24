@@ -103,14 +103,23 @@ export default function ReviewsPage() {
 
       {/* Read more on Google */}
       <div className="text-center text-sm text-gray-700">
-        Want to see more?{" "}
+        All reviews are verified and sourced from{" "}
         <a
           className="underline text-red-600 hover:text-red-700"
-          href="https://www.google.com/search?q=The+Driving+School+Dublin&sca_esv=1c2c48b035966a68&hl=en&gl=ie&sxsrf=AE3TifNKMRoJ_SOb70NBw_s9qS8-FgTTWA%3A1755705683953&ei=U_GlaOf5OcqjhbIPorC8kQw&ved=0ahUKEwin7_ys4ZmPAxXKUUEAHSIYL8IQ4dUDCBA&uact=5&oq=The+Driving+School+Dublin&gs_lp=Egxnd3Mtd2l6LXNlcnAiGVRoZSBEcml2aW5nIFNjaG9vbCBEdWJsaW4yCxAAGIAEGJECGIoFMgUQABiABDIFEAAYgAQyBhAAGBYYHjICECYyCxAAGIAEGIYDGIoFMgsQABiABBiGAxiKBTILEAAYgAQYhgMYigUyCxAAGIAEGIYDGIoFMgUQABjvBUiwC1CdB1idB3ABeAGQAQCYAVygAVyqAQExuAEDyAEA-AEBmAICoAJqwgIKEAAYsAMY1gQYR5gDAIgGAZAGCJIHAzEuMaAH9weyBwMwLjG4B2XCBwMyLTLIBws&sclient=gws-wiz-serp#vhid=/g/11vhbycqzm&vssid=lcl"
+          href="https://share.google/Gz174ck7VeSpDSx5L"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Read more on Google Reviews
+          Google Reviews
+        </a>
+        . Want to see more?{" "}
+        <a
+          className="underline text-red-600 hover:text-red-700"
+          href="https://share.google/Gz174ck7VeSpDSx5L"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Read all reviews on Google
         </a>
         .
       </div>

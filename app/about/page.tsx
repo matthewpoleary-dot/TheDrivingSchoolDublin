@@ -65,7 +65,7 @@ export default function About() {
               ✓ Patient, structured instruction
             </div>
             <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Dual-control, fully insured vehicle
+              ✓ Manual lessons in dual-control instructor car
             </div>
             <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
               ✓ Specialist in EDT and pre-tests

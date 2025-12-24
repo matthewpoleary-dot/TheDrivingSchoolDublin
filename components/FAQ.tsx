@@ -12,7 +12,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: "Manual or automatic?",
-    answer: "We offer lessons in both manual and automatic vehicles. Choose the option that suits you best. If you're unsure, we can discuss which might be better for your needs.",
+    answer: "We offer lessons for both manual and automatic. Lessons in our instructor&apos;s car are manual only. For automatic lessons, you&apos;ll need to use your own car. We can discuss which option is best for your needs.",
   },
   {
     question: "What is EDT?",
