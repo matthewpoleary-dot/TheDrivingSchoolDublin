@@ -7,12 +7,8 @@ type FAQItem = {
 
 const FAQ_ITEMS: FAQItem[] = [
   {
-    question: "Do you pick up from my area?",
-    answer: "We cover most areas in South Dublin including Tallaght, Dún Laoghaire, Churchtown, Dundrum, Rathfarnham, Stillorgan, Blackrock, Sandyford, Ballinteer, Kilmacud, Foxrock, and Cabinteely. If you're unsure, contact us to check.",
-  },
-  {
     question: "Manual or automatic?",
-    answer: "We offer lessons for both manual and automatic. Lessons in our instructor&apos;s car are manual only. For automatic lessons, you&apos;ll need to use your own car. We can discuss which option is best for your needs.",
+    answer: "We offer lessons for both manual and automatic. Lessons in our instructor's car are manual only. For automatic lessons, you'll need to use your own car. We can discuss which option is best for your needs.",
   },
   {
     question: "What is EDT?",
@@ -20,7 +16,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: "How long are lessons?",
-    answer: "Standard lessons are typically 60-90 minutes. Pre-test sessions can be longer to cover test routes thoroughly. We'll confirm the exact duration when you book.",
+    answer: "Standard lessons are 60 minutes. Pre-test sessions are 90 minutesto cover test routes thoroughly.",
   },
   {
     question: "When are you available?",
@@ -28,7 +24,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: "Do you provide a car for the test?",
-    answer: "Yes, we offer car hire for your test day. We have two options: meet at the test centre (€100) or local pick-up and drop-off (€180). The car is fully insured and roadworthy, and we'll arrive early to ensure everything is ready.",
+    answer: "Yes, we offer car hire for your test day. We have three options: meet at the test centre (€150), local pick-up and drop-off (€230), or car hire plus a pre-test lesson (€250). The car is fully insured and roadworthy, and we'll arrive early to ensure everything is ready.",
   },
 ];
 

@@ -53,7 +53,7 @@ export default function Home() {
       name: "Dublin",
     },
     priceRange: "€€",
-    openingHours: "Mo-Sa 09:00-18:00",
+    openingHours: "Mo-Sa 08:00-18:00",
   };
 
   return (
@@ -95,11 +95,15 @@ export default function Home() {
               </li>
               <li className="flex items-center gap-2">
                 <IconCheck />
-                <span>Dublin test routes: Tallaght, Dún Laoghaire, Churchtown</span>
+                <span>Dublin test routes: Tallaght, Dún Laoghaire</span>
               </li>
               <li className="flex items-center gap-2">
                 <IconCheck />
                 <span>Local pick-up • Dual-control vehicles</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <IconCheck />
+                <span>Refresher lessons for nervous or returning drivers</span>
               </li>
             </ul>
           </div>
@@ -109,13 +113,13 @@ export default function Home() {
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               <div className="kpi">
                 <span className="icon-bubble"><IconCheck /></span>
-                <h3 className="kpi-title">RSA‑approved ADIs</h3>
+                <h3 className="kpi-title">RSA‑approved ADI</h3>
                 <p className="kpi-sub">Qualified, experienced instructors.</p>
               </div>
               <div className="kpi">
                 <span className="icon-bubble"><IconCheck /></span>
                 <h3 className="kpi-title">Pre‑test specialists</h3>
-                <p className="kpi-sub">Tallaght, Dún Laoghaire & Churchtown routes.</p>
+                <p className="kpi-sub">Tallaght & Dún Laoghaire routes.</p>
               </div>
               <div className="kpi">
                 <span className="icon-bubble"><IconCheck /></span>
@@ -144,7 +148,7 @@ export default function Home() {
             Ready to start your driving journey?
           </h2>
           <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-            Contact us today to arrange your first lesson. We&apos;ll respond the same day.
+            Contact us today to arrange your first lesson.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link href="/contact" className="btn-primary">

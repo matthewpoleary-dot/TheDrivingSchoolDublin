@@ -1,18 +1,16 @@
 // components/AreasCovered.tsx
 
 const AREAS = [
-  "Tallaght",
-  "Dún Laoghaire",
-  "Churchtown",
-  "Dundrum",
-  "Rathfarnham",
-  "Stillorgan",
-  "Blackrock",
-  "Sandyford",
-  "Ballinteer",
-  "Kilmacud",
-  "Foxrock",
-  "Cabinteely",
+  "Dublin 2",
+  "Dublin 4",
+  "Dublin 6",
+  "Dublin 6W",
+  "Dublin 8",
+  "Dublin 12",
+  "Dublin 10",
+  "Dublin 14",
+  "Dublin 16",
+  "Dublin 18",
 ];
 
 export default function AreasCovered() {

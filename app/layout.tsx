@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   RSA-approved ADI providing professional driving lessons across Dublin.
                 </p>
                 <p className="text-sm text-gray-600">
-                  <strong>Hours:</strong> Mon–Sat, 9am–6pm
+                  <strong>Hours:</strong> Mon–Sat, 8am–6pm
                 </p>
               </div>
               <div>

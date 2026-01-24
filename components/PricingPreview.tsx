@@ -11,7 +11,7 @@ export default function PricingPreview() {
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold">Standard Lesson</h3>
-          <p className="mt-2 text-3xl font-extrabold text-red-600">€65</p>
+          <p className="mt-2 text-3xl font-extrabold text-red-600">€80</p>
           <p className="text-sm text-gray-500">per hour</p>
           <ul className="mt-4 space-y-1 text-sm text-gray-700">
             <li>• Manual (instructor&apos;s car)</li>
@@ -21,7 +21,7 @@ export default function PricingPreview() {
         </div>
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold">Pre-Test Lesson</h3>
-          <p className="mt-2 text-3xl font-extrabold text-red-600">€80</p>
+          <p className="mt-2 text-3xl font-extrabold text-red-600">€100</p>
           <p className="text-sm text-gray-500">per session</p>
           <ul className="mt-4 space-y-1 text-sm text-gray-700">
             <li>• Test route familiarisation</li>
@@ -31,7 +31,7 @@ export default function PricingPreview() {
         </div>
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold">EDT Bundle</h3>
-          <p className="mt-2 text-3xl font-extrabold text-red-600">€705</p>
+          <p className="mt-2 text-3xl font-extrabold text-red-600">€905</p>
           <p className="text-sm text-gray-500">12 lessons</p>
           <ul className="mt-4 space-y-1 text-sm text-gray-700">
             <li>• Best value package</li>

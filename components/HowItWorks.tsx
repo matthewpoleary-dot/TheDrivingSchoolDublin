@@ -14,7 +14,7 @@ const STEPS = [
   {
     number: "3",
     title: "We confirm by text/WhatsApp/email",
-    description: "We&apos;ll get back to you the same day to confirm your lesson time and pick-up location.",
+    description: "We'll get back to you as soon as possible to confirm your lesson time and pick-up location.",
   },
 ];
 
