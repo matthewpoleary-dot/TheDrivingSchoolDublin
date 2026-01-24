@@ -71,7 +71,7 @@ export default function About() {
               ✓ Specialist in EDT and pre-tests
             </div>
             <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Flexible scheduling across Dublin
+              ✓ Flexible scheduling across South Dublin
             </div>
           </div>
         </div>

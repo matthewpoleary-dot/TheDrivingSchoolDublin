@@ -35,7 +35,7 @@ export default function Contact() {
             <div className="rounded-2xl border bg-white shadow-sm p-6 md:p-8">
               <h2 className="text-xl font-bold text-gray-900 mb-1">Send us a message</h2>
               <p className="text-sm text-gray-500 mb-6">
-                Fill out the form below and we'll be in touch shortly.
+              Fill out the form below and we&apos;ll be in touch shortly.
               </p>
               <ContactForm />
             </div>

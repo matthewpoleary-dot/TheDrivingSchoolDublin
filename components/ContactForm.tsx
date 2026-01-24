@@ -93,7 +93,7 @@ export default function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-5">
       {status === "success" && (
         <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800">
-          <strong>Message sent!</strong> We'll get back to you soon.
+          <strong>Message sent!</strong> We&apos;ll get back to you soon.
         </div>
       )}
 

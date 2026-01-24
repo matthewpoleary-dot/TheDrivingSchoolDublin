@@ -71,13 +71,13 @@ export default function PricesPage() {
 
               <div className="rounded-xl border p-4">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Option 2</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€230</p>
+                <p className="mt-1 text-3xl font-extrabold text-red-600">€200</p>
                 <p className="text-sm text-gray-700">Local pick-up &amp; drop-off</p>
               </div>
 
               <div className="rounded-xl border p-4">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Option 3</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€250</p>
+                <p className="mt-1 text-3xl font-extrabold text-red-600">€245</p>
                 <p className="text-sm text-gray-700">Car hire + pre-test lesson</p>
               </div>
             </div>

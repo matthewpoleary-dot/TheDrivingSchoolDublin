@@ -124,7 +124,7 @@ export default function Home() {
               <div className="kpi">
                 <span className="icon-bubble"><IconCheck /></span>
                 <h3 className="kpi-title">Flexible scheduling</h3>
-                <p className="kpi-sub">Weekday & evening lessons available.</p>
+                <p className="kpi-sub">Early mornings, Weekday & evening lessons available.</p>
               </div>
             </div>
           </div>
