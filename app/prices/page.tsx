@@ -1,214 +1,152 @@
-// app/prices/page.tsx
 import Link from "next/link";
 import FAQ from "@/components/FAQ";
 
+export const metadata = {
+  title: "Prices | The Driving School Dublin",
+  description: "Clear, transparent pricing for driving lessons in Dublin. Standard lessons, EDT bundles, pre-test sessions, and car hire for your test.",
+};
+
+const PRICING_CARDS = [
+  {
+    name: "Standard Lesson",
+    price: "€80",
+    per: "per hour",
+    desc: "Manual (instructor's car) or Automatic (your car)",
+    features: [
+      "One-to-one structured coaching",
+      "Manual: dual-control instructor car",
+      "Automatic: use your own car",
+    ],
+  },
+  {
+    name: "Pre-Test Lesson",
+    price: "€100",
+    per: "per session",
+    desc: "90-minute test route familiarisation",
+    features: [
+      "Focus on likely test items",
+      "Last-minute refresher & tips",
+      "Examiner insights",
+    ],
+  },
+  {
+    name: "Refresher Lessons",
+    price: "€80",
+    per: "per hour",
+    desc: "Get back behind the wheel with confidence",
+    features: [
+      "Ideal for returning drivers",
+      "Build confidence at your pace",
+      "Tailored to your needs",
+    ],
+  },
+];
+
+const CAR_HIRE_OPTIONS = [
+  { label: "Meet at test centre", price: "€150" },
+  { label: "Local pick-up & drop-off", price: "€200" },
+  { label: "Car hire + pre-test lesson", price: "€245" },
+];
+
 export default function PricesPage() {
   return (
-    <section className="mx-auto max-w-5xl">
-      <h1 className="text-3xl font-extrabold tracking-tight mb-6">Prices</h1>
+    <section className="space-y-16">
+      {/* Header */}
+      <div className="space-y-2">
+        <p className="section-label">Pricing</p>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Prices</h1>
+        <p className="text-gray-500">Clear, upfront costs — no hidden fees.</p>
+      </div>
 
-      {/* Top three products */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-        {/* Standard Lesson */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
-          <div>
-            <h3 className="text-lg font-semibold">Standard Lesson</h3>
-            <p className="text-sm text-gray-600">Manual (instructor&apos;s car) or Automatic (your car)</p>
-
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€80</p>
-            <p className="text-sm text-gray-500">per hour / lesson</p>
-
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>One-to-one, structured coaching</li>
-              <li>Manual: dual-control instructor car</li>
-              <li>Automatic: use your own car</li>
-            </ul>
-          </div>
-
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
-        </div>
-
-        {/* Pre-Test Lesson */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
-          <div>
-            <h3 className="text-lg font-semibold">Pre-Test Lesson</h3>
-            <p className="text-sm text-gray-600">Test route familiarisation</p>
-
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€100</p>
-            <p className="text-sm text-gray-500">pre-test session</p>
-
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Focus on likely test items</li>
-              <li>Last-minute refresher & tips</li>
-            </ul>
-          </div>
-
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
-        </div>
-
-        {/* Car Hire for Test (two options fixed) */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
-          <div>
-            <h3 className="text-lg font-semibold">Car Hire for Test</h3>
-            <p className="text-sm text-gray-600">Choose the option that suits you</p>
-
-            <div className="mt-4 space-y-4">
-              <div className="rounded-xl border p-4">
-                <p className="text-xs uppercase tracking-wide text-gray-500">Option 1</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€150</p>
-                <p className="text-sm text-gray-700">Meet at the test centre</p>
-              </div>
-
-              <div className="rounded-xl border p-4">
-                <p className="text-xs uppercase tracking-wide text-gray-500">Option 2</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€200</p>
-                <p className="text-sm text-gray-700">Local pick-up &amp; drop-off</p>
-              </div>
-
-              <div className="rounded-xl border p-4">
-                <p className="text-xs uppercase tracking-wide text-gray-500">Option 3</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€245</p>
-                <p className="text-sm text-gray-700">Car hire + pre-test lesson</p>
-              </div>
+      {/* Main lesson cards */}
+      <div className="grid gap-5 md:grid-cols-3">
+        {PRICING_CARDS.map((card) => (
+          <div key={card.name} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col gap-4">
+            <div>
+              <p className="font-semibold text-gray-900">{card.name}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{card.desc}</p>
+              <p className="mt-4 text-4xl font-bold text-gray-900">{card.price}</p>
+              <p className="text-sm text-gray-500">{card.per}</p>
             </div>
-
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Roadworthy, fully insured vehicle</li>
-              <li>Arrive early, paperwork checked</li>
-              <li>Instructor support before & after test</li>
+            <ul className="space-y-1.5 text-sm text-gray-600">
+              {card.features.map((f) => (
+                <li key={f} className="flex items-center gap-2">
+                  <svg className="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0Z" />
+                  </svg>
+                  {f}
+                </li>
+              ))}
             </ul>
+            <Link href="/contact" className="btn-primary mt-auto">Contact us</Link>
           </div>
-
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
-        </div>
+        ))}
       </div>
 
-      {/* Refresher & 6 Reduced EDT row */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Refresher Lessons */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
-          <div>
-            <h3 className="text-lg font-semibold">Refresher Lessons</h3>
-            <p className="text-sm text-gray-600">Get back behind the wheel with confidence</p>
-
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€80</p>
-            <p className="text-sm text-gray-500">per hour / lesson</p>
-
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Ideal for returning drivers</li>
-              <li>Build confidence at your pace</li>
-              <li>Tailored to your needs</li>
-            </ul>
-          </div>
-
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+      {/* Car hire */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <p className="font-semibold text-gray-900 mb-1">Car Hire for Test Day</p>
+        <p className="text-sm text-gray-500 mb-5">Roadworthy, fully insured vehicle. We arrive early, check paperwork, and support you before & after.</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {CAR_HIRE_OPTIONS.map((opt) => (
+            <div key={opt.label} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-2xl font-bold text-gray-900">{opt.price}</p>
+              <p className="text-sm text-gray-600 mt-1">{opt.label}</p>
+            </div>
+          ))}
         </div>
-
-        {/* 6 Reduced EDT Lessons */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
-          <div>
-            <h3 className="text-lg font-semibold">6 Reduced EDT Lessons</h3>
-            <p className="text-sm text-gray-600">For experienced learners</p>
-
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€455</p>
-            <p className="text-sm text-gray-500">includes logbook</p>
-
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>6 structured EDT lessons</li>
-              <li>Logbook included</li>
-              <li>For those with prior experience</li>
-            </ul>
-          </div>
-
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
-        </div>
+        <Link href="/contact" className="btn-primary mt-5 w-full sm:w-auto">Book car hire</Link>
       </div>
 
-      {/* EDT / bundle row */}
-      <div className="mt-8 grid grid-cols-1 gap-6">
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+      {/* EDT bundle */}
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm relative">
+        <span className="absolute -top-3 left-6 rounded-full bg-red-600 px-3 py-0.5 text-xs font-semibold text-white">Best value</span>
+        <div className="grid gap-6 md:grid-cols-2 md:items-center">
           <div>
-            <h3 className="text-lg font-semibold">EDT Bundle (12 lessons)</h3>
-            <p className="text-sm text-gray-600">Best value</p>
-
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€905</p>
-            <p className="text-sm text-gray-500">includes logbook</p>
-
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Save vs paying individually</li>
-              <li>Split payments:</li>
-              <li className="ml-4">
-                Pay <strong>€455</strong> on the <strong>first</strong> lesson
+            <p className="font-semibold text-gray-900">EDT Bundle — 12 lessons</p>
+            <p className="text-4xl font-bold text-gray-900 mt-3">€905</p>
+            <p className="text-sm text-gray-500 mt-0.5">includes logbook</p>
+            <ul className="mt-4 space-y-1.5 text-sm text-gray-700">
+              <li className="flex items-center gap-2">
+                <svg className="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0Z" /></svg>
+                Save vs paying individually
               </li>
-              <li className="ml-4">
-                Pay <strong>€450</strong> on the <strong>7th</strong> lesson
+              <li className="flex items-center gap-2">
+                <svg className="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0Z" /></svg>
+                Split payments available
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="h-3.5 w-3.5 shrink-0 text-red-600" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0Z" /></svg>
+                Logbook included
               </li>
             </ul>
           </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-            >
-              Contact us about bundle
-            </Link>
-
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50 transition"
-            >
-              Contact us about single EDT lesson
-            </Link>
+          <div className="space-y-3">
+            <div className="rounded-xl border border-red-200 bg-white p-4 text-sm text-gray-700">
+              <p className="font-semibold text-gray-900 mb-1">Split payment plan</p>
+              <p>Pay <strong>€455</strong> on your <strong>1st</strong> lesson</p>
+              <p>Pay <strong>€450</strong> on your <strong>7th</strong> lesson</p>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">
+              <p className="font-semibold text-gray-900 mb-1">6 Reduced EDT Lessons</p>
+              <p>For experienced learners — <strong>€455</strong> including logbook</p>
+            </div>
+            <Link href="/contact" className="btn-primary block text-center">Get started with EDT</Link>
           </div>
         </div>
       </div>
 
-      <p className="mt-8 text-sm text-gray-600">
-        Prices include VAT where applicable. For questions, use the contact link in the header.
-      </p>
+      <p className="text-sm text-gray-400">Prices include VAT where applicable. Questions? Use the contact link above.</p>
 
-      {/* FAQ Section */}
-      <div className="mt-16">
-        <FAQ />
-      </div>
+      {/* FAQ */}
+      <FAQ />
 
-      {/* CTA Section */}
-      <div className="mt-12 rounded-2xl border bg-gradient-to-br from-red-50 to-gray-50 p-8 text-center">
-        <h2 className="text-2xl font-extrabold tracking-tight mb-4">Ready to book your lesson?</h2>
-        <p className="text-gray-700 mb-6">
-          Contact us today and we&apos;ll get back to you the same day.
-        </p>
-        <Link href="/contact" className="btn-primary">
-          Contact us
-        </Link>
+      {/* CTA */}
+      <div className="rounded-2xl bg-gray-900 px-8 py-12 text-center text-white">
+        <h2 className="text-2xl font-bold tracking-tight">Ready to book your lesson?</h2>
+        <p className="mt-2 text-gray-400 text-sm">We get back to you the same day.</p>
+        <Link href="/contact" className="btn-primary mt-6">Contact us</Link>
       </div>
     </section>
   );
 }
-
