@@ -43,7 +43,7 @@ export default function PricesPage() {
       {/* Top three products */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Standard Lesson */}
-        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Standard Lesson</h3>
             <p className="text-sm text-gray-600">Manual (instructor&apos;s car) or Automatic (your car)</p>
@@ -66,7 +66,7 @@ export default function PricesPage() {
         </div>
 
         {/* Pre-Test Lesson */}
-        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Pre-Test Lesson</h3>
             <p className="text-sm text-gray-600">Test route familiarisation</p>
@@ -88,7 +88,7 @@ export default function PricesPage() {
         </div>
 
         {/* Car Hire for Test */}
-        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Car Hire for Test</h3>
             <p className="text-sm text-gray-600">Choose the option that suits you</p>
@@ -136,7 +136,7 @@ export default function PricesPage() {
       {/* Refresher & 6 Reduced EDT row */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Refresher Lessons */}
-        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Refresher Lessons</h3>
             <p className="text-sm text-gray-600">Get back behind the wheel with confidence</p>
@@ -159,7 +159,7 @@ export default function PricesPage() {
         </div>
 
         {/* 6 Reduced EDT Lessons */}
-        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">6 Reduced EDT Lessons</h3>
             <p className="text-sm text-gray-600">For experienced learners</p>
@@ -184,7 +184,7 @@ export default function PricesPage() {
 
       {/* EDT Bundle row */}
       <div className="mt-8 grid grid-cols-1 gap-6">
-        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">EDT Bundle (12 lessons)</h3>
             <p className="text-sm text-gray-600">Best value</p>
