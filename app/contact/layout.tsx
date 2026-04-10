@@ -1,6 +1,6 @@
 // app/contact/layout.tsx
 export const metadata = {
-  title: "Contact Us | WhatsApp, Phone, Email | The Driving School Dublin",
+  title: "The Driving School Dublin",
   description: "Contact The Driving School Dublin via WhatsApp, phone (+353 86 0235 666), or email. We respond the same day. Book your driving lesson today.",
 };
 
