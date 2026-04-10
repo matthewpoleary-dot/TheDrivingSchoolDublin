@@ -2,6 +2,39 @@
 import Link from "next/link";
 import FAQ from "@/components/FAQ";
 
+function DayPricing({
+  mf,
+  sat,
+  sun,
+  sublabel,
+}: {
+  mf: string;
+  sat: string;
+  sun: string;
+  sublabel?: string;
+}) {
+  const isNA = (v: string) => v === "N/A";
+  return (
+    <div className="mt-4">
+      <div className="grid grid-cols-3 divide-x rounded-xl border overflow-hidden text-sm text-center">
+        <div className="py-3 px-2 bg-gray-50">
+          <p className="text-xs text-gray-500 mb-1">Mon–Fri</p>
+          <p className="text-xl font-extrabold text-gray-900">{mf}</p>
+        </div>
+        <div className="py-3 px-2 bg-amber-50">
+          <p className="text-xs text-gray-500 mb-1">Saturday</p>
+          <p className={`text-xl font-extrabold ${isNA(sat) ? "text-gray-400" : "text-amber-700"}`}>{sat}</p>
+        </div>
+        <div className="py-3 px-2 bg-red-50">
+          <p className="text-xs text-gray-500 mb-1">Sunday</p>
+          <p className={`text-xl font-extrabold ${isNA(sun) ? "text-gray-400" : "text-red-700"}`}>{sun}</p>
+        </div>
+      </div>
+      {sublabel && <p className="mt-1 text-xs text-center text-gray-500">{sublabel}</p>}
+    </div>
+  );
+}
+
 export default function PricesPage() {
   return (
     <section className="mx-auto max-w-5xl">
@@ -15,8 +48,7 @@ export default function PricesPage() {
             <h3 className="text-lg font-semibold">Standard Lesson</h3>
             <p className="text-sm text-gray-600">Manual (instructor&apos;s car) or Automatic (your car)</p>
 
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€80</p>
-            <p className="text-sm text-gray-500">per hour / lesson</p>
+            <DayPricing mf="€80" sat="€120" sun="€160" sublabel="per hour / lesson" />
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>One-to-one, structured coaching</li>
@@ -39,12 +71,11 @@ export default function PricesPage() {
             <h3 className="text-lg font-semibold">Pre-Test Lesson</h3>
             <p className="text-sm text-gray-600">Test route familiarisation</p>
 
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€100</p>
-            <p className="text-sm text-gray-500">pre-test session</p>
+            <DayPricing mf="€100" sat="€150" sun="€200" sublabel="per pre-test session" />
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>Focus on likely test items</li>
-              <li>Last-minute refresher & tips</li>
+              <li>Last-minute refresher &amp; tips</li>
             </ul>
           </div>
 
@@ -56,36 +87,40 @@ export default function PricesPage() {
           </Link>
         </div>
 
-        {/* Car Hire for Test (two options fixed) */}
+        {/* Car Hire for Test */}
         <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Car Hire for Test</h3>
             <p className="text-sm text-gray-600">Choose the option that suits you</p>
 
-            <div className="mt-4 space-y-4">
-              <div className="rounded-xl border p-4">
-                <p className="text-xs uppercase tracking-wide text-gray-500">Option 1</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€150</p>
-                <p className="text-sm text-gray-700">Meet at the test centre</p>
-              </div>
-
-              <div className="rounded-xl border p-4">
-                <p className="text-xs uppercase tracking-wide text-gray-500">Option 2</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€200</p>
-                <p className="text-sm text-gray-700">Local pick-up &amp; drop-off</p>
-              </div>
-
-              <div className="rounded-xl border p-4">
-                <p className="text-xs uppercase tracking-wide text-gray-500">Option 3</p>
-                <p className="mt-1 text-3xl font-extrabold text-red-600">€245</p>
-                <p className="text-sm text-gray-700">Car hire + pre-test lesson</p>
-              </div>
+            <div className="mt-4 space-y-3">
+              {[
+                { opt: "1", desc: "Meet at the test centre", mf: "€150", sat: "€225" },
+                { opt: "2", desc: "Local pick-up & drop-off", mf: "€200", sat: "€300" },
+                { opt: "3", desc: "Car hire + pre-test lesson", mf: "€245", sat: "€368" },
+              ].map(({ opt, desc, mf, sat }) => (
+                <div key={opt} className="rounded-xl border p-3">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Option {opt}</p>
+                  <p className="text-sm text-gray-700 mb-2">{desc}</p>
+                  <div className="flex gap-6">
+                    <div>
+                      <p className="text-xs text-gray-500">Mon–Fri</p>
+                      <p className="text-2xl font-extrabold text-red-600">{mf}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Saturday</p>
+                      <p className="text-2xl font-extrabold text-red-600">{sat}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs text-center text-gray-400">Not available on Sundays</p>
             </div>
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>Roadworthy, fully insured vehicle</li>
               <li>Arrive early, paperwork checked</li>
-              <li>Instructor support before & after test</li>
+              <li>Instructor support before &amp; after test</li>
             </ul>
           </div>
 
@@ -106,8 +141,7 @@ export default function PricesPage() {
             <h3 className="text-lg font-semibold">Refresher Lessons</h3>
             <p className="text-sm text-gray-600">Get back behind the wheel with confidence</p>
 
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€80</p>
-            <p className="text-sm text-gray-500">per hour / lesson</p>
+            <DayPricing mf="€80" sat="€120" sun="€160" sublabel="per hour / lesson" />
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>Ideal for returning drivers</li>
@@ -130,8 +164,7 @@ export default function PricesPage() {
             <h3 className="text-lg font-semibold">6 Reduced EDT Lessons</h3>
             <p className="text-sm text-gray-600">For experienced learners</p>
 
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€455</p>
-            <p className="text-sm text-gray-500">includes logbook</p>
+            <DayPricing mf="€455" sat="€683" sun="€910" sublabel="includes logbook" />
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>6 structured EDT lessons</li>
@@ -149,19 +182,18 @@ export default function PricesPage() {
         </div>
       </div>
 
-      {/* EDT / bundle row */}
+      {/* EDT Bundle row */}
       <div className="mt-8 grid grid-cols-1 gap-6">
         <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">EDT Bundle (12 lessons)</h3>
             <p className="text-sm text-gray-600">Best value</p>
 
-            <p className="mt-4 text-4xl font-extrabold text-red-600">€905</p>
-            <p className="text-sm text-gray-500">includes logbook</p>
+            <DayPricing mf="€905" sat="€1,358" sun="€1,810" sublabel="includes logbook" />
 
             <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
               <li>Save vs paying individually</li>
-              <li>Split payments:</li>
+              <li>Split payments (Mon–Fri):</li>
               <li className="ml-4">
                 Pay <strong>€455</strong> on the <strong>first</strong> lesson
               </li>
@@ -211,4 +243,3 @@ export default function PricesPage() {
     </section>
   );
 }
-
