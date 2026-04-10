@@ -40,8 +40,8 @@ export default function PricesPage() {
     <section className="mx-auto max-w-5xl">
       <h1 className="text-3xl font-extrabold tracking-tight mb-6">Prices</h1>
 
-      {/* Top three products */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      {/* Standard + Pre-Test side by side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Standard Lesson */}
         <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
           <div>
@@ -86,51 +86,48 @@ export default function PricesPage() {
             Contact us
           </Link>
         </div>
+      </div>
 
-        {/* Car Hire for Test */}
-        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
-          <div>
-            <h3 className="text-lg font-semibold">Car Hire for Test</h3>
-            <p className="text-sm text-gray-600">Choose the option that suits you</p>
-
-            <div className="mt-4 space-y-3">
-              {[
-                { opt: "1", desc: "Meet at the test centre", mf: "€150", sat: "€225" },
-                { opt: "2", desc: "Local pick-up & drop-off", mf: "€200", sat: "€300" },
-                { opt: "3", desc: "Car hire + pre-test lesson", mf: "€245", sat: "€368" },
-              ].map(({ opt, desc, mf, sat }) => (
-                <div key={opt} className="rounded-xl border p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Option {opt}</p>
-                  <p className="text-sm text-gray-700 mb-2">{desc}</p>
-                  <div className="flex gap-6">
-                    <div>
-                      <p className="text-xs text-gray-500">Mon–Fri</p>
-                      <p className="text-2xl font-extrabold text-red-600">{mf}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Saturday</p>
-                      <p className="text-2xl font-extrabold text-red-600">{sat}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <p className="text-xs text-center text-gray-400">Not available on Sundays</p>
-            </div>
-
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Roadworthy, fully insured vehicle</li>
-              <li>Arrive early, paperwork checked</li>
-              <li>Instructor support before &amp; after test</li>
-            </ul>
-          </div>
-
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+      {/* Car Hire for Test — full width */}
+      <div className="mt-6 border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Car Hire for Test</h3>
+          <p className="text-sm text-gray-600">Choose the option that suits you</p>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { opt: "1", desc: "Meet at the test centre", mf: "€150", sat: "€225" },
+            { opt: "2", desc: "Local pick-up & drop-off", mf: "€200", sat: "€300" },
+            { opt: "3", desc: "Car hire + pre-test lesson", mf: "€245", sat: "€368" },
+          ].map(({ opt, desc, mf, sat }) => (
+            <div key={opt} className="rounded-xl border p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Option {opt}</p>
+              <p className="text-sm text-gray-700 mb-3">{desc}</p>
+              <div className="flex gap-6">
+                <div>
+                  <p className="text-xs text-gray-500">Mon–Fri</p>
+                  <p className="text-2xl font-extrabold text-red-600">{mf}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Saturday</p>
+                  <p className="text-2xl font-extrabold text-red-600">{sat}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-center text-gray-400">Not available on Sundays</p>
+        <ul className="mt-4 flex flex-wrap gap-x-8 gap-y-1 text-sm text-gray-700 list-disc list-inside">
+          <li>Roadworthy, fully insured vehicle</li>
+          <li>Arrive early, paperwork checked</li>
+          <li>Instructor support before &amp; after test</li>
+        </ul>
+        <Link
+          href="/contact"
+          className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition w-full"
+        >
+          Contact us
+        </Link>
       </div>
 
       {/* Refresher & 6 Reduced EDT row */}
