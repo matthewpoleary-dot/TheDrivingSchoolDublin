@@ -21,13 +21,13 @@ function DayPricing({
           <p className="text-xs text-gray-500 mb-1">Mon–Fri</p>
           <p className="text-xl font-extrabold text-gray-900">{mf}</p>
         </div>
-        <div className="py-3 px-2 bg-amber-50">
+        <div className="py-3 px-2 bg-gray-50">
           <p className="text-xs text-gray-500 mb-1">Saturday</p>
-          <p className={`text-xl font-extrabold ${isNA(sat) ? "text-gray-400" : "text-amber-700"}`}>{sat}</p>
+          <p className={`text-xl font-extrabold ${isNA(sat) ? "text-gray-400" : "text-gray-900"}`}>{sat}</p>
         </div>
-        <div className="py-3 px-2 bg-red-50">
+        <div className="py-3 px-2 bg-gray-50">
           <p className="text-xs text-gray-500 mb-1">Sunday</p>
-          <p className={`text-xl font-extrabold ${isNA(sun) ? "text-gray-400" : "text-red-700"}`}>{sun}</p>
+          <p className={`text-xl font-extrabold ${isNA(sun) ? "text-gray-400" : "text-gray-900"}`}>{sun}</p>
         </div>
       </div>
       {sublabel && <p className="mt-1 text-xs text-center text-gray-500">{sublabel}</p>}
@@ -43,7 +43,7 @@ export default function PricesPage() {
       {/* Top three products */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {/* Standard Lesson */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Standard Lesson</h3>
             <p className="text-sm text-gray-600">Manual (instructor&apos;s car) or Automatic (your car)</p>
@@ -66,7 +66,7 @@ export default function PricesPage() {
         </div>
 
         {/* Pre-Test Lesson */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Pre-Test Lesson</h3>
             <p className="text-sm text-gray-600">Test route familiarisation</p>
@@ -88,7 +88,7 @@ export default function PricesPage() {
         </div>
 
         {/* Car Hire for Test */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Car Hire for Test</h3>
             <p className="text-sm text-gray-600">Choose the option that suits you</p>
@@ -136,7 +136,7 @@ export default function PricesPage() {
       {/* Refresher & 6 Reduced EDT row */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Refresher Lessons */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">Refresher Lessons</h3>
             <p className="text-sm text-gray-600">Get back behind the wheel with confidence</p>
@@ -159,7 +159,7 @@ export default function PricesPage() {
         </div>
 
         {/* 6 Reduced EDT Lessons */}
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">6 Reduced EDT Lessons</h3>
             <p className="text-sm text-gray-600">For experienced learners</p>
@@ -184,7 +184,7 @@ export default function PricesPage() {
 
       {/* EDT Bundle row */}
       <div className="mt-8 grid grid-cols-1 gap-6">
-        <div className="flex flex-col justify-between h-full border rounded-2xl p-6 bg-white shadow-sm">
+        <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
             <h3 className="text-lg font-semibold">EDT Bundle (12 lessons)</h3>
             <p className="text-sm text-gray-600">Best value</p>

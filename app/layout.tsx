@@ -3,7 +3,7 @@ import "./globals.css";
 import Link from "next/link";
 
 export const metadata = {
-  title: "The Driving School Dublin | Professional Driving Lessons | RSA-Approved ADI",
+  title: "The Driving School Dublin",
   description: "Professional driving lessons in Dublin. RSA-approved ADI, manual & automatic, EDT packages, pre-test sessions. Flexible scheduling. Book your lesson today.",
   openGraph: {
     title: "The Driving School Dublin | Professional Driving Lessons",
@@ -27,8 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               aria-label="Home"
             >
               <span className="text-gray-900">The</span>{" "}
-              <span className="text-red-600">Driving</span>
-              <span className="text-gray-900">School</span>
+              <span className="text-red-600">Driving</span>{" "}
+              <span className="text-gray-900">School</span>{" "}
               <span className="text-gray-900">Dublin</span>
             </Link>
 
