@@ -19,15 +19,15 @@ function DayPricing({
       <div className="grid grid-cols-3 divide-x rounded-xl border overflow-hidden text-sm text-center">
         <div className="py-3 px-2 bg-gray-50">
           <p className="text-xs text-gray-500 mb-1">Mon–Fri</p>
-          <p className="text-xl font-extrabold text-gray-900">{mf}</p>
+          <p className="text-xl font-extrabold text-red-600">{mf}</p>
         </div>
         <div className="py-3 px-2 bg-gray-50">
           <p className="text-xs text-gray-500 mb-1">Saturday</p>
-          <p className={`text-xl font-extrabold ${isNA(sat) ? "text-gray-400" : "text-gray-900"}`}>{sat}</p>
+          <p className={`text-xl font-extrabold ${isNA(sat) ? "text-gray-400" : "text-red-600"}`}>{sat}</p>
         </div>
         <div className="py-3 px-2 bg-gray-50">
           <p className="text-xs text-gray-500 mb-1">Sunday</p>
-          <p className={`text-xl font-extrabold ${isNA(sun) ? "text-gray-400" : "text-gray-900"}`}>{sun}</p>
+          <p className={`text-xl font-extrabold ${isNA(sun) ? "text-gray-400" : "text-red-600"}`}>{sun}</p>
         </div>
       </div>
       {sublabel && <p className="mt-1 text-xs text-center text-gray-500">{sublabel}</p>}
@@ -41,7 +41,7 @@ export default function PricesPage() {
       <h1 className="text-3xl font-extrabold tracking-tight mb-6">Prices</h1>
 
       {/* Top three products */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Standard Lesson */}
         <div className="flex flex-col h-full border rounded-2xl p-6 bg-white shadow-sm">
           <div>
