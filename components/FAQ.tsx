@@ -16,15 +16,19 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: "How long are lessons?",
-    answer: "Standard lessons are 60 minutes. Pre-test sessions are 90 minutesto cover test routes thoroughly.",
+    answer: "Standard lessons are 60 minutes. Pre-test sessions are 90 minutes to cover test routes thoroughly.",
   },
   {
     question: "When are you available?",
     answer: "We offer flexible scheduling including weekday and evening slots. Contact us with your preferred times and we'll work to find a slot that suits you.",
   },
   {
+    question: "Do you offer weekend lessons?",
+    answer: "Yes — we run weekend and evening lessons subject to availability. Weekend slots are in high demand and priced at a premium rate reflecting limited instructor availability. Contact us for current rates and availability.",
+  },
+  {
     question: "Do you provide a car for the test?",
-    answer: "Yes, we offer car hire for your test day. We have three options: meet at the test centre (€150), local pick-up and drop-off (€230), or car hire plus a pre-test lesson (€250). The car is fully insured and roadworthy, and we'll arrive early to ensure everything is ready.",
+    answer: "Yes, we offer car hire for your test day. We have three options: meet at the test centre (from €150), local pick-up and drop-off (from €200), or car hire plus a pre-test lesson (from €245). Prices shown are for Monday–Friday tests; Saturday test dates are available on request. The car is fully insured and roadworthy, and we'll arrive early to ensure everything is ready.",
   },
 ];
 
@@ -51,4 +55,3 @@ export default function FAQ() {
     </section>
   );
 }
-
