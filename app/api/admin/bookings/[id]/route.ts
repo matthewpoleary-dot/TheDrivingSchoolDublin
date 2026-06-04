@@ -1,28 +1,16 @@
 // app/api/admin/bookings/[id]/route.ts
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabase-server";
 import { emailOnStatusChange } from "@/lib/email";
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
-
-type Status = "cancelled" | "completed";
-type PatchBody = { status?: Status };
 
 function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
-function errToString(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === "string") return err;
-  try {
-    return JSON.stringify(err);
-  } catch {
-    return "Server error";
-  }
-}
+type PatchBody = { payment_status?: "cancelled" | "refunded" };
 
-// Next.js 15: params must be awaited.
 export async function PATCH(
   req: Request,
   ctx: { params: Promise<{ id: string }> }
@@ -32,20 +20,21 @@ export async function PATCH(
     const token = hdr?.startsWith("Bearer ") ? hdr.slice(7) : null;
     if (!token || token !== ADMIN_TOKEN) return unauthorized();
 
-    const { id } = await ctx.params; // ✅ await params
+    const { id } = await ctx.params;
     const body = (await req.json()) as PatchBody;
-    const newStatus = body.status;
+    const newStatus = body.payment_status;
 
-    if (!newStatus || !["cancelled", "completed"].includes(newStatus)) {
+    if (!newStatus || !["cancelled", "refunded"].includes(newStatus)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    // Fetch booking for email context
-    const { data: booking, error: bErr } = await supabase
+    // Fetch booking with slot details
+    const { data: booking, error: bErr } = await supabaseServer
       .from("bookings")
-      .select(
-        "id, service_id, starts_at, ends_at, client_name, client_email, client_phone"
-      )
+      .select(`
+        id, service_type, customer_name, customer_email, customer_phone, slot_id,
+        slot:availability_slots(date, start_time)
+      `)
       .eq("id", id)
       .single();
 
@@ -53,43 +42,42 @@ export async function PATCH(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // Fetch service name
-    const { data: svc } = await supabase
-      .from("services")
-      .select("name")
-      .eq("id", booking.service_id)
-      .single();
-
-    // Update status
-    const { error: uErr } = await supabase
+    // Update payment_status
+    const { error: uErr } = await supabaseServer
       .from("bookings")
-      .update({ status: newStatus })
+      .update({ payment_status: newStatus })
       .eq("id", id);
 
-    if (uErr) {
-      return NextResponse.json({ error: uErr.message }, { status: 500 });
+    if (uErr) return NextResponse.json({ error: uErr.message }, { status: 500 });
+
+    // Free up the slot if cancelling
+    if (newStatus === "cancelled" && booking.slot_id) {
+      await supabaseServer
+        .from("availability_slots")
+        .update({ is_booked: false, booking_id: null })
+        .eq("id", booking.slot_id);
     }
 
-    // Fire-and-forget emails
+    // Send status change emails
+    const slot = Array.isArray(booking.slot) ? (booking.slot[0] ?? null) : (booking.slot as { date: string; start_time: string } | null);
+    const startsAtISO = slot ? `${slot.date}T${slot.start_time}+01:00` : new Date().toISOString();
+
     emailOnStatusChange({
       bookingId: booking.id,
-      newStatus,
-      serviceName: svc?.name ?? "Lesson",
-      startsAtISO: booking.starts_at,
+      status: newStatus as "cancelled",
+      serviceName: booking.service_type,
+      startsAtISO,
       client: {
-        name: booking.client_name,
-        email: booking.client_email,
-        phone: booking.client_phone ?? null,
+        name: booking.customer_name,
+        email: booking.customer_email,
+        phone: booking.customer_phone ?? null,
       },
     }).catch((err: unknown) => {
-      console.error("emailOnStatusChange failed:", errToString(err));
+      console.error("emailOnStatusChange failed:", err instanceof Error ? err.message : err);
     });
 
     return NextResponse.json({ ok: true });
-  } catch (err: unknown) {
-    return NextResponse.json(
-      { error: errToString(err) },
-      { status: 500 }
-    );
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Server error" }, { status: 500 });
   }
 }

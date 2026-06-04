@@ -1,8 +1,19 @@
 // app/prices/page.tsx
 // Weekend prices have been moved off-page by design and are handled during
-// the contact conversation — do not restore them thinking it's a bug.
+// the booking conversation — do not restore them thinking it's a bug.
 import Link from "next/link";
 import FAQ from "@/components/FAQ";
+
+function BookBtn({ service, label = "Book now" }: { service: string; label?: string }) {
+  return (
+    <Link
+      href={`/book?service=${service}`}
+      className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
+    >
+      {label}
+    </Link>
+  );
+}
 
 export default function PricesPage() {
   return (
@@ -22,12 +33,7 @@ export default function PricesPage() {
             <p className="mt-3 text-sm text-gray-700">One-to-one tuition in a fully-equipped dual-control car.</p>
             <p className="mt-3 text-xs text-gray-500">Evening &amp; weekend slots available on request — limited availability.</p>
           </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+          <BookBtn service="standard" />
         </div>
 
         {/* Pre-Test Lesson */}
@@ -41,12 +47,7 @@ export default function PricesPage() {
             <p className="mt-3 text-sm text-gray-700">Full pre-test preparation: mock test route, manoeuvres, and examiner feedback style.</p>
             <p className="mt-3 text-xs text-gray-500">Weekend sessions on request — subject to availability.</p>
           </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+          <BookBtn service="pre-test" />
         </div>
       </div>
 
@@ -74,12 +75,7 @@ export default function PricesPage() {
           <li>Arrive early, paperwork checked</li>
           <li>Instructor support before &amp; after test</li>
         </ul>
-        <Link
-          href="/contact"
-          className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition w-full"
-        >
-          Contact us
-        </Link>
+        <BookBtn service="car-hire" label="Book car hire" />
       </div>
 
       {/* Refresher & 6 Reduced EDT row */}
@@ -95,12 +91,7 @@ export default function PricesPage() {
             <p className="mt-3 text-sm text-gray-700">For licensed drivers returning to the wheel after a break.</p>
             <p className="mt-3 text-xs text-gray-500">Weekend slots on request.</p>
           </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+          <BookBtn service="refresher" />
         </div>
 
         {/* 6 Reduced EDT Lessons */}
@@ -114,12 +105,7 @@ export default function PricesPage() {
             <p className="mt-3 text-sm text-gray-700">Completes the reduced EDT syllabus over six structured hours.</p>
             <p className="mt-3 text-xs text-gray-500">Weekend scheduling available on request.</p>
           </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+          <BookBtn service="edt-6" label="Buy 6-lesson package" />
         </div>
       </div>
 
@@ -137,37 +123,25 @@ export default function PricesPage() {
             </div>
             <p className="mt-3 text-sm text-gray-700">Our most popular package for learners completing full EDT.</p>
             <p className="mt-2 text-sm font-medium text-gray-700">Works out at €75.42 per hour — cheaper than booking hourly.</p>
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Split payments available (Mon–Fri):</li>
-              <li className="ml-4">
-                Pay <strong>€455</strong> on the <strong>first</strong> lesson
-              </li>
-              <li className="ml-4">
-                Pay <strong>€450</strong> on the <strong>7th</strong> lesson
-              </li>
+            <ul className="mt-4 space-y-1 text-sm text-gray-700 list-disc list-inside">
+              <li>Pay once — book each session at your own pace</li>
+              <li>Personal booking link emailed to you immediately</li>
+              <li>Up to 2 sessions bookable in advance</li>
+              <li>Valid for 12 months</li>
             </ul>
             <p className="mt-3 text-xs text-gray-500">Weekend scheduling available on request.</p>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-            >
-              Contact us about bundle
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50 transition"
-            >
-              Contact us about single EDT lesson
-            </Link>
+            <BookBtn service="edt-bundle" label="Buy EDT bundle — €905" />
+            <BookBtn service="edt-6" label="Buy 6-lesson package — €455" />
           </div>
         </div>
       </div>
 
       <p className="mt-8 text-sm text-gray-600">
-        Prices include VAT where applicable. For questions, use the contact link in the header.
+        Prices include VAT where applicable. For questions, use the{" "}
+        <Link href="/contact" className="text-red-600 underline">contact page</Link>.
       </p>
 
       {/* FAQ Section */}
@@ -177,12 +151,12 @@ export default function PricesPage() {
 
       {/* CTA Section */}
       <div className="mt-12 rounded-2xl border bg-gradient-to-br from-red-50 to-gray-50 p-8 text-center">
-        <h2 className="text-2xl font-extrabold tracking-tight mb-4">Ready to book your lesson?</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight mb-4">Ready to book?</h2>
         <p className="text-gray-700 mb-6">
-          Contact us today and we&apos;ll get back to you the same day.
+          Pick your lesson, choose a slot, and pay securely online.
         </p>
-        <Link href="/contact" className="btn-primary">
-          Contact us
+        <Link href="/book" className="btn-primary">
+          Book a lesson
         </Link>
       </div>
     </section>

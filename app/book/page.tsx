@@ -1,269 +1,298 @@
-// app/book/page.tsx
 "use client";
-
-import { useState, FormEvent } from "react";
+// app/book/page.tsx — complete rewrite with real booking + Stripe Checkout
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import BookingCalendar, { type Slot } from "@/components/BookingCalendar";
+import { SERVICES, type ServiceSlug, formatPrice } from "@/lib/pricing";
 
-const DISPLAY_PHONE = "+353 86 0235 666";
-const TEL_HREF = "tel:+353860235666";
-const WHATSAPP_HREF = "https://wa.me/353860235666?text=" + encodeURIComponent("Hi! I'd like to arrange a driving lesson.");
-const EMAIL = "thedrivingschooldublin@gmail.com";
+const SERVICE_OPTIONS: { slug: ServiceSlug; label: string; price: string }[] = [
+  { slug: "standard",    label: "Standard Lesson",         price: "€80" },
+  { slug: "pre-test",    label: "Pre-Test Lesson",          price: "€100" },
+  { slug: "refresher",   label: "Refresher Lesson",         price: "€80" },
+  { slug: "edt-6",       label: "6 EDT Lessons",            price: "€455" },
+  { slug: "edt-bundle",  label: "EDT Bundle (12 lessons)",  price: "€905" },
+  { slug: "car-hire",    label: "Car Hire for Test",        price: "from €150" },
+];
 
-export default function BookPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    carType: "",
-    lessonType: "",
-    area: "",
-    availability: "",
-    consent: false,
-  });
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+// EDT bundle and edt-6 don't need a slot — payment first, then they get a booking link
+const NO_SLOT_SERVICES: ServiceSlug[] = ["edt-bundle", "edt-6"];
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus("submitting");
+type Step = "service" | "slot" | "details" | "redirecting";
 
-    const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT;
+function BookPageInner() {
+  const searchParams = useSearchParams();
+  const preselect = searchParams.get("service") as ServiceSlug | null;
+  const cancelled = searchParams.get("cancelled") === "1";
 
-    if (formspreeEndpoint) {
-      // Use Formspree
-      try {
-        const response = await fetch(formspreeEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: formData.name,
-            phone: formData.phone,
-            email: formData.email,
-            carType: formData.carType,
-            lessonType: formData.lessonType,
-            area: formData.area,
-            availability: formData.availability,
-          }),
-        });
+  const [step, setStep] = useState<Step>(preselect ? "slot" : "service");
+  const [service, setService] = useState<ServiceSlug | null>(preselect);
+  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
-        if (response.ok) {
-          setStatus("success");
-          setFormData({
-            name: "",
-            phone: "",
-            email: "",
-            carType: "",
-            lessonType: "",
-            area: "",
-            availability: "",
-            consent: false,
-          });
-        } else {
-          setStatus("error");
-        }
-      } catch {
-        setStatus("error");
-      }
-    } else {
-      // Fallback to mailto
-      const subject = encodeURIComponent("Lesson Request");
-      const body = encodeURIComponent(
-        `Name: ${formData.name}\nPhone: ${formData.phone}\nEmail: ${formData.email}\nCar Type: ${formData.carType}\nLesson Type: ${formData.lessonType}\nArea: ${formData.area}\nAvailability: ${formData.availability}`
-      );
-      window.location.href = `mailto:${EMAIL}?subject=${subject}&body=${body}`;
-      setStatus("success");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  // If service doesn't need a slot, skip straight to details after service selection
+  useEffect(() => {
+    if (service && NO_SLOT_SERVICES.includes(service) && step === "slot") {
+      setStep("details");
     }
-  };
+  }, [service, step]);
 
-  if (status === "success") {
+  const serviceConfig = service ? SERVICES[service] : null;
+
+  async function handleCheckout() {
+    if (!service) return;
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slot_id: selectedSlot?.id ?? undefined,
+          service_type: service,
+          customer_name: name.trim(),
+          customer_email: email.trim().toLowerCase(),
+          customer_phone: phone.trim(),
+          notes: notes.trim() || undefined,
+        }),
+      });
+
+      const data = (await res.json()) as { url?: string; error?: string };
+
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? "Failed to create checkout session");
+      }
+
+      setStep("redirecting");
+      window.location.href = data.url;
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+      setSubmitting(false);
+    }
+  }
+
+  // ─── Step: Service selection ─────────────────────────────────────────────
+  if (step === "service") {
     return (
       <section className="mx-auto max-w-2xl space-y-6">
-        <div className="rounded-2xl border bg-green-50 p-8 text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-4">Request Sent!</h1>
-          <p className="text-gray-700 mb-6">
-            Thank you for your request. We&apos;ll get back to you the same day to confirm your lesson time.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/" className="btn-primary">
-              Back to home
-            </Link>
-            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="btn-outline">
-              WhatsApp us
-            </a>
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-extrabold tracking-tight">Book a Lesson</h1>
+          <p className="text-gray-600">Choose your lesson type to get started.</p>
+        </div>
+
+        {cancelled && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Payment cancelled — your slot has not been reserved. Select a service to try again.
           </div>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {SERVICE_OPTIONS.map((opt) => (
+            <button
+              key={opt.slug}
+              onClick={() => {
+                setService(opt.slug);
+                setSelectedSlot(null);
+                setStep(NO_SLOT_SERVICES.includes(opt.slug) ? "details" : "slot");
+              }}
+              className="flex flex-col items-start rounded-2xl border bg-white p-5 shadow-sm hover:border-red-400 hover:shadow-md transition text-left"
+            >
+              <span className="font-semibold text-gray-900">{opt.label}</span>
+              <span className="mt-1 text-2xl font-extrabold text-red-600">{opt.price}</span>
+              <span className="mt-2 text-xs text-gray-500">{SERVICES[opt.slug].description}</span>
+            </button>
+          ))}
         </div>
       </section>
     );
   }
 
-  return (
-    <section className="mx-auto max-w-2xl space-y-8">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">Request a Lesson</h1>
-        <p className="text-gray-700">
-          Fill out the form below and we&apos;ll get back to you the same day to confirm your lesson time.
-        </p>
-      </div>
+  // ─── Step: Slot selection ────────────────────────────────────────────────
+  if (step === "slot" && service && serviceConfig) {
+    return (
+      <section className="mx-auto max-w-2xl space-y-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => { setStep("service"); setSelectedSlot(null); }}
+            className="text-sm text-gray-500 hover:text-gray-800">← Back</button>
+          <h1 className="text-2xl font-extrabold tracking-tight">{serviceConfig.label}</h1>
+          <span className="text-xl font-bold text-red-600">{formatPrice(serviceConfig.pricePence)}</span>
+        </div>
 
-      {/* Quick contact options */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <a
-          href={WHATSAPP_HREF}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-lg border bg-green-600 px-4 py-3 text-center font-medium text-white hover:bg-green-700 transition"
-        >
-          WhatsApp us
-        </a>
-        <a
-          href={TEL_HREF}
-          className="rounded-lg border bg-gray-900 px-4 py-3 text-center font-medium text-white hover:bg-black transition"
-        >
-          Call {DISPLAY_PHONE}
-        </a>
-      </div>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-1">
-            Full Name <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-700 mb-4">Select an available date and time:</p>
+          <BookingCalendar
+            serviceType={service}
+            onSlotSelected={(slot) => {
+              setSelectedSlot(slot);
+            }}
           />
         </div>
 
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-900 mb-1">
-            Phone Number <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            required
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
-            placeholder="+353 86 123 4567"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-1">
-            Email Address <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            required
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="carType" className="block text-sm font-medium text-gray-900 mb-1">
-            Car Type <span className="text-red-600">*</span>
-          </label>
-          <select
-            id="carType"
-            required
-            value={formData.carType}
-            onChange={(e) => setFormData({ ...formData, carType: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
-          >
-            <option value="">Select...</option>
-            <option value="manual">Manual</option>
-            <option value="automatic">Automatic</option>
-            <option value="not-sure">Not sure yet</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="lessonType" className="block text-sm font-medium text-gray-900 mb-1">
-            Lesson Type <span className="text-red-600">*</span>
-          </label>
-          <select
-            id="lessonType"
-            required
-            value={formData.lessonType}
-            onChange={(e) => setFormData({ ...formData, lessonType: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
-          >
-            <option value="">Select...</option>
-            <option value="standard">Standard Lesson</option>
-            <option value="edt-single">Single EDT Lesson</option>
-            <option value="edt-bundle">EDT Bundle (12 lessons)</option>
-            <option value="pre-test">Pre-Test Lesson</option>
-            <option value="car-hire">Car Hire for Test</option>
-            <option value="refresher">Refresher Lesson</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="area" className="block text-sm font-medium text-gray-900 mb-1">
-            Preferred Area
-          </label>
-          <input
-            type="text"
-            id="area"
-            value={formData.area}
-            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
-            placeholder="e.g., Tallaght, Dún Laoghaire, Churchtown"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="availability" className="block text-sm font-medium text-gray-900 mb-1">
-            Your Availability <span className="text-red-600">*</span>
-          </label>
-          <textarea
-            id="availability"
-            required
-            rows={4}
-            value={formData.availability}
-            onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
-            placeholder="e.g., Weekday evenings after 6pm, Saturday mornings..."
-          />
-        </div>
-
-        <div className="flex items-start gap-2">
-          <input
-            type="checkbox"
-            id="consent"
-            required
-            checked={formData.consent}
-            onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"
-          />
-          <label htmlFor="consent" className="text-sm text-gray-700">
-            I consent to being contacted about my lesson request <span className="text-red-600">*</span>
-          </label>
-        </div>
-
-        {status === "error" && (
-          <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800">
-            Something went wrong. Please try again or contact us directly via WhatsApp or phone.
+        {selectedSlot && (
+          <div className="rounded-2xl border border-green-200 bg-green-50 p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-green-800">Selected slot</p>
+              <p className="text-sm text-green-700">
+                {selectedSlot.date} · {selectedSlot.start_time.slice(0, 5)}–{selectedSlot.end_time.slice(0, 5)}
+              </p>
+            </div>
+            <button
+              onClick={() => setStep("details")}
+              className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition"
+            >
+              Continue →
+            </button>
           </div>
         )}
+      </section>
+    );
+  }
 
-        <button
-          type="submit"
-          disabled={status === "submitting"}
-          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+  // ─── Step: Customer details ──────────────────────────────────────────────
+  if (step === "details" && service && serviceConfig) {
+    const isBundle = NO_SLOT_SERVICES.includes(service);
+    return (
+      <section className="mx-auto max-w-xl space-y-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setStep(isBundle ? "service" : "slot")}
+            className="text-sm text-gray-500 hover:text-gray-800"
+          >
+            ← Back
+          </button>
+          <h1 className="text-2xl font-extrabold tracking-tight">Your details</h1>
+        </div>
+
+        {/* Booking summary */}
+        <div className="rounded-2xl border bg-gray-50 p-4 text-sm space-y-1">
+          <p><span className="font-medium">Service:</span> {serviceConfig.label}</p>
+          {selectedSlot && (
+            <p>
+              <span className="font-medium">Slot:</span>{" "}
+              {selectedSlot.date} · {selectedSlot.start_time.slice(0, 5)}–{selectedSlot.end_time.slice(0, 5)}
+            </p>
+          )}
+          {isBundle && (
+            <p className="text-gray-600">
+              You&apos;ll receive a personal booking link by email to schedule your individual sessions.
+            </p>
+          )}
+          <p className="font-semibold text-red-600 text-base">{formatPrice(serviceConfig.pricePence)}</p>
+        </div>
+
+        <form
+          onSubmit={(e) => { e.preventDefault(); void handleCheckout(); }}
+          className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm"
         >
-          {status === "submitting" ? "Sending..." : "Submit Request"}
-        </button>
-      </form>
-    </section>
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Full Name <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              placeholder="Your full name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Email Address <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Phone Number <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              placeholder="+353 86 123 4567"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">Notes (optional)</label>
+            <textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              placeholder="Anything the instructor should know…"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full rounded-lg bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? "Redirecting to payment…" : `Pay ${formatPrice(serviceConfig.pricePence)} securely`}
+          </button>
+
+          <p className="text-center text-xs text-gray-400">
+            Powered by Stripe · Card, Apple Pay & Google Pay accepted
+          </p>
+        </form>
+      </section>
+    );
+  }
+
+  // ─── Step: Redirecting ───────────────────────────────────────────────────
+  if (step === "redirecting") {
+    return (
+      <div className="mx-auto max-w-sm text-center space-y-4 py-16">
+        <div className="text-4xl">⏳</div>
+        <p className="text-lg font-semibold">Redirecting to secure payment…</p>
+        <p className="text-sm text-gray-500">Please don&apos;t close this tab.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-center py-16">
+      <p className="text-gray-500">Something went wrong. <Link href="/book" className="text-red-600 underline">Start over</Link></p>
+    </div>
   );
 }
 
+export default function BookPage() {
+  return (
+    <Suspense fallback={
+      <div className="mx-auto max-w-2xl py-16 text-center">
+        <p className="text-gray-500">Loading…</p>
+      </div>
+    }>
+      <BookPageInner />
+    </Suspense>
+  );
+}

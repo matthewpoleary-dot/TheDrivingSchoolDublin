@@ -38,8 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/reviews" className="nav-link">Reviews</Link>
                 <Link href="/about" className="nav-link">About</Link>
               </div>
-              <Link href="/contact" className="btn-primary text-sm">
-                Contact us
+              <Link href="/book" className="btn-primary text-sm">
+                Book now
               </Link>
             </div>
           </nav>
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><Link href="/prices" className="text-gray-600 hover:text-red-600">Prices</Link></li>
                   <li><Link href="/reviews" className="text-gray-600 hover:text-red-600">Reviews</Link></li>
                   <li><Link href="/about" className="text-gray-600 hover:text-red-600">About</Link></li>
-                  <li><Link href="/contact" className="text-gray-600 hover:text-red-600">Contact</Link></li> */
+                  <li><Link href="/contact" className="text-gray-600 hover:text-red-600">Contact</Link></li>
                 </ul>
               </div>
               <div>

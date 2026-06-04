@@ -2,6 +2,8 @@
 import { Resend } from "resend";
 import { formatZoned } from "@/lib/time";
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://thedrivingschooldublin.com";
+
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const fromEmail = process.env.FROM_EMAIL!;   // e.g. onboarding@resend.dev (dev) or bookings@yourdomain.com (prod)
 const adiEmail  = process.env.ADI_EMAIL!;    // your inbox
@@ -58,6 +60,94 @@ export async function emailOnBooking(p: BookingEmailPayload) {
       details,
       ``,
       `If you need to change your booking, just reply to this email.`,
+    ].join("\n"),
+  });
+}
+
+/** Send emails when an EDT bundle/package is purchased */
+export async function emailOnEdtPackageCreated(p: {
+  packageId: string;
+  accessToken: string;
+  lessonsTotal: number;
+  expiresAt: string;
+  customer: { name: string; email: string };
+}) {
+  const bookingLink = `${BASE_URL}/book/${p.accessToken}`;
+
+  await resend.emails.send({
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
+    to: adiEmail,
+    replyTo: adiEmail,
+    subject: `New EDT package purchase — ${p.customer.name}`,
+    text: [
+      `New EDT package purchased`,
+      ``,
+      `Customer: ${p.customer.name} (${p.customer.email})`,
+      `Lessons: ${p.lessonsTotal}`,
+      `Expires: ${p.expiresAt}`,
+      `Package ID: ${p.packageId}`,
+    ].join("\n"),
+  });
+
+  await resend.emails.send({
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
+    to: p.customer.email,
+    replyTo: adiEmail,
+    subject: `Your ${p.lessonsTotal}-lesson EDT package is ready`,
+    text: [
+      `Hi ${p.customer.name},`,
+      ``,
+      `Your ${p.lessonsTotal}-lesson EDT package has been confirmed and paid.`,
+      ``,
+      `Book your first session using your personal link below:`,
+      bookingLink,
+      ``,
+      `This link is private to you — use it to book each session as you're ready.`,
+      `You can book up to 2 sessions in advance. Your package expires on ${p.expiresAt}.`,
+      ``,
+      `If you have any questions, just reply to this email.`,
+    ].join("\n"),
+  });
+}
+
+/** Send emails when an EDT session is booked via the package link */
+export async function emailOnEdtSessionBooked(p: {
+  packageId: string;
+  sessionNumber: number;
+  lessonsTotal: number;
+  startsAtISO: string;
+  customer: { name: string; email: string };
+}) {
+  const when = formatZoned(p.startsAtISO);
+
+  await resend.emails.send({
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
+    to: adiEmail,
+    replyTo: adiEmail,
+    subject: `EDT session ${p.sessionNumber}/${p.lessonsTotal} booked — ${p.customer.name}`,
+    text: [
+      `EDT session booked`,
+      ``,
+      `Customer: ${p.customer.name} (${p.customer.email})`,
+      `Session: ${p.sessionNumber} of ${p.lessonsTotal}`,
+      `When: ${when}`,
+      `Package ID: ${p.packageId}`,
+    ].join("\n"),
+  });
+
+  await resend.emails.send({
+    from: `TheDrivingSchoolDublin <${fromEmail}>`,
+    to: p.customer.email,
+    replyTo: adiEmail,
+    subject: `EDT session ${p.sessionNumber} confirmed — ${when}`,
+    text: [
+      `Hi ${p.customer.name},`,
+      ``,
+      `Your EDT session ${p.sessionNumber} of ${p.lessonsTotal} is confirmed.`,
+      ``,
+      `When: ${when}`,
+      ``,
+      `If you need to reschedule, reply to this email as soon as possible.`,
     ].join("\n"),
   });
 }

@@ -1,5 +1,6 @@
+// app/api/admin/bookings/route.ts
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabase-server";
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
@@ -13,10 +14,14 @@ export async function GET(req: Request) {
     const token = hdr?.startsWith("Bearer ") ? hdr.slice(7) : null;
     if (!token || token !== ADMIN_TOKEN) return unauthorized();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from("bookings")
-      .select("id,service_id,client_name,client_email,client_phone,starts_at,ends_at,status,services(name,duration_minutes,price_cents)")
-      .order("starts_at", { ascending: true });
+      .select(`
+        id, slot_id, service_type, customer_name, customer_email, customer_phone,
+        payment_status, amount_pence, notes, created_at,
+        slot:availability_slots(date, start_time, end_time)
+      `)
+      .order("created_at", { ascending: false });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data ?? []);
