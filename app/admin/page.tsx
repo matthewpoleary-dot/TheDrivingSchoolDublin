@@ -444,16 +444,14 @@ export default function AdminPage() {
                         >
                           <div>{s.start_time.slice(0, 5)}</div>
                           <div className="opacity-70">{s.duration_minutes}m</div>
-                          {!s.is_booked && (
-                            <button
-                              onClick={() => deleteSlot(s.id)}
-                              disabled={deletingId === s.id}
-                              className="absolute top-0.5 right-0.5 hidden group-hover:block text-red-500 hover:text-red-700 text-xs font-bold leading-none"
-                              title="Delete slot"
-                            >
-                              ×
-                            </button>
-                          )}
+                          <button
+                            onClick={() => deleteSlot(s.id)}
+                            disabled={deletingId === s.id}
+                            className="absolute top-0.5 right-0.5 hidden group-hover:block text-red-500 hover:text-red-700 text-xs font-bold leading-none"
+                            title={s.is_booked ? "Cancel booking & delete slot" : "Delete slot"}
+                          >
+                            ×
+                          </button>
                         </div>
                       ))}
                       {!daySlots.length && <div className="text-xs text-gray-300 text-center">—</div>}
