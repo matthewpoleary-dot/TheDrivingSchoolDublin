@@ -2,43 +2,61 @@
 
 const STEPS = [
   {
-    number: "1",
+    number: "01",
     title: "Pick your lesson type",
     description: "Choose from standard lessons, EDT packages, pre-test sessions, or car hire for your test.",
   },
   {
-    number: "2",
-    title: "Tell us your availability",
-    description: "Contact us via WhatsApp, phone, or email with your preferred times and location.",
+    number: "02",
+    title: "Choose a time that suits",
+    description: "See all available slots on a live calendar and book the one that fits your schedule.",
   },
   {
-    number: "3",
-    title: "We confirm by text/WhatsApp/email",
-    description: "We'll get back to you as soon as possible to confirm your lesson time and pick-up location.",
+    number: "03",
+    title: "Get instant confirmation",
+    description: "Pay securely online and receive a confirmation by email — your lesson is locked in.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-extrabold tracking-tight">How It Works</h2>
-        <p className="text-gray-700">Simple, straightforward booking process</p>
+    <section className="space-y-12">
+      <div className="text-center space-y-3 max-w-2xl mx-auto">
+        <p className="text-sm font-semibold text-red-600 uppercase tracking-wider">How it works</p>
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+          A simple booking process
+        </h2>
+        <p className="text-base text-slate-600">
+          Three steps from picking your lesson to driving with confidence.
+        </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        {STEPS.map((step) => (
-          <div key={step.number} className="rounded-2xl border bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 text-white text-xl font-extrabold">
+
+      <div className="grid gap-12 md:grid-cols-3 md:gap-8 lg:gap-12 relative">
+        {STEPS.map((step, i) => (
+          <div key={step.number} className="relative space-y-4">
+            {/* Large faded number */}
+            <div className="flex items-baseline gap-3">
+              <span className="text-6xl lg:text-7xl font-extrabold text-slate-100 leading-none select-none">
                 {step.number}
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">{step.title}</h3>
+              </span>
+              <span className="h-px flex-1 bg-slate-200 mt-3" />
             </div>
-            <p className="text-gray-700 text-sm leading-relaxed">{step.description}</p>
+
+            <h3 className="text-xl font-bold text-slate-900">{step.title}</h3>
+            <p className="text-slate-600 leading-relaxed">{step.description}</p>
+
+            {/* Connecting chevron (desktop only, between cols) */}
+            {i < STEPS.length - 1 && (
+              <svg
+                className="hidden md:block absolute top-8 -right-4 lg:-right-6 h-4 w-4 text-slate-300"
+                viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+              >
+                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+              </svg>
+            )}
           </div>
         ))}
       </div>
     </section>
   );
 }
-

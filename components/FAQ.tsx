@@ -34,21 +34,32 @@ const FAQ_ITEMS: FAQItem[] = [
 
 export default function FAQ() {
   return (
-    <section className="space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-extrabold tracking-tight">Frequently Asked Questions</h2>
-        <p className="text-gray-700">Everything you need to know about our lessons</p>
+    <section className="space-y-10">
+      <div className="text-center space-y-3 max-w-2xl mx-auto">
+        <p className="text-sm font-semibold text-red-600 uppercase tracking-wider">FAQ</p>
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+          Frequently asked questions
+        </h2>
+        <p className="text-base text-slate-600">Everything you need to know about our lessons.</p>
       </div>
-      <div className="space-y-4">
+
+      <div className="space-y-3 max-w-3xl mx-auto">
         {FAQ_ITEMS.map((item, i) => (
-          <details key={i} className="rounded-lg border bg-white p-6 shadow-sm">
-            <summary className="font-semibold text-gray-900 cursor-pointer list-none">
-              <span className="flex items-center justify-between">
+          <details
+            key={i}
+            className="group rounded-2xl bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md open:shadow-md open:ring-1 open:ring-red-100"
+          >
+            <summary className="flex items-center justify-between gap-3 cursor-pointer list-none">
+              <span className="text-base font-semibold text-slate-900 group-open:text-red-600 transition-colors">
                 {item.question}
-                <span className="text-red-600 ml-2">+</span>
+              </span>
+              <span className="flex-shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-full bg-slate-100 text-slate-500 group-open:bg-red-50 group-open:text-red-600 group-open:rotate-45 transition-all duration-200">
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10 5a.75.75 0 01.75.75v3.5h3.5a.75.75 0 010 1.5h-3.5v3.5a.75.75 0 01-1.5 0v-3.5h-3.5a.75.75 0 010-1.5h3.5v-3.5A.75.75 0 0110 5z" clipRule="evenodd" />
+                </svg>
               </span>
             </summary>
-            <p className="mt-4 text-gray-700 leading-relaxed">{item.answer}</p>
+            <p className="mt-4 text-slate-600 leading-relaxed pr-10">{item.answer}</p>
           </details>
         ))}
       </div>

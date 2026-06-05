@@ -1,5 +1,12 @@
 // app/about/page.tsx
-import Image from "next/image";
+import Check from "@/components/icons/Check";
+
+const HIGHLIGHTS = [
+  "Patient, structured instruction",
+  "Manual lessons in dual-control instructor car",
+  "Specialist in EDT and pre-tests",
+  "Flexible scheduling across South Dublin",
+];
 
 export default function About() {
   const jsonLd = {
@@ -14,79 +21,76 @@ export default function About() {
       addressLocality: "Dublin",
       addressCountry: "IE",
     },
-    areaServed: {
-      "@type": "City",
-      name: "Dublin",
-    },
+    areaServed: { "@type": "City", name: "Dublin" },
     priceRange: "€€",
   };
 
   return (
     <>
-      <section className="mx-auto max-w-6xl space-y-12">
-      {/* Hero heading */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-extrabold tracking-tight">
-          About <span className="text-red-600">Us</span>
-        </h1>
-        <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-          Meet Conor – your RSA-approved ADI and former driving tester, with years
-          of experience helping learners succeed across Dublin.
-        </p>
-      </div>
+      <section className="space-y-16">
+        {/* Hero heading */}
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <p className="text-sm font-semibold text-red-600 uppercase tracking-wider">About</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
+            Meet <span className="text-red-600">Conor</span>
+          </h1>
+          <p className="text-lg text-slate-600">
+            Your RSA-approved ADI and former driving tester — years of experience helping Dublin learners pass with confidence.
+          </p>
+        </div>
 
-      {/* Instructor bio card */}
-      <div className="grid md:grid-cols-2 gap-10 items-center bg-white shadow-md rounded-2xl p-8">
-        {/* Text */}
-        <div className="space-y-5">
-          <h2 className="text-2xl font-bold">Meet Your ADI – Conor</h2>
-          <p className="text-gray-700 leading-relaxed">
-            Conor is a highly experienced Approved Driving Instructor (ADI) and
-            former RSA driving tester. Having worked in test centres across{" "}
-            <strong>Tallaght</strong>, <strong>Dún Laoghaire</strong>, and the old{" "}
-            <strong>Churchtown</strong> test centre, he brings deep insight into what
-            examiners look for on the day of your test.
-          </p>
-          <p className="text-gray-700 leading-relaxed">
-            With years of experience in the industry, Conor combines professional
-            standards with a calm, supportive teaching style. His background as an
-            ex-tester means every lesson is focused not just on safe driving, but also
-            on preparing you to succeed under exam conditions.
-          </p>
-          <p className="text-gray-700 leading-relaxed">
-            Whether you’re completing your <strong>EDT programme</strong>, booking{" "}
-            <strong>pre-test lessons</strong>, or looking for refresher sessions,
-            Conor tailors each lesson to your goals and confidence level.
-          </p>
+        {/* Bio card */}
+        <div className="grid md:grid-cols-[1.1fr_1fr] gap-10 lg:gap-14 items-center bg-white rounded-3xl p-8 lg:p-12 shadow-md ring-1 ring-slate-100">
+          <div className="space-y-5">
+            <h2 className="text-2xl font-bold text-slate-900">An ex-tester in the driver&apos;s seat with you</h2>
+            <p className="text-slate-700 leading-relaxed">
+              Conor is a highly experienced Approved Driving Instructor (ADI) and former RSA driving tester. Having worked in test centres across{" "}
+              <strong className="text-slate-900">Tallaght</strong>, <strong className="text-slate-900">Dún Laoghaire</strong>, and the old{" "}
+              <strong className="text-slate-900">Churchtown</strong> centre, he brings deep insight into what examiners look for on the day.
+            </p>
+            <p className="text-slate-700 leading-relaxed">
+              With years in the industry, Conor combines professional standards with a calm, supportive teaching style. His background as an ex-tester means every lesson is focused not just on safe driving, but on preparing you to succeed under exam conditions.
+            </p>
+            <p className="text-slate-700 leading-relaxed">
+              Whether you&apos;re completing your <strong className="text-slate-900">EDT programme</strong>, booking <strong className="text-slate-900">pre-test lessons</strong>, or looking for refresher sessions, every lesson is tailored to your goals and confidence level.
+            </p>
 
-          {/* Highlights grid */}
-          <div className="grid sm:grid-cols-2 gap-4 mt-6">
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Patient, structured instruction
+            {/* Highlights */}
+            <div className="grid sm:grid-cols-2 gap-3 pt-4">
+              {HIGHLIGHTS.map((h) => (
+                <div key={h} className="flex items-start gap-3 rounded-xl bg-slate-50 p-4">
+                  <Check className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-slate-700">{h}</span>
+                </div>
+              ))}
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Manual lessons in dual-control instructor car
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Specialist in EDT and pre-tests
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Flexible scheduling across South Dublin
+          </div>
+
+          {/* Image / placeholder */}
+          <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-red-50 via-white to-slate-100 aspect-[4/5] flex items-center justify-center shadow-inner">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/instructor-placeholder.jpg"
+              alt="ADI Conor — The Driving School Dublin"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback when image isn't uploaded yet
+                e.currentTarget.style.display = "none";
+                const sibling = e.currentTarget.nextElementSibling as HTMLElement;
+                if (sibling) sibling.style.display = "flex";
+              }}
+            />
+            <div className="hidden flex-col items-center justify-center p-10 text-center w-full h-full">
+              <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                <svg className="w-12 h-12 text-red-600" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-sm font-semibold text-slate-900">Conor</p>
+              <p className="text-xs text-slate-500 mt-1">RSA-Approved ADI</p>
             </div>
           </div>
         </div>
-
-        {/* Image */}
-        <div className="rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center h-96">
-          <Image
-            src="/instructor-placeholder.jpg"
-            alt="ADI Conor"
-            width={450}
-            height={450}
-            className="object-cover h-full w-full"
-          />
-        </div>
-      </div>
       </section>
       <script
         type="application/ld+json"

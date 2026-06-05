@@ -1,39 +1,26 @@
 // app/page.tsx
 import Link from "next/link";
-import Image from "next/image";
 import Testimonials from "@/components/Testimonials";
 import AreasCovered from "@/components/AreasCovered";
 import HowItWorks from "@/components/HowItWorks";
 import PricingPreview from "@/components/PricingPreview";
 import StickyCTA from "@/components/StickyCTA";
-
-function IconCheck() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" fill="currentColor">
-      <path d="M20.285 6.707a1 1 0 0 1 0 1.414l-9.9 9.9a1 1 0 0 1-1.414 0l-5.257-5.257a1 1 0 1 1 1.414-1.414l4.55 4.55 9.193-9.193a1 1 0 0 1 1.414 0Z" />
-    </svg>
-  );
-}
-
-function LogoVisual() {
-  return (
-    <div className="aspect-video w-full rounded-xl bg-gradient-to-br from-red-50 to-gray-50 grid place-items-center">
-      <Image
-        src="/Logo.jpg"
-        alt="The Driving School Dublin Logo"
-        width={400}
-        height={400}
-        priority
-        className="rounded-lg"
-      />
-    </div>
-  );
-}
+import Check from "@/components/icons/Check";
+import { StarRow } from "@/components/icons/Star";
 
 export const metadata = {
   title: "Driving Lessons Dublin | RSA-Approved ADI | The Driving School Dublin",
   description: "Professional driving lessons across Dublin. RSA-approved ADI, manual & automatic, EDT packages, pre-test sessions. Flexible scheduling. Book your lesson today.",
 };
+
+const BENEFITS = [
+  "RSA-approved ADI · Manual & automatic options",
+  "Flexible weekday & evening slots",
+  "EDT programmes · Pre-test specialists",
+  "Dublin test routes: Tallaght & Dún Laoghaire",
+  "Local pick-up · Dual-control vehicles",
+  "Refresher lessons for nervous or returning drivers",
+];
 
 export default function Home() {
   const jsonLd = {
@@ -48,31 +35,38 @@ export default function Home() {
       addressLocality: "Dublin",
       addressCountry: "IE",
     },
-    areaServed: {
-      "@type": "City",
-      name: "Dublin",
-    },
+    areaServed: { "@type": "City", name: "Dublin" },
     priceRange: "€€",
     openingHours: "Mo-Sa 08:00-18:00",
   };
 
   return (
     <>
-      <section className="space-y-16">
-        {/* Hero Section */}
-        <div className="grid gap-10 lg:grid-cols-2 items-center">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
-              Professional <span className="text-red-600">driving lessons</span> in Dublin
+      <div className="space-y-24 lg:space-y-32">
+        {/* ─── HERO ─────────────────────────────────────────────────────── */}
+        <section className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16 items-center">
+          {/* Left column */}
+          <div className="space-y-7">
+            <span className="badge">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-600" />
+              RSA-approved ADI · Dublin
+            </span>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.05]">
+              Professional <span className="text-red-600">driving lessons</span> in&nbsp;Dublin
             </h1>
-            <p className="mt-4 text-lg text-gray-700 leading-7">
-              RSA-approved ADI with years of experience helping learners pass their test. 
+
+            <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
+              RSA-approved instructor with years of experience helping learners pass their test.
               Structured lessons, flexible scheduling, and expert guidance for manual and automatic drivers.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/contact" className="btn-primary">
-                Contact us
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link href="/book" className="btn-primary">
+                Book your lesson
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
+                </svg>
               </Link>
               <Link href="/prices" className="btn-outline">
                 View prices
@@ -80,96 +74,96 @@ export default function Home() {
             </div>
 
             {/* Benefit bullets */}
-            <ul className="mt-8 space-y-2 text-sm text-gray-800">
-              <li className="flex items-center gap-2">
-                <IconCheck />
-                <span>RSA-approved ADI • Manual (instructor&apos;s car) & Automatic (your car)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <IconCheck />
-                <span>Flexible weekday & evening slots</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <IconCheck />
-                <span>EDT programmes • Pre-test specialists</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <IconCheck />
-                <span>Dublin test routes: Tallaght, Dún Laoghaire</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <IconCheck />
-                <span>Local pick-up • Dual-control vehicles</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <IconCheck />
-                <span>Refresher lessons for nervous or returning drivers</span>
-              </li>
+            <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3 pt-4">
+              {BENEFITS.map((b) => (
+                <li key={b} className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-slate-700 leading-snug">{b}</span>
+                </li>
+              ))}
             </ul>
           </div>
 
-          <div className="card">
-            <LogoVisual />
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              <div className="kpi">
-                <span className="icon-bubble"><IconCheck /></span>
-                <h3 className="kpi-title">RSA‑approved ADI</h3>
-                <p className="kpi-sub">Qualified, experienced instructors.</p>
+          {/* Right column — hero image */}
+          <div className="relative">
+            <div className="aspect-[4/5] sm:aspect-[5/6] lg:aspect-[4/5] w-full rounded-3xl overflow-hidden shadow-xl ring-1 ring-slate-200/50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=900&q=80"
+                alt="Modern car parked in warm Dublin sunlight"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Floating trust card */}
+            <div className="absolute -bottom-5 -left-2 sm:left-6 bg-white rounded-2xl shadow-xl ring-1 ring-slate-100 px-5 py-4 max-w-[260px]">
+              <StarRow className="h-4 w-4" />
+              <p className="mt-2 text-sm font-bold text-slate-900">5.0 · 36 reviews</p>
+              <p className="text-xs text-slate-500">Trusted by Dublin learners</p>
+            </div>
+
+            {/* Floating accent card top-right */}
+            <div className="hidden sm:flex absolute -top-4 -right-2 sm:right-4 bg-white rounded-2xl shadow-xl ring-1 ring-slate-100 px-4 py-3 items-center gap-3">
+              <div className="icon-bubble">
+                <Check className="h-4 w-4 text-red-600" />
               </div>
-              <div className="kpi">
-                <span className="icon-bubble"><IconCheck /></span>
-                <h3 className="kpi-title">Pre‑test specialists</h3>
-                <p className="kpi-sub">Tallaght & Dún Laoghaire routes.</p>
-              </div>
-              <div className="kpi">
-                <span className="icon-bubble"><IconCheck /></span>
-                <h3 className="kpi-title">Flexible scheduling</h3>
-                <p className="kpi-sub">Early mornings, Weekday & evening lessons available.</p>
+              <div>
+                <p className="text-xs font-semibold text-slate-900">RSA approved</p>
+                <p className="text-[11px] text-slate-500">ADI · Fully insured</p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* How It Works */}
+        {/* ─── HOW IT WORKS ─────────────────────────────────────────────── */}
         <HowItWorks />
 
-        {/* Pricing Preview */}
+        {/* ─── PRICING PREVIEW ──────────────────────────────────────────── */}
         <PricingPreview />
 
-        {/* Testimonials */}
+        {/* ─── TESTIMONIALS ─────────────────────────────────────────────── */}
         <Testimonials />
 
-        {/* Areas Covered */}
+        {/* ─── AREAS COVERED ────────────────────────────────────────────── */}
         <AreasCovered />
 
-        {/* Final CTA Banner */}
-        <div className="rounded-2xl border bg-gradient-to-br from-red-50 to-gray-50 p-8 md:p-12 text-center">
-          <h2 className="text-3xl font-extrabold tracking-tight mb-4">
-            Ready to start your driving journey?
-          </h2>
-          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-            Contact us today to arrange your first lesson.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/contact" className="btn-primary">
-              Contact us
-            </Link>
-            <a
-              href="https://wa.me/353860235666?text=Hi!%20I'd%20like%20to%20arrange%20a%20driving%20lesson."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-outline"
-            >
-              WhatsApp us
-            </a>
-            <a href="tel:+353860235666" className="btn-outline">
-              Call us
-            </a>
+        {/* ─── BOTTOM CTA ───────────────────────────────────────────────── */}
+        <section className="relative rounded-3xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-red-50/50" />
+          <div className="relative px-6 py-16 sm:px-12 sm:py-20 text-center">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+              Ready to start your driving journey?
+            </h2>
+            <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
+              Dublin&apos;s friendly solo instructor — quick reply, lessons that actually move you forward.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <Link href="/book" className="btn-primary">
+                Book a lesson
+              </Link>
+              <a
+                href="https://wa.me/353860235666?text=Hi!%20I'd%20like%20to%20arrange%20a%20driving%20lesson."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347" />
+                </svg>
+                WhatsApp
+              </a>
+              <a href="tel:+353860235666" className="btn-outline">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                Call +353 86 0235 666
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      {/* Sticky Mobile CTA */}
+      {/* Sticky mobile CTA */}
       <StickyCTA />
 
       {/* JSON-LD */}
