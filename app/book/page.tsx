@@ -20,6 +20,50 @@ const NO_SLOT_SERVICES: ServiceSlug[] = ["edt-bundle", "edt-6"];
 
 type Step = "service" | "slot" | "details" | "redirecting";
 
+const STEP_LABELS: { key: Step; label: string }[] = [
+  { key: "service", label: "Service" },
+  { key: "slot", label: "Time" },
+  { key: "details", label: "Details" },
+];
+
+function StepIndicator({ current }: { current: Step }) {
+  const order: Step[] = ["service", "slot", "details"];
+  const activeIdx = order.indexOf(current === "redirecting" ? "details" : current);
+  return (
+    <div className="bg-slate-50 rounded-2xl px-6 py-5">
+      <div className="mx-auto flex max-w-md items-center justify-between">
+        {STEP_LABELS.map((s, i) => {
+          const done = i < activeIdx;
+          const active = i === activeIdx;
+          return (
+            <div key={s.key} className="flex flex-1 items-center last:flex-none">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition ${
+                    active
+                      ? "bg-[#d90429] text-white shadow-sm"
+                      : done
+                      ? "bg-[#d90429]/15 text-[#d90429]"
+                      : "bg-white text-slate-400 ring-1 ring-slate-200"
+                  }`}
+                >
+                  {done ? "✓" : i + 1}
+                </span>
+                <span className={`text-sm font-semibold ${active ? "text-slate-900" : "text-slate-400"}`}>
+                  {s.label}
+                </span>
+              </div>
+              {i < STEP_LABELS.length - 1 && (
+                <span className={`mx-3 h-0.5 flex-1 rounded-full ${done ? "bg-[#d90429]" : "bg-slate-200"}`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function BookPageInner() {
   const searchParams = useSearchParams();
   const preselect = searchParams.get("service") as ServiceSlug | null;
@@ -83,6 +127,7 @@ function BookPageInner() {
   if (step === "service") {
     return (
       <section className="mx-auto max-w-2xl space-y-6">
+        <StepIndicator current="service" />
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-extrabold tracking-tight">Book a Lesson</h1>
           <p className="text-gray-600">Choose your lesson type to get started.</p>
@@ -119,6 +164,7 @@ function BookPageInner() {
   if (step === "slot" && service && serviceConfig) {
     return (
       <section className="mx-auto max-w-2xl space-y-6">
+        <StepIndicator current="slot" />
         <div className="flex items-center gap-3">
           <button onClick={() => { setStep("service"); setSelectedSlot(null); }}
             className="text-sm text-gray-500 hover:text-gray-800">← Back</button>
@@ -161,6 +207,7 @@ function BookPageInner() {
     const isBundle = NO_SLOT_SERVICES.includes(service);
     return (
       <section className="mx-auto max-w-xl space-y-6">
+        <StepIndicator current="details" />
         <div className="flex items-center gap-3">
           <button
             onClick={() => setStep(isBundle ? "service" : "slot")}

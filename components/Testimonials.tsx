@@ -1,5 +1,4 @@
 // components/Testimonials.tsx
-import Link from "next/link";
 import { StarRow } from "@/components/icons/Star";
 
 type Review = {
@@ -10,7 +9,7 @@ type Review = {
 };
 
 const REVIEWS: Review[] = [
-  { name: "Aisling M.", date: "2025-07-18", rating: 5, text: "Conor is brilliant — super calm and gave me clear, actionable feedback every lesson. Passed first time in Tallaght." },
+  { name: "David Downes", date: "2025-07-18", rating: 5, text: "Conor is a very experienced & patient driving instructor that helped me go from zero driving experience to fully licenced. He was a massive help to me across the 12 lessons, gave me the confidence & tools to practice driving before the test." },
   { name: "Dylan O.",  date: "2025-06-30", rating: 5, text: "Best instructor I've had. Pre-test session covered exactly what the examiner looked for on the day." },
   { name: "Aoife K.",  date: "2025-06-02", rating: 5, text: "Patient and professional. The EDT plan was structured and I felt my confidence build each week." },
 ];
@@ -40,7 +39,7 @@ export default function Testimonials() {
         </h2>
         <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
           <StarRow className="h-4 w-4" />
-          <span><span className="font-bold text-slate-900">5.0</span> · 36 reviews · Verified on Google</span>
+          <span><span className="font-bold text-slate-900">5.0 ★ rating</span> · 54 reviews · Verified on Google</span>
         </div>
       </div>
 
@@ -51,12 +50,14 @@ export default function Testimonials() {
       </div>
 
       <div className="text-center">
-        <Link href="/reviews" className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700">
-          Read all reviews
-          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-          </svg>
-        </Link>
+        <a
+          href="https://share.google/Gz174ck7VeSpDSx5L"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-slate-500 hover:text-slate-700 underline-offset-4 hover:underline"
+        >
+          Write a review / View all 54 verified reviews on Google Maps →
+        </a>
       </div>
     </section>
   );

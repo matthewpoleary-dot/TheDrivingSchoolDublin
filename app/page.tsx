@@ -44,14 +44,9 @@ export default function Home() {
     <>
       <div className="space-y-24 lg:space-y-32">
         {/* ─── HERO ─────────────────────────────────────────────────────── */}
-        <section className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16 items-center">
+        <section className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16 items-center">
           {/* Left column */}
           <div className="space-y-7">
-            <span className="badge">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-600" />
-              RSA-approved ADI · Dublin
-            </span>
-
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.05]">
               Professional <span className="text-red-600">driving lessons</span> in&nbsp;Dublin
             </h1>
@@ -85,12 +80,12 @@ export default function Home() {
           </div>
 
           {/* Right column — hero image */}
-          <div className="relative">
-            <div className="aspect-[4/5] sm:aspect-[5/6] lg:aspect-[4/5] w-full rounded-3xl overflow-hidden shadow-xl ring-1 ring-slate-200/50">
+          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+            <div className="aspect-[4/5] w-full rounded-3xl overflow-hidden shadow-xl ring-1 ring-slate-200/50">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=900&q=80"
-                alt="Modern car parked in warm Dublin sunlight"
+                src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80"
+                alt="Driving school car with roof L-plates on a bright Dublin street"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -98,19 +93,8 @@ export default function Home() {
             {/* Floating trust card */}
             <div className="absolute -bottom-5 -left-2 sm:left-6 bg-white rounded-2xl shadow-xl ring-1 ring-slate-100 px-5 py-4 max-w-[260px]">
               <StarRow className="h-4 w-4" />
-              <p className="mt-2 text-sm font-bold text-slate-900">5.0 · 36 reviews</p>
+              <p className="mt-2 text-sm font-bold text-slate-900">5.0 · 54 reviews</p>
               <p className="text-xs text-slate-500">Trusted by Dublin learners</p>
-            </div>
-
-            {/* Floating accent card top-right */}
-            <div className="hidden sm:flex absolute -top-4 -right-2 sm:right-4 bg-white rounded-2xl shadow-xl ring-1 ring-slate-100 px-4 py-3 items-center gap-3">
-              <div className="icon-bubble">
-                <Check className="h-4 w-4 text-red-600" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-900">RSA approved</p>
-                <p className="text-[11px] text-slate-500">ADI · Fully insured</p>
-              </div>
             </div>
           </div>
         </section>

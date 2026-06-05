@@ -102,7 +102,7 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
           if (!inMonth || isPast) {
             cellClass += "text-gray-300 cursor-default";
           } else if (isSelected) {
-            cellClass += "bg-red-600 text-white font-semibold cursor-pointer";
+            cellClass += "bg-[#d90429] text-white font-semibold cursor-pointer shadow-sm";
           } else if (hasSlots) {
             cellClass += "bg-red-50 text-red-700 font-semibold cursor-pointer hover:bg-red-100 border border-red-200";
           } else {
@@ -144,7 +144,7 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                   }}
                   className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
                     selectedSlot?.id === slot.id
-                      ? "bg-red-600 text-white border-red-600"
+                      ? "bg-[#d90429] text-white border-[#d90429] shadow-sm"
                       : "bg-white text-gray-700 hover:border-red-400 hover:text-red-600"
                   }`}
                 >

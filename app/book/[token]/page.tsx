@@ -156,15 +156,15 @@ export default function EdtBookingPage({ params }: Props) {
 
   return (
     <section className="mx-auto max-w-2xl space-y-6">
-      <div className="space-y-1">
+      <div className="bg-slate-50 rounded-2xl px-6 py-6 space-y-1">
         <h1 className="text-2xl font-extrabold tracking-tight">Book your next EDT session</h1>
-        <p className="text-gray-600">Hi {pkg.customer_name} — pick an available slot below.</p>
+        <p className="text-slate-600">Hi {pkg.customer_name} — pick an available slot below.</p>
       </div>
 
       {/* Package status */}
       <div className="rounded-2xl border bg-white p-5 flex flex-wrap gap-6 text-sm">
         <div className="text-center">
-          <p className="text-2xl font-extrabold text-red-600">{pkg.remaining}</p>
+          <p className="text-2xl font-extrabold text-[#d90429]">{pkg.remaining}</p>
           <p className="text-gray-500">lessons remaining</p>
         </div>
         <div className="text-center">
@@ -205,7 +205,7 @@ export default function EdtBookingPage({ params }: Props) {
           <button
             onClick={handleBook}
             disabled={booking}
-            className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition disabled:opacity-50"
+            className="rounded-lg bg-[#d90429] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#b00322] transition disabled:opacity-50"
           >
             {booking ? "Booking…" : "Confirm session"}
           </button>
