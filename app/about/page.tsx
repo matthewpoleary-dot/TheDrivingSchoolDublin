@@ -66,29 +66,14 @@ export default function About() {
             </div>
           </div>
 
-          {/* Image / placeholder */}
-          <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-red-50 via-white to-slate-100 aspect-[4/5] flex items-center justify-center shadow-inner">
+          {/* Image */}
+          <div className="rounded-3xl overflow-hidden aspect-[4/5] shadow-inner ring-1 ring-slate-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/instructor-placeholder.jpg"
+              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=700&q=80"
               alt="ADI Conor — The Driving School Dublin"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                // Fallback when image isn't uploaded yet
-                e.currentTarget.style.display = "none";
-                const sibling = e.currentTarget.nextElementSibling as HTMLElement;
-                if (sibling) sibling.style.display = "flex";
-              }}
             />
-            <div className="hidden flex-col items-center justify-center p-10 text-center w-full h-full">
-              <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-4">
-                <svg className="w-12 h-12 text-red-600" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="text-sm font-semibold text-slate-900">Conor</p>
-              <p className="text-xs text-slate-500 mt-1">RSA-Approved ADI</p>
-            </div>
           </div>
         </div>
       </section>
