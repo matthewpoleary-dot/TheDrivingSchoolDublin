@@ -44,7 +44,6 @@ type EdtPackage = {
 type Tab = "bookings" | "availability" | "edt";
 
 const ALL_SERVICE_TYPES = ["standard", "pre-test", "refresher", "edt-6", "edt-bundle", "car-hire"];
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function getErrMsg(e: unknown): string {
   return e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error";
@@ -114,15 +113,22 @@ export default function AdminPage() {
   const [slotTypes, setSlotTypes] = useState<string[]>(["standard"]);
   const [addingSlot, setAddingSlot] = useState(false);
 
-  // Recurring form
-  const [recStartDate, setRecStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [recEndDate, setRecEndDate] = useState(format(addWeeks(new Date(), 4), "yyyy-MM-dd"));
-  const [recWeekdays, setRecWeekdays] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [recStart, setRecStart] = useState("09:00");
-  const [recEnd, setRecEnd] = useState("10:00");
-  const [recDuration] = useState(60);
-  const [recTypes, setRecTypes] = useState<string[]>(["standard"]);
-  const [addingRec, setAddingRec] = useState(false);
+  // Auto-fill schedule form
+  const [afStartDate, setAfStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [afEndDate, setAfEndDate] = useState(format(addWeeks(new Date(), 4), "yyyy-MM-dd"));
+  const [afDuration, setAfDuration] = useState(60);
+  const [afTravel, setAfTravel] = useState(30);
+  const [afTypes, setAfTypes] = useState<string[]>(ALL_SERVICE_TYPES);
+  const [afDays, setAfDays] = useState([
+    { dow: 1, label: "Mon", enabled: true,  start: "07:00", end: "21:00" },
+    { dow: 2, label: "Tue", enabled: true,  start: "07:00", end: "21:00" },
+    { dow: 3, label: "Wed", enabled: true,  start: "07:00", end: "21:00" },
+    { dow: 4, label: "Thu", enabled: true,  start: "07:00", end: "21:00" },
+    { dow: 5, label: "Fri", enabled: true,  start: "07:00", end: "16:00" },
+    { dow: 6, label: "Sat", enabled: false, start: "07:00", end: "14:00" },
+    { dow: 0, label: "Sun", enabled: false, start: "07:00", end: "14:00" },
+  ]);
+  const [addingAf, setAddingAf] = useState(false);
 
   const weekStart = startOfWeek(addDays(new Date(), weekOffset * 7), { weekStartsOn: 1 });
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
@@ -172,20 +178,28 @@ export default function AdminPage() {
     }
   }
 
-  async function addRecurringSlots() {
-    if (!recStartDate || !recEndDate || !recWeekdays.length || !recTypes.length) return;
-    setAddingRec(true);
+  async function addAutoFillSlots() {
+    const enabledDays = afDays.filter((d) => d.enabled);
+    if (!afStartDate || !afEndDate || !enabledDays.length || !afTypes.length) return;
+    setAddingAf(true);
     try {
+      // Build schedule: group days with same start/end together
+      const schedule = enabledDays.map((d) => ({
+        weekdays: [d.dow],
+        day_start: d.start,
+        day_end: d.end,
+      }));
       const res = await fetch("/api/availability", {
         method: "POST",
         headers: { ...authHeader(), "Content-Type": "application/json" },
         body: JSON.stringify({
-          mode: "recurring",
-          start_date: recStartDate,
-          end_date: recEndDate,
-          weekdays: recWeekdays,
-          times: [{ start_time: recStart, end_time: recEnd, duration_minutes: recDuration }],
-          lesson_types: recTypes,
+          mode: "auto-fill",
+          start_date: afStartDate,
+          end_date: afEndDate,
+          schedule,
+          duration_minutes: afDuration,
+          travel_time_minutes: afTravel,
+          lesson_types: afTypes,
         }),
       });
       const data = await res.json() as { created?: number; error?: string };
@@ -195,7 +209,7 @@ export default function AdminPage() {
     } catch (e) {
       showError(getErrMsg(e));
     } finally {
-      setAddingRec(false);
+      setAddingAf(false);
     }
   }
 
@@ -503,69 +517,118 @@ export default function AdminPage() {
             </button>
           </details>
 
-          {/* Add recurring slots */}
-          <details className="rounded-2xl border bg-white p-5">
-            <summary className="font-semibold cursor-pointer text-sm">Add recurring slots</summary>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {/* Auto-fill schedule */}
+          <details className="rounded-2xl border bg-white p-5" open>
+            <summary className="font-semibold cursor-pointer text-sm">Auto-fill schedule</summary>
+            <p className="text-xs text-gray-500 mt-1 mb-4">
+              Generates all available slots across a date range. Delete individual slots to block time off.
+            </p>
+
+            {/* Date range */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-4">
               <div>
                 <label className="text-xs text-gray-500 block mb-1">From date</label>
-                <input type="date" value={recStartDate} onChange={(e) => setRecStartDate(e.target.value)}
+                <input type="date" value={afStartDate} onChange={(e) => setAfStartDate(e.target.value)}
                   className="w-full rounded border px-2 py-1.5 text-sm" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 block mb-1">To date</label>
-                <input type="date" value={recEndDate} onChange={(e) => setRecEndDate(e.target.value)}
+                <input type="date" value={afEndDate} onChange={(e) => setAfEndDate(e.target.value)}
                   className="w-full rounded border px-2 py-1.5 text-sm" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">Start time</label>
-                <input type="time" value={recStart} onChange={(e) => setRecStart(e.target.value)}
-                  className="w-full rounded border px-2 py-1.5 text-sm" />
+                <label className="text-xs text-gray-500 block mb-1">Lesson duration</label>
+                <select value={afDuration} onChange={(e) => setAfDuration(Number(e.target.value))}
+                  className="w-full rounded border px-2 py-1.5 text-sm">
+                  <option value={60}>60 min</option>
+                  <option value={90}>90 min</option>
+                  <option value={120}>120 min</option>
+                </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">End time</label>
-                <input type="time" value={recEnd} onChange={(e) => setRecEnd(e.target.value)}
-                  className="w-full rounded border px-2 py-1.5 text-sm" />
+                <label className="text-xs text-gray-500 block mb-1">Travel buffer</label>
+                <select value={afTravel} onChange={(e) => setAfTravel(Number(e.target.value))}
+                  className="w-full rounded border px-2 py-1.5 text-sm">
+                  <option value={0}>None</option>
+                  <option value={15}>15 min</option>
+                  <option value={20}>20 min</option>
+                  <option value={30}>30 min</option>
+                </select>
               </div>
             </div>
-            <div className="mt-3">
-              <label className="text-xs text-gray-500 block mb-1">Repeat on</label>
-              <div className="flex flex-wrap gap-2">
-                {WEEKDAY_LABELS.map((label, idx) => (
-                  <label key={idx} className="flex items-center gap-1 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={recWeekdays.includes(idx)}
-                      onChange={(e) =>
-                        setRecWeekdays(e.target.checked ? [...recWeekdays, idx] : recWeekdays.filter((d) => d !== idx))
-                      }
-                    />
-                    {label}
-                  </label>
+
+            {/* Per-day schedule */}
+            <div className="mb-4">
+              <label className="text-xs text-gray-500 block mb-2">Days &amp; hours</label>
+              <div className="space-y-2">
+                {afDays.map((day, idx) => (
+                  <div key={day.dow} className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 w-16 text-sm font-medium">
+                      <input
+                        type="checkbox"
+                        checked={day.enabled}
+                        onChange={(e) => {
+                          const updated = [...afDays];
+                          updated[idx] = { ...updated[idx], enabled: e.target.checked };
+                          setAfDays(updated);
+                        }}
+                      />
+                      {day.label}
+                    </label>
+                    {day.enabled && (
+                      <>
+                        <input type="time" value={day.start}
+                          onChange={(e) => {
+                            const updated = [...afDays];
+                            updated[idx] = { ...updated[idx], start: e.target.value };
+                            setAfDays(updated);
+                          }}
+                          className="rounded border px-2 py-1 text-sm w-28" />
+                        <span className="text-xs text-gray-400">to</span>
+                        <input type="time" value={day.end}
+                          onChange={(e) => {
+                            const updated = [...afDays];
+                            updated[idx] = { ...updated[idx], end: e.target.value };
+                            setAfDays(updated);
+                          }}
+                          className="rounded border px-2 py-1 text-sm w-28" />
+                        <span className="text-xs text-gray-400">
+                          (~{Math.floor((
+                            (parseInt(day.end.split(":")[0]) * 60 + parseInt(day.end.split(":")[1])) -
+                            (parseInt(day.start.split(":")[0]) * 60 + parseInt(day.start.split(":")[1]))
+                          ) / (afDuration + afTravel))} slots)
+                        </span>
+                      </>
+                    )}
+                    {!day.enabled && <span className="text-xs text-gray-300">off</span>}
+                  </div>
                 ))}
               </div>
             </div>
-            <div className="mt-3">
+
+            {/* Lesson types */}
+            <div className="mb-4">
               <label className="text-xs text-gray-500 block mb-1">Lesson types</label>
               <div className="flex flex-wrap gap-2">
                 {ALL_SERVICE_TYPES.map((t) => (
                   <label key={t} className="flex items-center gap-1 text-sm">
                     <input
                       type="checkbox"
-                      checked={recTypes.includes(t)}
-                      onChange={(e) => setRecTypes(e.target.checked ? [...recTypes, t] : recTypes.filter((x) => x !== t))}
+                      checked={afTypes.includes(t)}
+                      onChange={(e) => setAfTypes(e.target.checked ? [...afTypes, t] : afTypes.filter((x) => x !== t))}
                     />
                     {t}
                   </label>
                 ))}
               </div>
             </div>
+
             <button
-              onClick={addRecurringSlots}
-              disabled={addingRec}
-              className="mt-4 rounded bg-black px-4 py-2 text-sm text-white hover:bg-gray-800 disabled:opacity-50"
+              onClick={addAutoFillSlots}
+              disabled={addingAf}
+              className="rounded bg-black px-4 py-2 text-sm text-white hover:bg-gray-800 disabled:opacity-50"
             >
-              {addingRec ? "Creating…" : "Generate slots"}
+              {addingAf ? "Generating…" : "Generate slots"}
             </button>
           </details>
         </div>

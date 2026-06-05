@@ -121,7 +121,82 @@ export async function POST(req: Request) {
       return NextResponse.json({ created }, { status: 201 });
     }
 
-    return NextResponse.json({ error: "mode must be 'single' or 'recurring'" }, { status: 400 });
+    if (mode === "auto-fill") {
+      // Fills each matching day from day_start to day_end, spaced by duration + travel_time.
+      // body: { start_date, end_date,
+      //         schedule: { weekdays: number[], day_start: string, day_end: string }[],
+      //         duration_minutes: number, travel_time_minutes: number, lesson_types: string[] }
+      const { start_date, end_date, schedule, duration_minutes, travel_time_minutes, lesson_types } = body as {
+        start_date: string;
+        end_date: string;
+        schedule: { weekdays: number[]; day_start: string; day_end: string }[];
+        duration_minutes: number;
+        travel_time_minutes: number;
+        lesson_types: string[];
+      };
+
+      if (!start_date || !end_date || !schedule?.length || !duration_minutes || !lesson_types?.length) {
+        return NextResponse.json({ error: "Missing required fields for auto-fill" }, { status: 400 });
+      }
+
+      const interval = duration_minutes + (travel_time_minutes ?? 0);
+
+      function toMin(t: string) {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+      }
+      function toTime(mins: number) {
+        const h = Math.floor(mins / 60).toString().padStart(2, "0");
+        const m = (mins % 60).toString().padStart(2, "0");
+        return `${h}:${m}:00`;
+      }
+
+      const days = eachDayOfInterval({ start: parseISO(start_date), end: parseISO(end_date) });
+
+      const newSlots: { date: string; start_time: string; end_time: string; duration_minutes: number; lesson_types: string[] }[] = [];
+
+      for (const day of days) {
+        const dow = getDay(day);
+        const entry = schedule.find((s) => s.weekdays.includes(dow));
+        if (!entry) continue;
+
+        const dayStartMin = toMin(entry.day_start);
+        const dayEndMin = toMin(entry.day_end);
+        let t = dayStartMin;
+        while (t + duration_minutes <= dayEndMin) {
+          newSlots.push({
+            date: format(day, "yyyy-MM-dd"),
+            start_time: toTime(t),
+            end_time: toTime(t + duration_minutes),
+            duration_minutes,
+            lesson_types,
+          });
+          t += interval;
+        }
+      }
+
+      if (!newSlots.length) {
+        return NextResponse.json({ created: 0, message: "No slots matched the schedule" });
+      }
+
+      // Insert in batches of 100, skip duplicates
+      let created = 0;
+      for (let i = 0; i < newSlots.length; i += 100) {
+        const batch = newSlots.slice(i, i + 100);
+        const { error } = await supabaseServer
+          .from("availability_slots")
+          .insert(batch);
+        // Ignore duplicate key errors (slot already exists for that date+time)
+        if (error && !error.message.includes("duplicate")) {
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        if (!error) created += batch.length;
+      }
+
+      return NextResponse.json({ created }, { status: 201 });
+    }
+
+    return NextResponse.json({ error: "mode must be 'single', 'recurring', or 'auto-fill'" }, { status: 400 });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Server error";
     if (msg === "Unauthorized") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
