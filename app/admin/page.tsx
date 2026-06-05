@@ -514,7 +514,7 @@ export default function AdminPage() {
                         >
                           <div className="font-bold">{s.start_time.slice(0, 5)}</div>
                           <div className="opacity-70 text-[10px]">{s.duration_minutes}m</div>
-                          {s.is_booked && s.booking && (
+                          {s.is_booked && s.booking?.customer_name && (
                             <div className="text-red-700 font-semibold truncate max-w-full text-[10px] leading-tight">
                               {s.booking.customer_name.split(" ")[0]}
                             </div>
