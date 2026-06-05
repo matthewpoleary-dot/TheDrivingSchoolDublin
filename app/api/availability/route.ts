@@ -179,18 +179,16 @@ export async function POST(req: Request) {
         return NextResponse.json({ created: 0, message: "No slots matched the schedule" });
       }
 
-      // Insert in batches of 100, skip duplicates
+      // Upsert in batches of 100, skip existing slots (unique on date+start_time)
       let created = 0;
       for (let i = 0; i < newSlots.length; i += 100) {
         const batch = newSlots.slice(i, i + 100);
-        const { error } = await supabaseServer
+        const { error, data } = await supabaseServer
           .from("availability_slots")
-          .insert(batch);
-        // Ignore duplicate key errors (slot already exists for that date+time)
-        if (error && !error.message.includes("duplicate")) {
-          return NextResponse.json({ error: error.message }, { status: 500 });
-        }
-        if (!error) created += batch.length;
+          .upsert(batch, { onConflict: "date,start_time", ignoreDuplicates: true })
+          .select("id");
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        created += data?.length ?? 0;
       }
 
       return NextResponse.json({ created }, { status: 201 });
