@@ -31,3 +31,17 @@ select
 -- Uncomment the line below if you want a clean slate before auto-filling again.
 -- ─────────────────────────────────────────────────────────────────────────────
 -- delete from availability_slots;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- REPAIR: free up any "orphan booked" slots
+-- A slot is orphan-booked when is_booked=true but the booking row no longer
+-- exists (e.g. you deleted bookings without also resetting their slots).
+-- ─────────────────────────────────────────────────────────────────────────────
+update availability_slots s
+set is_booked = false,
+    booking_id = null
+where is_booked = true
+  and (
+    booking_id is null
+    or not exists (select 1 from bookings b where b.id = s.booking_id)
+  );

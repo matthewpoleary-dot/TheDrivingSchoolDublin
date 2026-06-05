@@ -491,15 +491,21 @@ export default function AdminPage() {
             <div className="grid grid-cols-7 gap-2">
               {weekDays.map((day) => {
                 const dateKey = format(day, "yyyy-MM-dd");
+                const todayKey = format(new Date(), "yyyy-MM-dd");
+                const isToday = dateKey === todayKey;
+                const isPast = dateKey < todayKey;
                 const daySlots = slots.filter((s) => s.date === dateKey);
-                const isToday = dateKey === format(new Date(), "yyyy-MM-dd");
                 return (
-                  <div key={dateKey} className="min-h-24">
+                  <div key={dateKey} className={`min-h-24 ${isPast ? "opacity-50" : ""}`}>
                     <div className={`text-xs font-semibold mb-2 text-center pb-2 border-b ${
-                      isToday ? "text-red-600 border-red-200" : "text-slate-500 border-slate-100"
+                      isToday ? "text-red-600 border-red-200"
+                        : isPast ? "text-slate-400 border-slate-100"
+                        : "text-slate-500 border-slate-100"
                     }`}>
                       <div>{format(day, "EEE")}</div>
-                      <div className={`text-lg font-extrabold ${isToday ? "text-red-600" : "text-slate-900"}`}>{format(day, "d")}</div>
+                      <div className={`text-lg font-extrabold ${
+                        isToday ? "text-red-600" : isPast ? "text-slate-400" : "text-slate-900"
+                      }`}>{format(day, "d")}</div>
                     </div>
                     <div className="space-y-1.5">
                       {daySlots.map((s) => (
@@ -747,32 +753,40 @@ export default function AdminPage() {
                   <span className="text-gray-400 ml-1">({selectedSlot.duration_minutes}min)</span>
                 </span>
               </div>
-              {selectedSlot.booking ? (
+              {selectedSlot.booking && selectedSlot.booking.customer_name ? (
                 <>
                   <div className="border-t pt-2 mt-2" />
                   <div className="flex justify-between">
                     <span className="text-gray-500">Customer</span>
                     <span className="font-medium">{selectedSlot.booking.customer_name}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Phone</span>
-                    <a href={`tel:${selectedSlot.booking.customer_phone}`} className="font-medium text-red-600 hover:underline">
-                      {selectedSlot.booking.customer_phone}
-                    </a>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Email</span>
-                    <a href={`mailto:${selectedSlot.booking.customer_email}`} className="font-medium text-red-600 hover:underline truncate max-w-[180px]">
-                      {selectedSlot.booking.customer_email}
-                    </a>
-                  </div>
+                  {selectedSlot.booking.customer_phone && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Phone</span>
+                      <a href={`tel:${selectedSlot.booking.customer_phone}`} className="font-medium text-red-600 hover:underline">
+                        {selectedSlot.booking.customer_phone}
+                      </a>
+                    </div>
+                  )}
+                  {selectedSlot.booking.customer_email && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Email</span>
+                      <a href={`mailto:${selectedSlot.booking.customer_email}`} className="font-medium text-red-600 hover:underline truncate max-w-[180px]">
+                        {selectedSlot.booking.customer_email}
+                      </a>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">Service</span>
-                    <span className="font-medium capitalize">{selectedSlot.booking.service_type}</span>
+                    <span className="font-medium capitalize">{selectedSlot.booking.service_type || "—"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Amount</span>
-                    <span className="font-medium">€{(selectedSlot.booking.amount_pence / 100).toFixed(2)}</span>
+                    <span className="font-medium">
+                      {typeof selectedSlot.booking.amount_pence === "number"
+                        ? `€${(selectedSlot.booking.amount_pence / 100).toFixed(2)}`
+                        : "—"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Status</span>
@@ -788,14 +802,20 @@ export default function AdminPage() {
                   )}
                 </>
               ) : (
-                <p className="text-gray-400 text-sm">No booking details available.</p>
+                <div className="rounded-xl bg-amber-50 ring-1 ring-amber-200 p-3 text-sm text-amber-800">
+                  <p className="font-semibold">No booking record found</p>
+                  <p className="text-xs mt-1">
+                    This slot is marked booked but the customer record is missing (likely from a test cleanup).
+                    Use the button below to free this slot up so customers can book it again.
+                  </p>
+                </div>
               )}
             </div>
 
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setSelectedSlot(null)}
-                className="flex-1 rounded border px-3 py-2 text-sm hover:bg-gray-50"
+                className="flex-1 rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition"
               >
                 Close
               </button>
@@ -805,9 +825,13 @@ export default function AdminPage() {
                   setSelectedSlot(null);
                 }}
                 disabled={deletingId === selectedSlot.id}
-                className="flex-1 rounded bg-red-600 text-white px-3 py-2 text-sm hover:bg-red-700 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-[#d90429] hover:bg-[#b00322] text-white px-3 py-2 text-sm font-semibold transition disabled:opacity-50"
               >
-                {deletingId === selectedSlot.id ? "Cancelling…" : "Cancel booking"}
+                {deletingId === selectedSlot.id
+                  ? "Working…"
+                  : selectedSlot.booking?.customer_name
+                  ? "Cancel booking"
+                  : "Free this slot"}
               </button>
             </div>
           </div>
