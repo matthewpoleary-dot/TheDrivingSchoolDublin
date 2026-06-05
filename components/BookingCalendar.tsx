@@ -52,11 +52,17 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
   const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
-  // Set of dates that have at least one slot
-  const availableDates = new Set(slots.map((s) => s.date));
+  const nowMs = Date.now();
+  // Filter slots whose start time is already in the past
+  const futureSlots = slots.filter((s) => {
+    const startISO = `${s.date}T${s.start_time}`;
+    return new Date(startISO).getTime() > nowMs;
+  });
+
+  const availableDates = new Set(futureSlots.map((s) => s.date));
 
   const slotsForSelected = selectedDate
-    ? slots.filter((s) => s.date === format(selectedDate, "yyyy-MM-dd"))
+    ? futureSlots.filter((s) => s.date === format(selectedDate, "yyyy-MM-dd"))
     : [];
 
   return (
@@ -104,7 +110,7 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
           } else if (isSelected) {
             cellClass += "bg-[#d90429] text-white font-semibold cursor-pointer shadow-sm";
           } else if (hasSlots) {
-            cellClass += "bg-red-50 text-red-700 font-semibold cursor-pointer hover:bg-red-100 border border-red-200";
+            cellClass += "bg-emerald-50 text-emerald-700 font-semibold cursor-pointer hover:bg-emerald-100 border border-emerald-200";
           } else {
             cellClass += "text-gray-400 cursor-default";
           }
@@ -118,7 +124,7 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
             >
               {format(day, "d")}
               {hasSlots && !isSelected && inMonth && !isPast && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-red-500" />
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-500" />
               )}
             </button>
           );

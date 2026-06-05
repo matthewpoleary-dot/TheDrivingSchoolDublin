@@ -271,22 +271,27 @@ export default function AdminPage() {
 
   if (!isAuthed) {
     return (
-      <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-semibold mb-4">Admin</h1>
-        <input
-          className="w-full rounded border px-3 py-2 mb-3"
-          placeholder="Admin token"
-          type="password"
-          value={inputToken}
-          onChange={(e) => setInputToken(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && inputToken.trim()) setToken(inputToken.trim()); }}
-        />
-        <button
-          onClick={() => { if (inputToken.trim()) setToken(inputToken.trim()); }}
-          className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
-        >
-          Continue
-        </button>
+      <div className="max-w-md mx-auto mt-12">
+        <div className="bg-white rounded-2xl shadow-lg ring-1 ring-slate-100 p-8 space-y-5">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-extrabold text-slate-900">Welcome back, Conor</h1>
+            <p className="text-sm text-slate-500">Enter your admin password to manage bookings and your schedule.</p>
+          </div>
+          <input
+            className="w-full rounded-xl bg-slate-50 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+            placeholder="Admin password"
+            type="password"
+            value={inputToken}
+            onChange={(e) => setInputToken(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && inputToken.trim()) setToken(inputToken.trim()); }}
+          />
+          <button
+            onClick={() => { if (inputToken.trim()) setToken(inputToken.trim()); }}
+            className="w-full rounded-xl bg-[#d90429] hover:bg-[#b00322] px-4 py-3 text-base font-semibold text-white transition shadow-sm"
+          >
+            Sign in
+          </button>
+        </div>
       </div>
     );
   }
@@ -294,106 +299,132 @@ export default function AdminPage() {
   // ─── Tab bar ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-semibold">Admin</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900">Your dashboard</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage bookings, set your availability, and track EDT packages.</p>
+        </div>
         <button
           onClick={() => { setToken(""); setInputToken(""); }}
-          className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition"
         >
           Sign out
         </button>
       </div>
 
-      {toast && <p className="rounded bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800">{toast}</p>}
-      {errorMsg && <p className="rounded bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-800">{errorMsg}</p>}
+      {/* Status messages */}
+      {toast && (
+        <div className="rounded-xl bg-emerald-50 ring-1 ring-emerald-200 px-4 py-3 text-sm text-emerald-800 flex items-center gap-2">
+          <span className="text-lg">✓</span> {toast}
+        </div>
+      )}
+      {errorMsg && (
+        <div className="rounded-xl bg-red-50 ring-1 ring-red-200 px-4 py-3 text-sm text-red-800 flex items-center gap-2">
+          <span className="text-lg">!</span> {errorMsg}
+        </div>
+      )}
 
       {/* Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {(["bookings", "availability", "edt"] as Tab[]).map((t) => (
+      <div className="flex gap-2 flex-wrap bg-slate-100 p-1.5 rounded-2xl w-fit">
+        {([
+          { key: "bookings",     label: "📋 Bookings" },
+          { key: "availability", label: "📅 My schedule" },
+          { key: "edt",          label: "🎓 EDT packages" },
+        ] as { key: Tab; label: string }[]).map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`rounded px-4 py-2 text-sm border capitalize ${
-              tab === t ? "bg-black text-white border-black" : "bg-white hover:bg-gray-50"
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+              tab === t.key
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            {t === "edt" ? "EDT Packages" : t.charAt(0).toUpperCase() + t.slice(1)}
+            {t.label}
           </button>
         ))}
       </div>
 
       {/* ── BOOKINGS TAB ──────────────────────────────────────────────────── */}
       {tab === "bookings" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <button onClick={loadBookings} className="rounded border px-3 py-1.5 text-sm hover:bg-gray-50">
-              Refresh
+        <div className="space-y-5">
+          <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-5 flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <p className="text-sm font-semibold text-slate-900">Customer bookings</p>
+              <p className="text-xs text-slate-500">Everyone who has booked a lesson, newest first.</p>
+            </div>
+            <button onClick={loadBookings} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
+              ↻ Refresh
             </button>
             <input
               type="date"
               value={bookingDateFilter}
               onChange={(e) => setBookingDateFilter(e.target.value)}
-              className="rounded border px-3 py-1.5 text-sm"
+              className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 transition"
             />
             {bookingDateFilter && (
-              <button onClick={() => setBookingDateFilter("")} className="text-sm text-gray-500 underline">
-                Clear filter
+              <button onClick={() => setBookingDateFilter("")} className="text-sm font-medium text-slate-500 hover:text-slate-900 underline">
+                Clear date
               </button>
             )}
           </div>
 
-          {loadingBookings && <p className="text-sm text-gray-500">Loading…</p>}
+          {loadingBookings && <p className="text-sm text-slate-500">Loading…</p>}
 
           {!loadingBookings && !filteredBookings.length && (
-            <p className="text-sm text-gray-500">No bookings found.</p>
+            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-10 text-center">
+              <p className="text-4xl mb-2">📭</p>
+              <p className="text-base font-semibold text-slate-900">No bookings yet</p>
+              <p className="text-sm text-slate-500 mt-1">When customers book lessons they&apos;ll show up here.</p>
+            </div>
           )}
 
           {filteredBookings.length > 0 && (
-            <div className="overflow-x-auto rounded border bg-white">
+            <div className="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
               <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-left">
+                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th className="px-3 py-2">Date/Slot</th>
-                    <th className="px-3 py-2">Customer</th>
-                    <th className="px-3 py-2">Service</th>
-                    <th className="px-3 py-2">Amount</th>
-                    <th className="px-3 py-2">Status</th>
+                    <th className="px-4 py-3 font-semibold">Date / Time</th>
+                    <th className="px-4 py-3 font-semibold">Customer</th>
+                    <th className="px-4 py-3 font-semibold">Service</th>
+                    <th className="px-4 py-3 font-semibold">Amount</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredBookings.map((b) => {
                     const badge: Record<PaymentStatus, string> = {
-                      paid: "bg-green-100 text-green-700",
-                      pending: "bg-yellow-100 text-yellow-700",
-                      failed: "bg-red-100 text-red-700",
-                      cancelled: "bg-gray-100 text-gray-600",
-                      refunded: "bg-blue-100 text-blue-700",
+                      paid:      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+                      pending:   "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+                      failed:    "bg-red-50 text-red-700 ring-1 ring-red-200",
+                      cancelled: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+                      refunded:  "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
                     };
                     return (
-                      <tr key={b.id} className="border-t">
-                        <td className="px-3 py-2 whitespace-nowrap">
+                      <tr key={b.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition">
+                        <td className="px-4 py-3 whitespace-nowrap">
                           {b.slot ? (
                             <>
-                              <div>{b.slot.date}</div>
-                              <div className="text-gray-500 text-xs">
+                              <div className="font-medium text-slate-900">{b.slot.date}</div>
+                              <div className="text-slate-500 text-xs">
                                 {b.slot.start_time.slice(0, 5)}–{b.slot.end_time.slice(0, 5)}
                               </div>
                             </>
                           ) : (
-                            <span className="text-gray-400 text-xs">No slot (bundle)</span>
+                            <span className="text-slate-400 text-xs italic">Package purchase</span>
                           )}
                         </td>
-                        <td className="px-3 py-2">
-                          <div>{b.customer_name}</div>
-                          <div className="text-gray-500 text-xs">{b.customer_email}</div>
-                          {b.customer_phone && <div className="text-gray-500 text-xs">{b.customer_phone}</div>}
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-slate-900">{b.customer_name}</div>
+                          <div className="text-slate-500 text-xs">{b.customer_email}</div>
+                          {b.customer_phone && <div className="text-slate-500 text-xs">{b.customer_phone}</div>}
                         </td>
-                        <td className="px-3 py-2 capitalize">{b.service_type}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">€{(b.amount_pence / 100).toFixed(2)}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge[b.payment_status] ?? ""}`}>
+                        <td className="px-4 py-3 capitalize text-slate-700">{b.service_type}</td>
+                        <td className="px-4 py-3 whitespace-nowrap font-semibold text-slate-900">€{(b.amount_pence / 100).toFixed(2)}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${badge[b.payment_status] ?? ""}`}>
                             {b.payment_status}
                           </span>
                         </td>
@@ -410,83 +441,113 @@ export default function AdminPage() {
       {/* ── AVAILABILITY TAB ──────────────────────────────────────────────── */}
       {tab === "availability" && (
         <div className="space-y-6">
+          {/* Quick-help banner */}
+          <div className="bg-gradient-to-br from-red-50 via-white to-emerald-50 ring-1 ring-slate-100 rounded-2xl p-5">
+            <p className="font-bold text-slate-900">How your schedule works</p>
+            <p className="text-sm text-slate-600 mt-1">
+              <span className="font-semibold text-emerald-700">Green</span> slots are open for customers to book.
+              <span className="font-semibold text-red-700"> Red</span> slots already have a customer — tap one to see their details.
+              To block off time off, just delete the slot using the <span className="font-bold">×</span> button.
+            </p>
+          </div>
+
           {/* Week view */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setWeekOffset((w) => w - 1)}
-                className="rounded border px-3 py-1.5 text-sm hover:bg-gray-50"
-              >
-                ← Prev week
-              </button>
-              <span className="text-sm font-medium">
-                {format(weekStart, "d MMM")} – {format(weekEnd, "d MMM yyyy")}
-              </span>
-              <button
-                onClick={() => setWeekOffset((w) => w + 1)}
-                className="rounded border px-3 py-1.5 text-sm hover:bg-gray-50"
-              >
-                Next week →
-              </button>
-              <button onClick={loadSlots} className="rounded border px-3 py-1.5 text-sm hover:bg-gray-50">
-                Refresh
+          <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-5 space-y-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setWeekOffset((w) => w - 1)}
+                  className="rounded-xl bg-slate-100 hover:bg-slate-200 w-9 h-9 text-slate-700 font-bold transition"
+                  title="Previous week"
+                >
+                  ←
+                </button>
+                <span className="text-base font-bold text-slate-900 px-2 min-w-[180px] text-center">
+                  {format(weekStart, "d MMM")} – {format(weekEnd, "d MMM yyyy")}
+                </span>
+                <button
+                  onClick={() => setWeekOffset((w) => w + 1)}
+                  className="rounded-xl bg-slate-100 hover:bg-slate-200 w-9 h-9 text-slate-700 font-bold transition"
+                  title="Next week"
+                >
+                  →
+                </button>
+                {weekOffset !== 0 && (
+                  <button
+                    onClick={() => setWeekOffset(0)}
+                    className="ml-2 text-sm font-medium text-red-600 hover:text-red-700 underline"
+                  >
+                    Today
+                  </button>
+                )}
+              </div>
+              <button onClick={loadSlots} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
+                ↻ Refresh
               </button>
             </div>
 
-            {loadingSlots && <p className="text-sm text-gray-500">Loading…</p>}
+            {loadingSlots && <p className="text-sm text-slate-500">Loading…</p>}
 
             <div className="grid grid-cols-7 gap-2">
               {weekDays.map((day) => {
                 const dateKey = format(day, "yyyy-MM-dd");
                 const daySlots = slots.filter((s) => s.date === dateKey);
+                const isToday = dateKey === format(new Date(), "yyyy-MM-dd");
                 return (
                   <div key={dateKey} className="min-h-24">
-                    <div className="text-xs font-medium text-gray-500 mb-1 text-center">
-                      {format(day, "EEE")}<br />{format(day, "d")}
+                    <div className={`text-xs font-semibold mb-2 text-center pb-2 border-b ${
+                      isToday ? "text-red-600 border-red-200" : "text-slate-500 border-slate-100"
+                    }`}>
+                      <div>{format(day, "EEE")}</div>
+                      <div className={`text-lg font-extrabold ${isToday ? "text-red-600" : "text-slate-900"}`}>{format(day, "d")}</div>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       {daySlots.map((s) => (
                         <div
                           key={s.id}
                           onClick={() => s.is_booked && setSelectedSlot(s)}
-                          className={`rounded p-1 text-xs relative group ${
+                          className={`rounded-lg p-1.5 text-xs relative group transition ${
                             s.is_booked
-                              ? "bg-red-100 text-red-700 cursor-pointer hover:bg-red-200"
-                              : "bg-green-100 text-green-700"
+                              ? "bg-red-100 text-red-700 cursor-pointer hover:bg-red-200 ring-1 ring-red-200"
+                              : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                           }`}
                         >
-                          <div>{s.start_time.slice(0, 5)}</div>
-                          <div className="opacity-70">{s.duration_minutes}m</div>
+                          <div className="font-bold">{s.start_time.slice(0, 5)}</div>
+                          <div className="opacity-70 text-[10px]">{s.duration_minutes}m</div>
                           {s.is_booked && s.booking && (
-                            <div className="text-red-600 truncate max-w-full text-[10px] leading-tight">
+                            <div className="text-red-700 font-semibold truncate max-w-full text-[10px] leading-tight">
                               {s.booking.customer_name.split(" ")[0]}
                             </div>
                           )}
                           <button
                             onClick={(e) => { e.stopPropagation(); void deleteSlot(s.id); }}
                             disabled={deletingId === s.id}
-                            className="absolute top-0.5 right-0.5 hidden group-hover:block text-red-500 hover:text-red-700 text-xs font-bold leading-none"
+                            className="absolute top-0.5 right-0.5 hidden group-hover:flex items-center justify-center w-4 h-4 rounded-full bg-white text-red-600 hover:bg-red-50 text-xs font-bold leading-none shadow-sm"
                             title={s.is_booked ? "Cancel booking & delete slot" : "Delete slot"}
                           >
                             ×
                           </button>
                         </div>
                       ))}
-                      {!daySlots.length && <div className="text-xs text-gray-300 text-center">—</div>}
+                      {!daySlots.length && <div className="text-xs text-slate-300 text-center py-2">—</div>}
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="flex gap-4 text-xs text-gray-500 mt-1">
-              <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-green-100" /> Open</span>
-              <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-100" /> Booked</span>
+            <div className="flex gap-5 text-xs text-slate-600 pt-3 border-t border-slate-100">
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded bg-emerald-100 ring-1 ring-emerald-200" /> Open for booking</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded bg-red-100 ring-1 ring-red-200" /> Booked — click to view</span>
+              <span className="hidden sm:flex items-center gap-1.5 text-slate-500">Hover any slot to reveal × delete</span>
             </div>
           </div>
 
           {/* Add single slot */}
-          <details className="rounded-2xl border bg-white p-5">
-            <summary className="font-semibold cursor-pointer text-sm">Add a single slot</summary>
+          <details className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-6">
+            <summary className="font-bold text-slate-900 cursor-pointer text-base flex items-center gap-2">
+              <span className="text-xl">➕</span> Add one slot manually
+              <span className="text-xs font-normal text-slate-500 ml-2">(for one-off appointments)</span>
+            </summary>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Date</label>
@@ -527,17 +588,21 @@ export default function AdminPage() {
             <button
               onClick={addSingleSlot}
               disabled={addingSlot}
-              className="mt-4 rounded bg-black px-4 py-2 text-sm text-white hover:bg-gray-800 disabled:opacity-50"
+              className="mt-5 rounded-xl bg-[#d90429] hover:bg-[#b00322] px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50 shadow-sm"
             >
-              {addingSlot ? "Adding…" : "Add slot"}
+              {addingSlot ? "Adding…" : "Add this slot"}
             </button>
           </details>
 
           {/* Auto-fill schedule */}
-          <details className="rounded-2xl border bg-white p-5" open>
-            <summary className="font-semibold cursor-pointer text-sm">Auto-fill schedule</summary>
-            <p className="text-xs text-gray-500 mt-1 mb-4">
-              Generates all available slots across a date range. Delete individual slots to block time off.
+          <details className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-6" open>
+            <summary className="font-bold text-slate-900 cursor-pointer text-base flex items-center gap-2">
+              <span className="text-xl">✨</span> Fill my schedule automatically
+              <span className="text-xs font-normal text-slate-500 ml-2">(recommended)</span>
+            </summary>
+            <p className="text-sm text-slate-600 mt-3 mb-5">
+              Pick a date range and your usual hours, and we&apos;ll create every available slot in one go.
+              You can always delete individual slots later if you need time off.
             </p>
 
             {/* Date range */}
@@ -642,9 +707,9 @@ export default function AdminPage() {
             <button
               onClick={addAutoFillSlots}
               disabled={addingAf}
-              className="rounded bg-black px-4 py-2 text-sm text-white hover:bg-gray-800 disabled:opacity-50"
+              className="rounded-xl bg-[#d90429] hover:bg-[#b00322] px-6 py-3 text-base font-semibold text-white transition disabled:opacity-50 shadow-sm inline-flex items-center gap-2"
             >
-              {addingAf ? "Generating…" : "Generate slots"}
+              {addingAf ? "Generating slots…" : "✨ Generate slots"}
             </button>
           </details>
         </div>
@@ -751,46 +816,54 @@ export default function AdminPage() {
 
       {/* ── EDT PACKAGES TAB ──────────────────────────────────────────────── */}
       {tab === "edt" && (
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <button onClick={loadEdtPackages} className="rounded border px-3 py-1.5 text-sm hover:bg-gray-50">
-              Refresh
+        <div className="space-y-5">
+          <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-5 flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <p className="text-sm font-semibold text-slate-900">EDT package learners</p>
+              <p className="text-xs text-slate-500">Customers working through their 12-lesson programme.</p>
+            </div>
+            <button onClick={loadEdtPackages} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
+              ↻ Refresh
             </button>
           </div>
 
-          {loadingEdt && <p className="text-sm text-gray-500">Loading…</p>}
+          {loadingEdt && <p className="text-sm text-slate-500">Loading…</p>}
           {!loadingEdt && !edtPackages.length && (
-            <p className="text-sm text-gray-500">No EDT packages yet.</p>
+            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-10 text-center">
+              <p className="text-4xl mb-2">🎓</p>
+              <p className="text-base font-semibold text-slate-900">No EDT packages yet</p>
+              <p className="text-sm text-slate-500 mt-1">When someone buys the EDT bundle they&apos;ll show up here.</p>
+            </div>
           )}
 
           {edtPackages.length > 0 && (
-            <div className="overflow-x-auto rounded border bg-white">
+            <div className="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
               <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-left">
+                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th className="px-3 py-2">Customer</th>
-                    <th className="px-3 py-2">Progress</th>
-                    <th className="px-3 py-2">Expires</th>
+                    <th className="px-4 py-3 font-semibold">Customer</th>
+                    <th className="px-4 py-3 font-semibold">Progress</th>
+                    <th className="px-4 py-3 font-semibold">Expires</th>
                   </tr>
                 </thead>
                 <tbody>
                   {edtPackages.map((p) => {
                     const pct = Math.round((p.lessons_used / p.lessons_total) * 100);
                     return (
-                      <tr key={p.id} className="border-t">
-                        <td className="px-3 py-2">
-                          <div>{p.customer_name}</div>
-                          <div className="text-gray-500 text-xs">{p.customer_email}</div>
+                      <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition">
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-slate-900">{p.customer_name}</div>
+                          <div className="text-slate-500 text-xs">{p.customer_email}</div>
                         </td>
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-24 rounded-full bg-gray-200 overflow-hidden">
-                              <div className="h-2 bg-red-500 rounded-full" style={{ width: `${pct}%` }} />
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-2 w-28 rounded-full bg-slate-200 overflow-hidden">
+                              <div className="h-2 bg-[#d90429] rounded-full transition-all" style={{ width: `${pct}%` }} />
                             </div>
-                            <span>{p.lessons_used}/{p.lessons_total}</span>
+                            <span className="text-slate-700 font-semibold tabular-nums">{p.lessons_used} of {p.lessons_total}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-2">{p.expires_at}</td>
+                        <td className="px-4 py-3 text-slate-700">{p.expires_at}</td>
                       </tr>
                     );
                   })}
