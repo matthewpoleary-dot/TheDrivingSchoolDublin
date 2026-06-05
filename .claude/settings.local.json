@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\matth\\\\TheDrivingSchoolDublin\\\\supabase\\\\migrations\" 2>&1; echo done)"
+    ]
+  }
+}

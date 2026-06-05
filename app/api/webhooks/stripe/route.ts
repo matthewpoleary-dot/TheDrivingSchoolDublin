@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseServer } from "@/lib/supabase-server";
 import { emailOnBooking, emailOnEdtPackageCreated } from "@/lib/email";
+import { createCalendarEvent } from "@/lib/google-calendar";
 import { addYears, format } from "date-fns";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -120,12 +121,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  // Fetch slot details for the confirmation email
-  let slotInfo: { date: string; start_time: string } | null = null;
+  // Fetch slot details for the confirmation email and Google Calendar
+  let slotInfo: { date: string; start_time: string; end_time: string } | null = null;
   if (slotId) {
     const { data: slot } = await supabaseServer
       .from("availability_slots")
-      .select("date, start_time")
+      .select("date, start_time, end_time")
       .eq("id", slotId)
       .single();
     slotInfo = slot;
@@ -134,6 +135,37 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const startsAtISO = slotInfo
     ? `${slotInfo.date}T${slotInfo.start_time}+01:00`
     : new Date().toISOString();
+
+  const endsAtISO = slotInfo
+    ? `${slotInfo.date}T${slotInfo.end_time}+01:00`
+    : startsAtISO;
+
+  // Create Google Calendar event (silently skipped if not configured)
+  const serviceLabel: Record<string, string> = {
+    standard: "Standard Lesson",
+    "pre-test": "Pre-Test Lesson",
+    refresher: "Refresher Lesson",
+    "edt-6": "EDT 6-Lesson Package",
+    "car-hire": "Car Hire",
+  };
+  const gcalEventId = await createCalendarEvent({
+    title: `${serviceLabel[serviceType ?? ""] ?? serviceType} — ${booking.customer_name}`,
+    description: [
+      `Phone: ${booking.customer_phone}`,
+      `Email: ${booking.customer_email}`,
+      booking.notes ? `Notes: ${booking.notes}` : "",
+      `Booking ID: ${bookingId}`,
+    ].filter(Boolean).join("\n"),
+    startISO: startsAtISO,
+    endISO: endsAtISO,
+  });
+
+  if (gcalEventId) {
+    await supabaseServer
+      .from("bookings")
+      .update({ google_calendar_event_id: gcalEventId })
+      .eq("id", bookingId);
+  }
 
   await emailOnBooking({
     bookingId,

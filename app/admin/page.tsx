@@ -22,6 +22,16 @@ type Booking = {
   slot?: { date: string; start_time: string; end_time: string } | null;
 };
 
+type SlotBooking = {
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  service_type: string;
+  payment_status: string;
+  amount_pence: number;
+  notes: string | null;
+};
+
 type AvailabilitySlot = {
   id: string;
   date: string;
@@ -30,6 +40,7 @@ type AvailabilitySlot = {
   duration_minutes: number;
   lesson_types: string[];
   is_booked: boolean;
+  booking?: SlotBooking | null;
 };
 
 type EdtPackage = {
@@ -104,6 +115,7 @@ export default function AdminPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
 
   // Single slot form
   const [slotDate, setSlotDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -436,16 +448,22 @@ export default function AdminPage() {
                       {daySlots.map((s) => (
                         <div
                           key={s.id}
+                          onClick={() => s.is_booked && setSelectedSlot(s)}
                           className={`rounded p-1 text-xs relative group ${
                             s.is_booked
-                              ? "bg-red-100 text-red-700"
+                              ? "bg-red-100 text-red-700 cursor-pointer hover:bg-red-200"
                               : "bg-green-100 text-green-700"
                           }`}
                         >
                           <div>{s.start_time.slice(0, 5)}</div>
                           <div className="opacity-70">{s.duration_minutes}m</div>
+                          {s.is_booked && s.booking && (
+                            <div className="text-red-600 truncate max-w-full text-[10px] leading-tight">
+                              {s.booking.customer_name.split(" ")[0]}
+                            </div>
+                          )}
                           <button
-                            onClick={() => deleteSlot(s.id)}
+                            onClick={(e) => { e.stopPropagation(); void deleteSlot(s.id); }}
                             disabled={deletingId === s.id}
                             className="absolute top-0.5 right-0.5 hidden group-hover:block text-red-500 hover:text-red-700 text-xs font-bold leading-none"
                             title={s.is_booked ? "Cancel booking & delete slot" : "Delete slot"}
@@ -629,6 +647,105 @@ export default function AdminPage() {
               {addingAf ? "Generating…" : "Generate slots"}
             </button>
           </details>
+        </div>
+      )}
+
+      {/* ── BOOKING DETAIL MODAL ─────────────────────────────────────────── */}
+      {selectedSlot && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setSelectedSlot(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <h2 className="font-semibold text-lg">Booking details</h2>
+              <button
+                onClick={() => setSelectedSlot(null)}
+                className="text-gray-400 hover:text-gray-700 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Date</span>
+                <span className="font-medium">{selectedSlot.date}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Time</span>
+                <span className="font-medium">
+                  {selectedSlot.start_time.slice(0, 5)} – {selectedSlot.end_time.slice(0, 5)}
+                  <span className="text-gray-400 ml-1">({selectedSlot.duration_minutes}min)</span>
+                </span>
+              </div>
+              {selectedSlot.booking ? (
+                <>
+                  <div className="border-t pt-2 mt-2" />
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Customer</span>
+                    <span className="font-medium">{selectedSlot.booking.customer_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Phone</span>
+                    <a href={`tel:${selectedSlot.booking.customer_phone}`} className="font-medium text-red-600 hover:underline">
+                      {selectedSlot.booking.customer_phone}
+                    </a>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Email</span>
+                    <a href={`mailto:${selectedSlot.booking.customer_email}`} className="font-medium text-red-600 hover:underline truncate max-w-[180px]">
+                      {selectedSlot.booking.customer_email}
+                    </a>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Service</span>
+                    <span className="font-medium capitalize">{selectedSlot.booking.service_type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Amount</span>
+                    <span className="font-medium">€{(selectedSlot.booking.amount_pence / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Status</span>
+                    <span className={`font-medium capitalize ${selectedSlot.booking.payment_status === "paid" ? "text-green-600" : "text-yellow-600"}`}>
+                      {selectedSlot.booking.payment_status}
+                    </span>
+                  </div>
+                  {selectedSlot.booking.notes && (
+                    <div className="border-t pt-2">
+                      <p className="text-gray-500 text-xs mb-1">Notes</p>
+                      <p className="text-sm">{selectedSlot.booking.notes}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-400 text-sm">No booking details available.</p>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setSelectedSlot(null)}
+                className="flex-1 rounded border px-3 py-2 text-sm hover:bg-gray-50"
+              >
+                Close
+              </button>
+              <button
+                onClick={async () => {
+                  await deleteSlot(selectedSlot.id);
+                  setSelectedSlot(null);
+                }}
+                disabled={deletingId === selectedSlot.id}
+                className="flex-1 rounded bg-red-600 text-white px-3 py-2 text-sm hover:bg-red-700 disabled:opacity-50"
+              >
+                {deletingId === selectedSlot.id ? "Cancelling…" : "Cancel booking"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

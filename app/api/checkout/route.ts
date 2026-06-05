@@ -4,14 +4,21 @@ import Stripe from "stripe";
 import { supabaseServer } from "@/lib/supabase-server";
 import { SERVICES, type ServiceSlug } from "@/lib/pricing";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-07-30.basil",
-});
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn("[checkout] STRIPE_SECRET_KEY is not set");
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://thedrivingschooldublin.com";
 
 export async function POST(req: Request) {
   try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ error: "Stripe is not configured yet. Please add your Stripe keys to get started." }, { status: 503 });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-07-30.basil",
+    });
     const body = (await req.json()) as {
       slot_id?: string;
       service_type: ServiceSlug;

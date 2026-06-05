@@ -49,18 +49,31 @@ export async function emailOnBooking(p: BookingEmailPayload) {
 
   // To Client
   await resend.emails.send({
-    from: `TheDrivingSchoolDublin <${fromEmail}>`,
+    from: `The Driving School Dublin <${fromEmail}>`,
     to: p.client.email,
     replyTo: adiEmail,
-    subject: `Your lesson is booked — ${p.serviceName}`,
+    subject: `Booking confirmed — ${p.serviceName}`,
     text: [
       `Hi ${p.client.name},`,
       ``,
-      `Your lesson is confirmed.`,
-      details,
+      `Your lesson is confirmed. Here are your details:`,
       ``,
-      `If you need to change your booking, just reply to this email.`,
-    ].join("\n"),
+      `  ${p.serviceName}`,
+      `  ${when}`,
+      durationLine ? `  ${durationLine}` : "",
+      priceLine ? `  ${priceLine}` : "",
+      ``,
+      `Your instructor will meet you at your pickup location at the agreed time.`,
+      `Please be ready 5 minutes early.`,
+      ``,
+      `Need to reschedule or have a question?`,
+      `  📞 +353 86 0235 666`,
+      `  💬 WhatsApp: https://wa.me/353860235666`,
+      `  ✉️  ${adiEmail}`,
+      ``,
+      `See you on the road!`,
+      `The Driving School Dublin`,
+    ].filter((l) => l !== undefined).join("\n"),
   });
 }
 

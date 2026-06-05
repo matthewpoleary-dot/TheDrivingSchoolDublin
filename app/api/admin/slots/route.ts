@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
     let query = supabaseServer
       .from("availability_slots")
-      .select("*")
+      .select("*, booking:bookings(customer_name, customer_email, customer_phone, service_type, payment_status, amount_pence, notes)")
       .order("date", { ascending: true })
       .order("start_time", { ascending: true });
 

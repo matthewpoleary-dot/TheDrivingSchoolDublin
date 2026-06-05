@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { requireAdmin } from "@/lib/auth";
+import { deleteCalendarEvent } from "@/lib/google-calendar";
 
 // DELETE /api/availability/[id] — admin only
 // Deletes any slot. If the slot was booked, also marks the booking as cancelled.
@@ -23,12 +24,18 @@ export async function DELETE(
       return NextResponse.json({ error: "Slot not found" }, { status: 404 });
     }
 
-    // If booked, mark the linked booking as cancelled before deleting
+    // If booked, mark the linked booking as cancelled and remove Google Calendar event
     if (slot.is_booked && slot.booking_id) {
-      await supabaseServer
+      const { data: booking } = await supabaseServer
         .from("bookings")
         .update({ payment_status: "cancelled" })
-        .eq("id", slot.booking_id);
+        .eq("id", slot.booking_id)
+        .select("google_calendar_event_id")
+        .single();
+
+      if (booking?.google_calendar_event_id) {
+        await deleteCalendarEvent(booking.google_calendar_event_id);
+      }
     }
 
     const { error } = await supabaseServer
