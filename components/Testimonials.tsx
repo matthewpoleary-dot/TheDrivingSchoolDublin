@@ -21,17 +21,17 @@ const REVIEWS: Review[] = [
     url: GOOGLE_REVIEWS_URL,
   },
   {
-    name: "Dylan O.",
-    date: "2025-06-30",
+    name: "Awais Aitmad",
+    date: "2026-01-05",
     rating: 5,
-    text: "Best instructor I've had. Pre-test session covered exactly what the examiner looked for on the day.",
+    text: "Conor is a fantastic driving instructor who made the whole process of learning and passing my test so much easier. He knows the test inside out and gives you clear, practical guidance on exactly what examiners are looking for.",
     url: GOOGLE_REVIEWS_URL,
   },
   {
-    name: "Aoife K.",
-    date: "2025-06-02",
+    name: "Johanna Tighe",
+    date: "2025-12-05",
     rating: 5,
-    text: "Patient and professional. The EDT plan was structured and I felt my confidence build each week.",
+    text: "I can't recommend Conor enough! He's an amazing driving instructor who made every lesson enjoyable, calm, and confidence-boosting. From the very first lesson, he was patient, clear, and encouraging — always explaining things in a way that made sense.",
     url: GOOGLE_REVIEWS_URL,
   },
 ];
