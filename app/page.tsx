@@ -79,14 +79,14 @@ export default function Home() {
             </ul>
           </div>
 
-          {/* Right column — hero image */}
+          {/* Right column — logo */}
           <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-            <div className="aspect-[4/5] w-full rounded-3xl overflow-hidden shadow-xl ring-1 ring-slate-200/50">
+            <div className="aspect-square w-full rounded-3xl overflow-hidden bg-white shadow-xl ring-1 ring-slate-200/50 flex items-center justify-center p-8">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80"
-                alt="Driving school car with roof L-plates on a bright Dublin street"
-                className="w-full h-full object-cover"
+                src="/Logo.jpg"
+                alt="The Driving School Dublin"
+                className="w-full h-full object-contain"
               />
             </div>
 
