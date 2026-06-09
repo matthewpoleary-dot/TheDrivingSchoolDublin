@@ -1,14 +1,13 @@
 // app/page.tsx
 import Link from "next/link";
 import StickyCTA from "@/components/StickyCTA";
+import ReviewCarousel from "@/components/ReviewCarousel";
 
 export const metadata = {
   title: "Driving Lessons Dublin | RSA-Approved ADI | The Driving School Dublin",
   description:
     "Professional driving lessons across Dublin. RSA-approved ADI, manual & automatic, EDT packages, pre-test sessions. Flexible scheduling. Book your lesson today.",
 };
-
-const GOOGLE_REVIEWS_URL = "https://share.google/Gz174ck7VeSpDSx5L";
 
 const SECTION_STYLE = {
   padding: "64px 22px",
@@ -37,39 +36,68 @@ export default function Home() {
   return (
     <>
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <div style={{ padding: "72px 22px 88px" }}>
-        <h1
-          className="font-serif"
-          style={{
-            fontFamily: "var(--font-instrument-serif), Georgia, serif",
-            fontWeight: 400,
-            fontSize: "clamp(56px, 8vw, 96px)",
-            lineHeight: 1.02,
-            letterSpacing: "-1.5px",
-            marginBottom: 28,
-            color: "var(--ink)",
-          }}
-        >
-          Pass your test.<br />
-          <em style={{ fontStyle: "italic" }}>First time.</em>
-        </h1>
+      <div
+        className="grid md:grid-cols-[1fr_auto] md:items-center md:gap-16"
+        style={{ padding: "72px 22px 88px" }}
+      >
+        {/* Left: text */}
+        <div>
+          <h1
+            style={{
+              fontFamily: "var(--font-instrument-serif), Georgia, serif",
+              fontWeight: 400,
+              fontSize: "clamp(56px, 8vw, 96px)",
+              lineHeight: 1.02,
+              letterSpacing: "-1.5px",
+              marginBottom: 28,
+              color: "var(--ink)",
+            }}
+          >
+            Pass your test.<br />
+            <em style={{ fontStyle: "italic" }}>First time.</em>
+          </h1>
 
-        <p
-          style={{
-            fontSize: 17,
-            lineHeight: 1.55,
-            letterSpacing: "-0.1px",
-            color: "var(--ink-2)",
-            maxWidth: 360,
-            marginBottom: 36,
-          }}
-        >
-          Manual lessons in my car. Automatic in yours. Across Dublin.
-        </p>
+          <p
+            style={{
+              fontSize: 17,
+              lineHeight: 1.55,
+              letterSpacing: "-0.1px",
+              color: "var(--ink-2)",
+              maxWidth: 360,
+              marginBottom: 36,
+            }}
+          >
+            Manual lessons in my car. Automatic in yours. Across Dublin.
+          </p>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href="/book" className="btn-primary">Book a lesson</Link>
-          <a href="#pricing" className="btn-ghost">View prices</a>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link href="/book" className="btn-primary">Book a lesson</Link>
+            <Link href="/prices" className="btn-ghost">View prices</Link>
+          </div>
+        </div>
+
+        {/* Right: logo — desktop only */}
+        <div className="hidden md:block" style={{ width: 260, flexShrink: 0 }}>
+          <div
+            style={{
+              borderRadius: 8,
+              overflow: "hidden",
+              border: "1px solid var(--rule)",
+              background: "white",
+              padding: 24,
+              aspectRatio: "1",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Logo.jpg"
+              alt="The Driving School Dublin"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          </div>
         </div>
       </div>
 
@@ -385,74 +413,7 @@ export default function Home() {
           <span className="num">03</span> From our students
         </div>
 
-        {/* Editorial pullquote */}
-        <div>
-          <span
-            aria-hidden="true"
-            style={{
-              fontFamily: "var(--font-instrument-serif), Georgia, serif",
-              fontStyle: "italic",
-              fontSize: 64,
-              color: "var(--red)",
-              lineHeight: 0.8,
-              display: "block",
-              marginBottom: 8,
-            }}
-          >
-            &ldquo;
-          </span>
-          <p
-            style={{
-              fontFamily: "var(--font-instrument-serif), Georgia, serif",
-              fontSize: 24,
-              lineHeight: 1.3,
-              letterSpacing: "-0.5px",
-              color: "var(--ink)",
-              marginBottom: 24,
-              maxWidth: 640,
-            }}
-          >
-            Conor is brilliant — super calm and gave me{" "}
-            <em style={{ fontStyle: "italic" }}>clear, actionable feedback</em> every lesson.
-            Passed first time in Tallaght.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              fontSize: 13,
-              color: "var(--ink-2)",
-            }}
-          >
-            <span
-              style={{
-                display: "inline-block",
-                width: 24,
-                height: 1,
-                background: "var(--ink)",
-                flexShrink: 0,
-              }}
-            />
-            Aisling M. · Tallaght · July 2025
-          </div>
-        </div>
-
-        <div style={{ marginTop: 48 }}>
-          <a
-            href={GOOGLE_REVIEWS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontSize: 13,
-              color: "var(--ink-2)",
-              textDecoration: "underline",
-              textUnderlineOffset: 4,
-            }}
-          >
-            View all 54 verified reviews on Google Maps →
-          </a>
-        </div>
+        <ReviewCarousel />
       </section>
 
       {/* ── CLOSING CTA ───────────────────────────────────────────────────── */}

@@ -38,94 +38,153 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
       <body className={`${inter.className} min-h-screen antialiased`}>
 
-        {/* ── Two-row sticky nav ──────────────────────────────────────────── */}
-        <header
-          className="sticky top-0 z-40 w-full"
-          style={{
-            background: "rgba(255,255,255,0.94)",
-            backdropFilter: "saturate(180%) blur(14px)",
-            WebkitBackdropFilter: "saturate(180%) blur(14px)",
-            borderBottom: "1px solid var(--rule)",
-          }}
-        >
-          {/* Row 1: logo + CTA */}
-          <nav
-            className="mx-auto flex items-center justify-between"
-            style={{
-              maxWidth: 1200,
-              padding: "16px 22px 14px",
-            }}
+        {/* ── Pill nav ─────────────────────────────────────────────────────── */}
+        <header className="sticky top-0 z-40 w-full px-4 py-3">
+          <div
+            className="nav-pill mx-auto flex items-center justify-between"
+            style={{ maxWidth: 1160, padding: "10px 20px 10px 24px" }}
           >
+            {/* Logo */}
             <Link
               href="/"
-              className="text-[15px] font-semibold tracking-[-0.2px]"
-              style={{ color: "var(--ink)", textDecoration: "none" }}
+              className="text-[15px] font-semibold shrink-0"
+              style={{ color: "var(--ink)", textDecoration: "none", letterSpacing: "-0.2px", position: "relative", zIndex: 1 }}
               aria-label="The Driving School Dublin — Home"
             >
               The <span style={{ color: "var(--red)" }}>Driving</span> School Dublin
             </Link>
+
+            {/* Centre links — hidden on mobile */}
+            <div
+              className="hidden md:flex items-center"
+              style={{ gap: 28, position: "relative", zIndex: 1 }}
+            >
+              <Link href="/prices" className="nav-link">Prices</Link>
+              <Link href="/#process" className="nav-link">Process</Link>
+              <Link href="/#reviews" className="nav-link">Reviews</Link>
+              <Link href="/about" className="nav-link">About</Link>
+            </div>
+
+            {/* Right CTA */}
             <Link
               href="/book"
-              className="text-[13px] font-medium"
-              style={{ color: "var(--ink)", textDecoration: "none" }}
+              className="btn-primary shrink-0"
+              style={{ padding: "9px 18px", fontSize: 13, position: "relative", zIndex: 1 }}
             >
-              Book a lesson <span style={{ color: "var(--red)" }}>→</span>
+              Book a lesson →
             </Link>
-          </nav>
-
-          {/* Row 2: anchor links */}
-          <div
-            className="mx-auto flex justify-center"
-            style={{
-              maxWidth: 1200,
-              gap: 28,
-              padding: "0 22px 12px",
-              display: "flex",
-            }}
-          >
-            <Link href="/#pricing" className="nav-link">Prices</Link>
-            <Link href="/#process" className="nav-link">Process</Link>
-            <Link href="/#reviews" className="nav-link">Reviews</Link>
-            <Link href="/about" className="nav-link">About</Link>
           </div>
         </header>
 
-        {/* ── Main content ────────────────────────────────────────────────── */}
+        {/* ── Main content ─────────────────────────────────────────────────── */}
         <main className="mx-auto" style={{ maxWidth: 1200 }}>
           {children}
         </main>
 
-        {/* ── Footer ──────────────────────────────────────────────────────── */}
-        <footer
-          className="mx-auto text-center"
-          style={{
-            maxWidth: 1200,
-            padding: "32px 22px 24px",
-            borderTop: "1px solid var(--rule)",
-          }}
-        >
+        {/* ── Footer ───────────────────────────────────────────────────────── */}
+        <footer style={{ background: "var(--ink)", color: "white" }}>
           <div
-            className="text-[14px] font-semibold mb-2"
-            style={{ letterSpacing: "-0.2px", color: "var(--ink)" }}
+            className="mx-auto"
+            style={{ maxWidth: 1200, padding: "56px 22px 0" }}
           >
-            The <span style={{ color: "var(--red)" }}>Driving</span> School Dublin
-          </div>
-          <div className="text-[12px]" style={{ color: "var(--ink-3)" }}>
-            thedrivingschooldublin.com · Dublin, Ireland
-          </div>
-          <div
-            className="mt-4 flex justify-center gap-5 text-[13px]"
-            style={{ color: "var(--ink-2)" }}
-          >
-            <Link href="/about" style={{ color: "var(--ink-2)", textDecoration: "none" }}>
-              About
-            </Link>
-            <Link href="/contact" style={{ color: "var(--ink-2)", textDecoration: "none" }}>
-              Contact
-            </Link>
-            <Link href="/book" style={{ color: "var(--ink-2)", textDecoration: "none" }}>
-              Book a lesson
-            </Link>
+            {/* Top row */}
+            <div
+              className="flex flex-col md:flex-row md:items-start md:justify-between"
+              style={{ gap: 48, paddingBottom: 48, borderBottom: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              {/* Brand + tagline */}
+              <div style={{ maxWidth: 260 }}>
+                <div
+                  className="text-[15px] font-semibold mb-3"
+                  style={{ letterSpacing: "-0.2px" }}
+                >
+                  The <span style={{ color: "var(--red)" }}>Driving</span> School Dublin
+                </div>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+                  RSA-approved ADI. Manual &amp; automatic lessons across Dublin.
+                  EDT programmes, pre-test sessions, and car hire.
+                </p>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", marginTop: 12 }}>
+                  Mon–Sat · 8am–6pm
+                </p>
+              </div>
+
+              {/* Link columns */}
+              <div className="flex gap-14 md:gap-20">
+                <div>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: "0.8px",
+                      textTransform: "uppercase",
+                      color: "rgba(255,255,255,0.35)",
+                      marginBottom: 16,
+                    }}
+                  >
+                    Lessons
+                  </p>
+                  <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                    {[
+                      { label: "Prices", href: "/prices" },
+                      { label: "Book a lesson", href: "/book" },
+                      { label: "Reviews", href: "/#reviews" },
+                    ].map((l) => (
+                      <li key={l.href}>
+                        <Link
+                          href={l.href}
+                          style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}
+                        >
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: "0.8px",
+                      textTransform: "uppercase",
+                      color: "rgba(255,255,255,0.35)",
+                      marginBottom: 16,
+                    }}
+                  >
+                    Company
+                  </p>
+                  <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                    {[
+                      { label: "About", href: "/about" },
+                      { label: "Contact", href: "/contact" },
+                    ].map((l) => (
+                      <li key={l.href}>
+                        <Link
+                          href={l.href}
+                          style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}
+                        >
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Copyright bar */}
+            <div
+              className="flex flex-col md:flex-row md:items-center md:justify-between"
+              style={{ padding: "20px 0 24px", gap: 8 }}
+            >
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>
+                © {new Date().getFullYear()} The Driving School Dublin. All rights reserved.
+              </p>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>
+                RSA-approved Approved Driving Instructor · Dublin, Ireland
+              </p>
+            </div>
           </div>
         </footer>
 
