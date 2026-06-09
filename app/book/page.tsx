@@ -1,5 +1,5 @@
 "use client";
-// app/book/page.tsx — complete rewrite with real booking + Stripe Checkout
+// app/book/page.tsx
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -7,54 +7,78 @@ import BookingCalendar, { type Slot } from "@/components/BookingCalendar";
 import { SERVICES, type ServiceSlug, formatPrice } from "@/lib/pricing";
 
 const SERVICE_OPTIONS: { slug: ServiceSlug; label: string; price: string }[] = [
-  { slug: "standard",    label: "Standard Lesson",         price: "€80" },
-  { slug: "pre-test",    label: "Pre-Test Lesson",          price: "€100" },
-  { slug: "refresher",   label: "Refresher Lesson",         price: "€80" },
-  { slug: "edt-6",       label: "6 EDT Lessons",            price: "€455" },
-  { slug: "edt-bundle",  label: "EDT Bundle (12 lessons)",  price: "€905" },
-  { slug: "car-hire",    label: "Car Hire for Test",        price: "from €150" },
+  { slug: "standard",    label: "Standard Lesson",        price: "€80" },
+  { slug: "pre-test",    label: "Pre-Test Lesson",         price: "€100" },
+  { slug: "refresher",   label: "Refresher Lesson",        price: "€80" },
+  { slug: "edt-6",       label: "6 EDT Lessons",           price: "€455" },
+  { slug: "edt-bundle",  label: "EDT Bundle (12 lessons)", price: "€905" },
+  { slug: "car-hire",    label: "Car Hire for Test",       price: "from €150" },
 ];
 
-// EDT bundle and edt-6 don't need a slot — payment first, then they get a booking link
 const NO_SLOT_SERVICES: ServiceSlug[] = ["edt-bundle", "edt-6"];
 
 type Step = "service" | "slot" | "details" | "redirecting";
 
 const STEP_LABELS: { key: Step; label: string }[] = [
   { key: "service", label: "Service" },
-  { key: "slot", label: "Time" },
+  { key: "slot",    label: "Time" },
   { key: "details", label: "Details" },
 ];
 
+// ─── Step indicator (serif italic numbers) ───────────────────────────────────
 function StepIndicator({ current }: { current: Step }) {
   const order: Step[] = ["service", "slot", "details"];
   const activeIdx = order.indexOf(current === "redirecting" ? "details" : current);
+  const numerals = ["i", "ii", "iii"];
+
   return (
-    <div className="bg-slate-50 rounded-2xl px-6 py-5">
-      <div className="mx-auto flex max-w-md items-center justify-between">
+    <div style={{ borderBottom: "1px solid var(--rule)", paddingBottom: 24, marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "center", maxWidth: 400 }}>
         {STEP_LABELS.map((s, i) => {
-          const done = i < activeIdx;
+          const done   = i < activeIdx;
           const active = i === activeIdx;
           return (
-            <div key={s.key} className="flex flex-1 items-center last:flex-none">
-              <div className="flex items-center gap-2">
+            <div key={s.key} style={{ display: "flex", flex: i < STEP_LABELS.length - 1 ? 1 : undefined, alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition ${
-                    active
-                      ? "bg-[#d90429] text-white shadow-sm"
-                      : done
-                      ? "bg-[#d90429]/15 text-[#d90429]"
-                      : "bg-white text-slate-400 ring-1 ring-slate-200"
-                  }`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 32,
+                    height: 32,
+                    borderRadius: 100,
+                    fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                    fontStyle: "italic",
+                    fontSize: active ? 16 : 14,
+                    fontWeight: 400,
+                    background: active ? "var(--red)" : done ? "transparent" : "transparent",
+                    color: active ? "white" : done ? "var(--red)" : "var(--ink-3)",
+                    border: active ? "none" : done ? "1px solid var(--red)" : "1px solid var(--rule-strong)",
+                    transition: "all 0.2s",
+                  }}
                 >
-                  {done ? "✓" : i + 1}
+                  {done ? "✓" : numerals[i]}
                 </span>
-                <span className={`text-sm font-semibold ${active ? "text-slate-900" : "text-slate-400"}`}>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: active ? "var(--ink)" : "var(--ink-3)",
+                  }}
+                >
                   {s.label}
                 </span>
               </div>
               {i < STEP_LABELS.length - 1 && (
-                <span className={`mx-3 h-0.5 flex-1 rounded-full ${done ? "bg-[#d90429]" : "bg-slate-200"}`} />
+                <span
+                  style={{
+                    flex: 1,
+                    height: 1,
+                    background: done ? "var(--red)" : "var(--rule)",
+                    margin: "0 12px",
+                  }}
+                />
               )}
             </div>
           );
@@ -64,24 +88,36 @@ function StepIndicator({ current }: { current: Step }) {
   );
 }
 
+// ─── Shared input style ───────────────────────────────────────────────────────
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  borderRadius: 6,
+  border: "1px solid var(--rule-strong)",
+  padding: "10px 14px",
+  fontSize: 15,
+  color: "var(--ink)",
+  background: "white",
+  outline: "none",
+  boxSizing: "border-box",
+};
+
 function BookPageInner() {
   const searchParams = useSearchParams();
   const preselect = searchParams.get("service") as ServiceSlug | null;
-  const cancelled = searchParams.get("cancelled") === "1";
+  const cancelled  = searchParams.get("cancelled") === "1";
 
-  const [step, setStep] = useState<Step>(preselect ? "slot" : "service");
-  const [service, setService] = useState<ServiceSlug | null>(preselect);
+  const [step, setStep]               = useState<Step>(preselect ? "slot" : "service");
+  const [service, setService]         = useState<ServiceSlug | null>(preselect);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
+  const [name,  setName]   = useState("");
+  const [email, setEmail]  = useState("");
+  const [phone, setPhone]  = useState("");
+  const [notes, setNotes]  = useState("");
 
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError]           = useState("");
 
-  // If service doesn't need a slot, skip straight to details after service selection
   useEffect(() => {
     if (service && NO_SLOT_SERVICES.includes(service) && step === "slot") {
       setStep("details");
@@ -94,27 +130,21 @@ function BookPageInner() {
     if (!service) return;
     setError("");
     setSubmitting(true);
-
     try {
-      const res = await fetch("/api/checkout", {
+      const res  = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slot_id: selectedSlot?.id ?? undefined,
-          service_type: service,
-          customer_name: name.trim(),
-          customer_email: email.trim().toLowerCase(),
-          customer_phone: phone.trim(),
-          notes: notes.trim() || undefined,
+          slot_id:         selectedSlot?.id ?? undefined,
+          service_type:    service,
+          customer_name:   name.trim(),
+          customer_email:  email.trim().toLowerCase(),
+          customer_phone:  phone.trim(),
+          notes:           notes.trim() || undefined,
         }),
       });
-
       const data = (await res.json()) as { url?: string; error?: string };
-
-      if (!res.ok || !data.url) {
-        throw new Error(data.error ?? "Failed to create checkout session");
-      }
-
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Failed to create checkout session");
       setStep("redirecting");
       window.location.href = data.url;
     } catch (e: unknown) {
@@ -123,23 +153,45 @@ function BookPageInner() {
     }
   }
 
-  // ─── Step: Service selection ─────────────────────────────────────────────
+  // ── Service selection ───────────────────────────────────────────────────────
   if (step === "service") {
     return (
-      <section className="mx-auto max-w-2xl space-y-6">
+      <div style={{ padding: "48px 22px 64px", maxWidth: 640, margin: "0 auto" }}>
         <StepIndicator current="service" />
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">Book a Lesson</h1>
-          <p className="text-gray-600">Choose your lesson type to get started.</p>
-        </div>
+        <h1
+          style={{
+            fontFamily: "var(--font-instrument-serif), Georgia, serif",
+            fontWeight: 400,
+            fontSize: 36,
+            lineHeight: 1.05,
+            letterSpacing: "-0.8px",
+            color: "var(--ink)",
+            marginBottom: 8,
+          }}
+        >
+          Book a <em style={{ fontStyle: "italic" }}>lesson.</em>
+        </h1>
+        <p style={{ fontSize: 15, color: "var(--ink-2)", marginBottom: 32 }}>
+          Choose your lesson type to get started.
+        </p>
 
         {cancelled && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div
+            style={{
+              borderRadius: 6,
+              border: "1px solid #fde68a",
+              background: "#fffbeb",
+              padding: "12px 16px",
+              fontSize: 14,
+              color: "#92400e",
+              marginBottom: 24,
+            }}
+          >
             Payment cancelled — your slot has not been reserved. Select a service to try again.
           </div>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div style={{ display: "grid", gap: 1, borderTop: "1px solid var(--rule)" }}>
           {SERVICE_OPTIONS.map((opt) => (
             <button
               key={opt.slug}
@@ -148,197 +200,333 @@ function BookPageInner() {
                 setSelectedSlot(null);
                 setStep(NO_SLOT_SERVICES.includes(opt.slug) ? "details" : "slot");
               }}
-              className="flex flex-col items-start rounded-2xl border bg-white p-5 shadow-sm hover:border-red-400 hover:shadow-md transition text-left"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto",
+                alignItems: "center",
+                gap: 16,
+                padding: "20px 0",
+                background: "none",
+                border: "none",
+                borderBottom: "1px solid var(--rule)",
+                cursor: "pointer",
+                textAlign: "left",
+                width: "100%",
+              }}
             >
-              <span className="font-semibold text-gray-900">{opt.label}</span>
-              <span className="mt-1 text-2xl font-extrabold text-red-600">{opt.price}</span>
-              <span className="mt-2 text-xs text-gray-500">{SERVICES[opt.slug].description}</span>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 500, color: "var(--ink)", marginBottom: 4 }}>
+                  {opt.label}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--ink-3)" }}>
+                  {SERVICES[opt.slug].description}
+                </div>
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                  fontSize: 24,
+                  color: "var(--ink)",
+                  letterSpacing: "-0.5px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {opt.price}
+              </div>
             </button>
           ))}
         </div>
-      </section>
+      </div>
     );
   }
 
-  // ─── Step: Slot selection ────────────────────────────────────────────────
+  // ── Slot selection ──────────────────────────────────────────────────────────
   if (step === "slot" && service && serviceConfig) {
     return (
-      <section className="mx-auto max-w-2xl space-y-6">
+      <div style={{ padding: "48px 22px 64px", maxWidth: 640, margin: "0 auto" }}>
         <StepIndicator current="slot" />
-        <div className="flex items-center gap-3">
-          <button onClick={() => { setStep("service"); setSelectedSlot(null); }}
-            className="text-sm text-gray-500 hover:text-gray-800">← Back</button>
-          <h1 className="text-2xl font-extrabold tracking-tight">{serviceConfig.label}</h1>
-          <span className="text-xl font-bold text-red-600">{formatPrice(serviceConfig.pricePence)}</span>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 32 }}>
+          <button
+            onClick={() => { setStep("service"); setSelectedSlot(null); }}
+            style={{ fontSize: 13, color: "var(--ink-2)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          >
+            ← Back
+          </button>
+          <h1
+            style={{
+              fontFamily: "var(--font-instrument-serif), Georgia, serif",
+              fontWeight: 400,
+              fontSize: 28,
+              letterSpacing: "-0.5px",
+              color: "var(--ink)",
+            }}
+          >
+            {serviceConfig.label}
+          </h1>
+          <span
+            style={{
+              fontFamily: "var(--font-instrument-serif), Georgia, serif",
+              fontSize: 22,
+              color: "var(--ink-2)",
+              letterSpacing: "-0.5px",
+            }}
+          >
+            {formatPrice(serviceConfig.pricePence)}
+          </span>
         </div>
 
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-700 mb-4">Select an available date and time:</p>
+        <div
+          style={{
+            border: "1px solid var(--rule)",
+            borderRadius: 8,
+            padding: 24,
+            background: "white",
+          }}
+        >
+          <p style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-2)", marginBottom: 16 }}>
+            Select an available date and time:
+          </p>
           <BookingCalendar
             serviceType={service}
-            onSlotSelected={(slot) => {
-              setSelectedSlot(slot);
-            }}
+            onSlotSelected={(slot) => setSelectedSlot(slot)}
           />
         </div>
 
         {selectedSlot && (
-          <div className="rounded-2xl border border-green-200 bg-green-50 p-4 flex items-center justify-between">
+          <div
+            style={{
+              marginTop: 16,
+              border: "1px solid var(--rule)",
+              borderRadius: 8,
+              padding: "16px 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
             <div>
-              <p className="text-sm font-semibold text-green-800">Selected slot</p>
-              <p className="text-sm text-green-700">
+              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 2 }}>
+                Selected slot
+              </p>
+              <p style={{ fontSize: 13, color: "var(--ink-2)" }}>
                 {selectedSlot.date} · {selectedSlot.start_time.slice(0, 5)}–{selectedSlot.end_time.slice(0, 5)}
               </p>
             </div>
             <button
               onClick={() => setStep("details")}
-              className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition"
+              className="btn-primary"
+              style={{ padding: "10px 20px", fontSize: 14, whiteSpace: "nowrap" }}
             >
               Continue →
             </button>
           </div>
         )}
-      </section>
+      </div>
     );
   }
 
-  // ─── Step: Customer details ──────────────────────────────────────────────
+  // ── Customer details ────────────────────────────────────────────────────────
   if (step === "details" && service && serviceConfig) {
     const isBundle = NO_SLOT_SERVICES.includes(service);
     return (
-      <section className="mx-auto max-w-xl space-y-6">
+      <div style={{ padding: "48px 22px 64px", maxWidth: 520, margin: "0 auto" }}>
         <StepIndicator current="details" />
-        <div className="flex items-center gap-3">
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 32 }}>
           <button
             onClick={() => setStep(isBundle ? "service" : "slot")}
-            className="text-sm text-gray-500 hover:text-gray-800"
+            style={{ fontSize: 13, color: "var(--ink-2)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
           >
             ← Back
           </button>
-          <h1 className="text-2xl font-extrabold tracking-tight">Your details</h1>
+          <h1
+            style={{
+              fontFamily: "var(--font-instrument-serif), Georgia, serif",
+              fontWeight: 400,
+              fontSize: 28,
+              letterSpacing: "-0.5px",
+              color: "var(--ink)",
+            }}
+          >
+            Your details
+          </h1>
         </div>
 
         {/* Booking summary */}
-        <div className="rounded-2xl border bg-gray-50 p-4 text-sm space-y-1">
-          <p><span className="font-medium">Service:</span> {serviceConfig.label}</p>
+        <div
+          style={{
+            borderTop: "1px solid var(--rule)",
+            borderBottom: "1px solid var(--rule)",
+            padding: "16px 0",
+            marginBottom: 28,
+            display: "flex",
+            flexDirection: "column" as const,
+            gap: 6,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
+            <span style={{ color: "var(--ink-2)" }}>Service</span>
+            <span style={{ color: "var(--ink)", fontWeight: 500 }}>{serviceConfig.label}</span>
+          </div>
           {selectedSlot && (
-            <p>
-              <span className="font-medium">Slot:</span>{" "}
-              {selectedSlot.date} · {selectedSlot.start_time.slice(0, 5)}–{selectedSlot.end_time.slice(0, 5)}
-            </p>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
+              <span style={{ color: "var(--ink-2)" }}>Slot</span>
+              <span style={{ color: "var(--ink)", fontWeight: 500 }}>
+                {selectedSlot.date} · {selectedSlot.start_time.slice(0, 5)}–{selectedSlot.end_time.slice(0, 5)}
+              </span>
+            </div>
           )}
           {isBundle && (
-            <p className="text-gray-600">
+            <p style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 4 }}>
               You&apos;ll receive a personal booking link by email to schedule your individual sessions.
             </p>
           )}
-          <p className="font-semibold text-red-600 text-base">{formatPrice(serviceConfig.pricePence)}</p>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, marginTop: 4 }}>
+            <span style={{ color: "var(--ink-2)" }}>Total</span>
+            <span
+              style={{
+                fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                fontSize: 22,
+                color: "var(--ink)",
+                letterSpacing: "-0.5px",
+              }}
+            >
+              {formatPrice(serviceConfig.pricePence)}
+            </span>
+          </div>
         </div>
 
         <form
           onSubmit={(e) => { e.preventDefault(); void handleCheckout(); }}
-          className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm"
+          style={{ display: "flex", flexDirection: "column", gap: 18 }}
         >
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
-              Full Name <span className="text-red-600">*</span>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>
+              Full Name <span style={{ color: "var(--red)" }}>*</span>
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              style={inputStyle}
               placeholder="Your full name"
+              onFocus={(e) => { e.target.style.border = "1px solid var(--ink)"; }}
+              onBlur={(e)  => { e.target.style.border = "1px solid var(--rule-strong)"; }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
-              Email Address <span className="text-red-600">*</span>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>
+              Email Address <span style={{ color: "var(--red)" }}>*</span>
             </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              style={inputStyle}
               placeholder="you@example.com"
+              onFocus={(e) => { e.target.style.border = "1px solid var(--ink)"; }}
+              onBlur={(e)  => { e.target.style.border = "1px solid var(--rule-strong)"; }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
-              Phone Number <span className="text-red-600">*</span>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>
+              Phone Number <span style={{ color: "var(--red)" }}>*</span>
             </label>
             <input
               type="tel"
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              style={inputStyle}
               placeholder="+353 86 123 4567"
+              onFocus={(e) => { e.target.style.border = "1px solid var(--ink)"; }}
+              onBlur={(e)  => { e.target.style.border = "1px solid var(--rule-strong)"; }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Notes (optional)</label>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>
+              Notes <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>(optional)</span>
+            </label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+              style={{ ...inputStyle, resize: "vertical" }}
               placeholder="Anything the instructor should know…"
+              onFocus={(e) => { e.target.style.border = "1px solid var(--ink)"; }}
+              onBlur={(e)  => { e.target.style.border = "1px solid var(--rule-strong)"; }}
             />
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              {error}
-            </div>
+            <p style={{ fontSize: 14, color: "var(--red)" }}>{error}</p>
           )}
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary"
+            style={{ width: "100%", padding: "16px 22px", fontSize: 16 }}
           >
-            {submitting ? "Redirecting to payment…" : `Pay ${formatPrice(serviceConfig.pricePence)} securely`}
+            {submitting
+              ? "Redirecting to payment…"
+              : `Pay ${formatPrice(serviceConfig.pricePence)} securely`}
           </button>
 
-          <p className="text-center text-xs text-gray-400">
-            Powered by Stripe · Card, Apple Pay & Google Pay accepted
+          <p style={{ textAlign: "center", fontSize: 12, color: "var(--ink-3)" }}>
+            Powered by Stripe · Card, Apple Pay &amp; Google Pay accepted
           </p>
         </form>
-      </section>
+      </div>
     );
   }
 
-  // ─── Step: Redirecting ───────────────────────────────────────────────────
+  // ── Redirecting ─────────────────────────────────────────────────────────────
   if (step === "redirecting") {
     return (
-      <div className="mx-auto max-w-sm text-center space-y-4 py-16">
-        <div className="text-4xl">⏳</div>
-        <p className="text-lg font-semibold">Redirecting to secure payment…</p>
-        <p className="text-sm text-gray-500">Please don&apos;t close this tab.</p>
+      <div style={{ padding: "96px 22px", textAlign: "center", maxWidth: 400, margin: "0 auto" }}>
+        <p
+          style={{
+            fontFamily: "var(--font-instrument-serif), Georgia, serif",
+            fontSize: 24,
+            fontWeight: 400,
+            color: "var(--ink)",
+            marginBottom: 8,
+          }}
+        >
+          Redirecting to payment…
+        </p>
+        <p style={{ fontSize: 14, color: "var(--ink-2)" }}>Please don&apos;t close this tab.</p>
       </div>
     );
   }
 
   return (
-    <div className="text-center py-16">
-      <p className="text-gray-500">Something went wrong. <Link href="/book" className="text-red-600 underline">Start over</Link></p>
+    <div style={{ padding: "96px 22px", textAlign: "center" }}>
+      <p style={{ fontSize: 15, color: "var(--ink-2)" }}>
+        Something went wrong.{" "}
+        <Link href="/book" style={{ color: "var(--red)" }}>
+          Start over
+        </Link>
+      </p>
     </div>
   );
 }
 
 export default function BookPage() {
   return (
-    <Suspense fallback={
-      <div className="mx-auto max-w-2xl py-16 text-center">
-        <p className="text-gray-500">Loading…</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div style={{ padding: "96px 22px", textAlign: "center" }}>
+          <p style={{ fontSize: 15, color: "var(--ink-2)" }}>Loading…</p>
+        </div>
+      }
+    >
       <BookPageInner />
     </Suspense>
   );

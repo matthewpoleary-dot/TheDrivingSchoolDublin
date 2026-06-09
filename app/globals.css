@@ -3,98 +3,196 @@
 
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;        /* slate-900 — never pure black */
+  --bg:          #FFFFFF;
+  --ink:         #0A0A0A;
+  --ink-2:       #5A5A5A;
+  --ink-3:       #9A9A9A;
+  --red:         #C8102E;
+  --rule:        #ECECEC;
+  --rule-strong: #DADADA;
+  --tint:        #FAFAFA;
 
-  --brand: #d90429;             /* logo red — CTAs only */
-  --brand-600: #b00322;         /* hover */
-  --brand-soft: #fef2f2;        /* red-50 wash */
-
-  --ink: #0f172a;               /* slate-900 — headings */
-  --ink-soft: #334155;          /* slate-700 — body */
-  --muted: #64748b;             /* slate-500 — captions, labels */
-  --wash: #f8fafc;              /* slate-50 — section backgrounds */
-  --line: #e2e8f0;              /* slate-200 — only when truly needed */
+  /* Legacy aliases used by booking flow */
+  --background:  #FFFFFF;
+  --foreground:  #0A0A0A;
+  --brand:       #C8102E;
+  --brand-600:   #a50e27;
+  --brand-soft:  #fef2f2;
+  --wash:        #FAFAFA;
+  --line:        #ECECEC;
 }
 
-/* Disable dark-mode auto swap */
+/* Force light mode */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #ffffff;
-    --foreground: #0f172a;
+    --foreground:  #0A0A0A;
   }
 }
 
+/* Expose font variables to Tailwind utility classes */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html, body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Utility components ─────────────────────────────────────────────────── */
-
-/* Header nav link */
-.nav-link {
-  @apply text-slate-700 hover:text-slate-900 text-sm font-medium relative transition-colors;
+/* Space for sticky bottom action bar on mobile */
+@media (max-width: 767px) {
+  body { padding-bottom: 84px; }
 }
-.nav-link::after {
-  content: "";
-  @apply absolute -bottom-1 left-0 right-0 mx-auto h-0.5 w-0 bg-red-600 transition-all duration-200;
-}
-.nav-link:hover::after { @apply w-full; }
 
-/* Buttons */
+/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
-  background-color: var(--brand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: var(--red);
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px 22px;
+  border-radius: 100px;
+  border: 1px solid var(--red);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+  cursor: pointer;
 }
-.btn-primary:hover { background-color: var(--brand-600); }
-
-.btn-outline {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-slate-800 bg-slate-100 transition-all duration-200 hover:bg-slate-200 hover:-translate-y-0.5;
-}
+.btn-primary:hover { opacity: 0.88; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-ghost {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-slate-700 transition-colors hover:text-slate-900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px 22px;
+  border-radius: 100px;
+  border: 1px solid var(--rule-strong);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+  cursor: pointer;
+}
+.btn-ghost:hover { opacity: 0.7; }
+
+/* Legacy — keeps booking flow intact */
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--tint);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px 22px;
+  border-radius: 100px;
+  border: 1px solid var(--rule-strong);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+  cursor: pointer;
+}
+.btn-outline:hover { opacity: 0.7; }
+
+/* ─── Section label (eyebrow) ─────────────────────────────────────────────── */
+
+.section-label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--red);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.section-label .num {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
-/* Cards — soft shadow, no border, premium feel */
+/* ─── Nav link ────────────────────────────────────────────────────────────── */
+
+.nav-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.12s;
+}
+.nav-link:hover { color: var(--ink); }
+
+/* ─── Misc legacy ─────────────────────────────────────────────────────────── */
+
+/* card — used by booking flow */
 .card {
-  @apply rounded-2xl bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md;
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid var(--rule);
 }
 
-.card-elevated {
-  @apply rounded-2xl bg-white p-8 shadow-md;
-}
-
-/* Soft section background helper */
-.section-soft {
-  background-color: var(--wash);
-}
-
-/* Tiny pill / badge */
 .badge {
-  @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
-  background-color: var(--brand-soft);
-  color: var(--brand);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background: white;
+  color: var(--red);
+  border: 1px solid var(--red);
 }
 
-/* Tag pill (for areas covered) */
 .tag {
-  @apply inline-flex items-center rounded-full bg-slate-100 px-4 py-1.5 text-sm font-medium text-slate-700;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 100px;
+  background: var(--tint);
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
 }
 
-/* Icon bubble */
 .icon-bubble {
-  @apply inline-flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600;
+  display: inline-flex;
+  height: 36px;
+  width: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100px;
+  background: #fef2f2;
+  color: var(--red);
 }
 
-/* Hide scrollbar utility */
+.section-soft { background: var(--tint); }
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }

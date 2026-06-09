@@ -1,13 +1,4 @@
 // app/about/page.tsx
-import Check from "@/components/icons/Check";
-
-const HIGHLIGHTS = [
-  "Patient, structured instruction",
-  "Manual lessons in dual-control instructor car",
-  "Specialist in EDT and pre-tests",
-  "Flexible scheduling across South Dublin",
-];
-
 export default function About() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -27,56 +18,131 @@ export default function About() {
 
   return (
     <>
-      <section className="space-y-16">
-        {/* Hero heading */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <p className="text-sm font-semibold text-red-600 uppercase tracking-wider">About</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
-            Meet <span className="text-red-600">Conor</span>
-          </h1>
-          <p className="text-lg text-slate-600">
-            Your RSA-approved ADI and former driving tester — years of experience helping Dublin learners pass with confidence.
-          </p>
+      <div style={{ padding: "64px 22px" }}>
+
+        {/* Eyebrow + heading */}
+        <div className="section-label">
+          <span className="num">—</span> About
         </div>
+        <h1
+          style={{
+            fontFamily: "var(--font-instrument-serif), Georgia, serif",
+            fontWeight: 400,
+            fontSize: "clamp(40px, 5vw, 64px)",
+            lineHeight: 1.05,
+            letterSpacing: "-1px",
+            marginBottom: 14,
+            color: "var(--ink)",
+          }}
+        >
+          Meet <em style={{ fontStyle: "italic" }}>Conor.</em>
+        </h1>
+        <p
+          style={{
+            fontSize: 17,
+            lineHeight: 1.55,
+            letterSpacing: "-0.1px",
+            color: "var(--ink-2)",
+            maxWidth: 480,
+            marginBottom: 56,
+          }}
+        >
+          Your RSA-approved ADI and former driving tester — years of experience helping
+          Dublin learners pass with confidence.
+        </p>
 
-        {/* Bio card */}
-        <div className="grid md:grid-cols-[1.1fr_1fr] gap-10 lg:gap-14 items-center bg-white rounded-3xl p-8 lg:p-12 shadow-md ring-1 ring-slate-100">
-          <div className="space-y-5">
-            <h2 className="text-2xl font-bold text-slate-900">An ex-tester in the driver&apos;s seat with you</h2>
-            <p className="text-slate-700 leading-relaxed">
-              Conor is a highly experienced Approved Driving Instructor (ADI) and former RSA driving tester. Having worked in test centres across{" "}
-              <strong className="text-slate-900">Tallaght</strong>, <strong className="text-slate-900">Dún Laoghaire</strong>, and the old{" "}
-              <strong className="text-slate-900">Churchtown</strong> centre, he brings deep insight into what examiners look for on the day.
+        {/* Hairline rule */}
+        <div style={{ borderTop: "1px solid var(--rule)", marginBottom: 48 }} />
+
+        {/* Bio + image */}
+        <div
+          className="md:grid md:gap-14"
+          style={{ gridTemplateColumns: "1.1fr 1fr" } as React.CSSProperties}
+        >
+          <div style={{ marginBottom: 40 }}>
+            <h2
+              style={{
+                fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                fontWeight: 400,
+                fontSize: 28,
+                lineHeight: 1.15,
+                letterSpacing: "-0.5px",
+                marginBottom: 20,
+                color: "var(--ink)",
+              }}
+            >
+              An ex-tester in the driver&apos;s seat with you
+            </h2>
+
+            <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--ink-2)", marginBottom: 16 }}>
+              Conor is a highly experienced Approved Driving Instructor (ADI) and former RSA
+              driving tester. Having worked in test centres across{" "}
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Tallaght</strong>,{" "}
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Dún Laoghaire</strong>, and
+              the old{" "}
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Churchtown</strong> centre,
+              he brings deep insight into what examiners look for on the day.
             </p>
-            <p className="text-slate-700 leading-relaxed">
-              With years in the industry, Conor combines professional standards with a calm, supportive teaching style. His background as an ex-tester means every lesson is focused not just on safe driving, but on preparing you to succeed under exam conditions.
+            <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--ink-2)", marginBottom: 16 }}>
+              With years in the industry, Conor combines professional standards with a calm,
+              supportive teaching style. His background as an ex-tester means every lesson is
+              focused not just on safe driving, but on preparing you to succeed under exam
+              conditions.
             </p>
-            <p className="text-slate-700 leading-relaxed">
-              Whether you&apos;re completing your <strong className="text-slate-900">EDT programme</strong>, booking <strong className="text-slate-900">pre-test lessons</strong>, or looking for refresher sessions, every lesson is tailored to your goals and confidence level.
+            <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--ink-2)", marginBottom: 32 }}>
+              Whether you&apos;re completing your{" "}
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>EDT programme</strong>,
+              booking{" "}
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>pre-test lessons</strong>,
+              or looking for refresher sessions, every lesson is tailored to your goals and
+              confidence level.
             </p>
 
-            {/* Highlights */}
-            <div className="grid sm:grid-cols-2 gap-3 pt-4">
-              {HIGHLIGHTS.map((h) => (
-                <div key={h} className="flex items-start gap-3 rounded-xl bg-slate-50 p-4">
-                  <Check className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-slate-700">{h}</span>
+            {/* Highlights — hairline-separated list */}
+            <div style={{ borderTop: "1px solid var(--rule)" }}>
+              {[
+                "Patient, structured instruction",
+                "Manual lessons in dual-control instructor car",
+                "Specialist in EDT and pre-tests",
+                "Flexible scheduling across South Dublin",
+              ].map((h) => (
+                <div
+                  key={h}
+                  style={{
+                    padding: "14px 0",
+                    borderBottom: "1px solid var(--rule)",
+                    fontSize: 15,
+                    color: "var(--ink)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <span style={{ color: "var(--red)", fontSize: 13, flexShrink: 0 }}>—</span>
+                  {h}
                 </div>
               ))}
             </div>
           </div>
 
           {/* Image */}
-          <div className="rounded-3xl overflow-hidden aspect-[4/5] shadow-inner ring-1 ring-slate-100">
+          <div
+            style={{
+              borderRadius: 8,
+              overflow: "hidden",
+              aspectRatio: "4 / 5",
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=700&q=80"
               alt="ADI Conor — The Driving School Dublin"
-              className="w-full h-full object-cover"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </div>
         </div>
-      </section>
+      </div>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
