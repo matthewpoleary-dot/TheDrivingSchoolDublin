@@ -47,11 +47,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* Logo */}
             <Link
               href="/"
-              className="text-[15px] font-semibold shrink-0"
+              className="text-[14px] md:text-[15px] font-semibold shrink-0"
               style={{ color: "var(--ink)", textDecoration: "none", letterSpacing: "-0.2px", position: "relative", zIndex: 1 }}
-              aria-label="The Driving School Dublin — Home"
+              aria-label="The Driving School Dublin, Home"
             >
-              The <span style={{ color: "var(--red)" }}>Driving</span> School Dublin
+              <span className="hidden md:inline">The </span>
+              <span style={{ color: "var(--red)" }}>Driving</span> School<span className="hidden sm:inline"> Dublin</span>
             </Link>
 
             {/* Centre links — hidden on mobile */}

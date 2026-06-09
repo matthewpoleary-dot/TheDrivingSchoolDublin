@@ -20,17 +20,16 @@ export default function StickyCTA() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bar-enter"
       style={{
-        background: "rgba(255,255,255,0.94)",
-        backdropFilter: "saturate(180%) blur(12px)",
-        WebkitBackdropFilter: "saturate(180%) blur(12px)",
-        borderTop: "1px solid var(--rule)",
+        background: "#F0F0F0",
+        borderTop: "1px solid #E4E4E4",
         padding: "12px 14px",
         paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
         display: "grid",
         gridTemplateColumns: "1fr 1.6fr 1fr",
         gap: 8,
+        willChange: "transform",
       }}
     >
       <a

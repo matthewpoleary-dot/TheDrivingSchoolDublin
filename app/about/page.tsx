@@ -47,7 +47,7 @@ export default function About() {
             marginBottom: 56,
           }}
         >
-          Your RSA-approved ADI and former driving tester — years of experience helping
+          Your RSA-approved ADI and former driving tester. Years of experience helping
           Dublin learners pass with confidence.
         </p>
 
@@ -125,19 +125,25 @@ export default function About() {
             </div>
           </div>
 
-          {/* Image */}
+          {/* Image — drop a professional headshot at /public/conor.jpg */}
           <div
             style={{
               borderRadius: 8,
               overflow: "hidden",
               aspectRatio: "4 / 5",
+              background: "var(--tint)",
+              border: "1px solid var(--rule)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 40,
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=700&q=80"
-              alt="ADI Conor — The Driving School Dublin"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              src="/Logo.jpg"
+              alt="The Driving School Dublin"
+              style={{ width: "100%", height: "100%", objectFit: "contain", opacity: 0.85 }}
             />
           </div>
         </div>

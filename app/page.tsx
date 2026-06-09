@@ -36,68 +36,39 @@ export default function Home() {
   return (
     <>
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <div
-        className="grid md:grid-cols-[1fr_auto] md:items-center md:gap-16"
-        style={{ padding: "72px 22px 88px" }}
-      >
-        {/* Left: text */}
-        <div>
-          <h1
-            style={{
-              fontFamily: "var(--font-instrument-serif), Georgia, serif",
-              fontWeight: 400,
-              fontSize: "clamp(56px, 8vw, 96px)",
-              lineHeight: 1.02,
-              letterSpacing: "-1.5px",
-              marginBottom: 28,
-              color: "var(--ink)",
-            }}
-          >
-            Pass your test.<br />
-            <em style={{ fontStyle: "italic" }}>First time.</em>
-          </h1>
+      <div style={{ padding: "96px 22px 120px" }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-instrument-serif), Georgia, serif",
+            fontWeight: 400,
+            fontSize: "clamp(64px, 12vw, 160px)",
+            lineHeight: 0.98,
+            letterSpacing: "-3px",
+            marginBottom: 36,
+            color: "var(--ink)",
+            maxWidth: "100%",
+          }}
+        >
+          Pass your test.<br />
+          <em style={{ fontStyle: "italic" }}>First time.</em>
+        </h1>
 
-          <p
-            style={{
-              fontSize: 17,
-              lineHeight: 1.55,
-              letterSpacing: "-0.1px",
-              color: "var(--ink-2)",
-              maxWidth: 360,
-              marginBottom: 36,
-            }}
-          >
-            Manual lessons in my car. Automatic in yours. Across Dublin.
-          </p>
+        <p
+          style={{
+            fontSize: 19,
+            lineHeight: 1.5,
+            letterSpacing: "-0.1px",
+            color: "var(--ink-2)",
+            maxWidth: 460,
+            marginBottom: 40,
+          }}
+        >
+          Manual lessons in my car. Automatic in yours. Across Dublin.
+        </p>
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Link href="/book" className="btn-primary">Book a lesson</Link>
-            <Link href="/prices" className="btn-ghost">View prices</Link>
-          </div>
-        </div>
-
-        {/* Right: logo — desktop only */}
-        <div className="hidden md:block" style={{ width: 260, flexShrink: 0 }}>
-          <div
-            style={{
-              borderRadius: 8,
-              overflow: "hidden",
-              border: "1px solid var(--rule)",
-              background: "white",
-              padding: 24,
-              aspectRatio: "1",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/Logo.jpg"
-              alt="The Driving School Dublin"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-            />
-          </div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link href="/book" className="btn-primary">Book a lesson</Link>
+          <Link href="/prices" className="btn-ghost">View prices</Link>
         </div>
       </div>
 
@@ -448,7 +419,7 @@ export default function Home() {
             marginRight: "auto",
           }}
         >
-          Get in touch — we&apos;ll have you on the road in days, not weeks.
+          Get in touch. We&apos;ll have you on the road in days, not weeks.
         </p>
         <Link
           href="/book"
