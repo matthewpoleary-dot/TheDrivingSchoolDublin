@@ -120,7 +120,7 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
           let textMain = "var(--ink)";
           let textMuted = available ? AVAILABLE_TEXT : UNAVAILABLE_TEXT;
           let opacity = 1;
-          let cursor: React.CSSProperties["cursor"] = available ? "pointer" : "not-allowed";
+          const cursor: React.CSSProperties["cursor"] = available ? "pointer" : "not-allowed";
 
           if (isSelected) {
             bg = "var(--red)";
