@@ -218,6 +218,19 @@ html, body {
   color: var(--red);
 }
 
+/* ─── Service select row ──────────────────────────────────────────────────── */
+.service-row:hover .service-arrow {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+}
+
+/* ─── Date cards (calendar) ───────────────────────────────────────────────── */
+.date-card-available:hover {
+  background: #EAF3EC !important;
+  border-color: #7FAE89 !important;
+}
+
 /* ─── Nav link ────────────────────────────────────────────────────────────── */
 
 .nav-link {

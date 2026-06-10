@@ -49,7 +49,8 @@ export default function Home() {
             color: "var(--ink)",
           }}
         >
-          Pass your test.{" "}
+          Pass your test.
+          <br />
           <em style={{ fontStyle: "italic" }}>
             <RotatingWord
               words={["First time.", "Confidently.", "Calmly.", "Stress-free."]}
@@ -239,11 +240,27 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Pricing CTA */}
-        <div style={{ textAlign: "center", marginTop: 40 }}>
-          <p style={{ fontSize: 14, color: "var(--ink-2)", marginBottom: 16 }}>
-            Ready to book a lesson?
-          </p>
+        {/* "More prices" note + CTA */}
+        <p style={{ fontSize: 13, color: "var(--ink-3)", textAlign: "center", marginTop: 24 }}>
+          Plus refresher lessons, 6-lesson EDT, and car hire for your test.
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            justifyContent: "center",
+            marginTop: 28,
+            flexWrap: "wrap",
+          }}
+        >
+          <Link
+            href="/prices"
+            className="btn-ghost"
+            style={{ padding: "14px 24px", fontSize: 14 }}
+          >
+            View all prices
+          </Link>
           <Link
             href="/book"
             className="btn-primary"

@@ -1,7 +1,7 @@
 "use client";
-// components/BookingCalendar.tsx — nomad-style date cards + time-slot pills
+// components/BookingCalendar.tsx — nomad-style date cards + green/red availability
 import { useState, useEffect, useMemo } from "react";
-import { format, addMonths, endOfMonth, startOfMonth } from "date-fns";
+import { format, addDays, addMonths, endOfMonth, startOfDay } from "date-fns";
 
 export type Slot = {
   id: string;
@@ -16,24 +16,33 @@ type Props = {
   onSlotSelected: (slot: Slot) => void;
 };
 
-const INITIAL_LIMIT = 15;
-const PAGE_INCREMENT = 15;
+const INITIAL_DAYS = 15;
+const DAY_INCREMENT = 15;
+
+// Professional availability colours — soft, not punchy.
+const AVAILABLE_BORDER = "#9FC0A6";
+const AVAILABLE_BG = "#F4FAF5";
+const AVAILABLE_TEXT = "#3A6A45";
+
+const UNAVAILABLE_BORDER = "#E5C5C0";
+const UNAVAILABLE_BG = "#FBF3F2";
+const UNAVAILABLE_TEXT = "#A06257";
 
 export default function BookingCalendar({ serviceType, onSlotSelected }: Props) {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(false);
-  const [monthsLoaded, setMonthsLoaded] = useState(1);
+  const [monthsLoaded, setMonthsLoaded] = useState(2);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [visibleLimit, setVisibleLimit] = useState(INITIAL_LIMIT);
+  const [daysVisible, setDaysVisible] = useState(INITIAL_DAYS);
 
-  // Fetch availability across N months from today
+  // Fetch availability for the next N months
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
 
     const today = new Date();
-    const start = format(startOfMonth(today), "yyyy-MM-dd");
+    const start = format(startOfDay(today), "yyyy-MM-dd");
     const end = format(endOfMonth(addMonths(today, monthsLoaded - 1)), "yyyy-MM-dd");
 
     fetch(
@@ -69,72 +78,83 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
     });
   }, [slots]);
 
-  // Unique dates with availability, sorted
-  const availableDates = useMemo(() => {
-    const set = new Set(futureSlots.map((s) => s.date));
-    return Array.from(set).sort();
-  }, [futureSlots]);
+  // Set of dates that have at least one slot
+  const availableDates = useMemo(
+    () => new Set(futureSlots.map((s) => s.date)),
+    [futureSlots]
+  );
 
-  const visibleDates = availableDates.slice(0, visibleLimit);
-  const hasMore = availableDates.length > visibleLimit;
-  const canLoadMoreMonths = monthsLoaded < 4;
+  // Generate the next N days from today
+  const dateCards = useMemo(() => {
+    const today = startOfDay(new Date());
+    return Array.from({ length: daysVisible }, (_, i) => {
+      const d = addDays(today, i);
+      const dateStr = format(d, "yyyy-MM-dd");
+      return {
+        date: d,
+        dateStr,
+        available: availableDates.has(dateStr),
+      };
+    });
+  }, [daysVisible, availableDates]);
 
   const slotsForSelected = selectedDate
     ? futureSlots.filter((s) => s.date === selectedDate)
     : [];
 
-  // Empty state — nothing in current load
-  if (!loading && availableDates.length === 0) {
-    return (
-      <div style={{ padding: "32px 0", textAlign: "center" }}>
-        <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6 }}>
-          No availability right now.{" "}
-          <a
-            href="/contact"
-            style={{ color: "var(--red)", textDecoration: "underline", textUnderlineOffset: 3 }}
-          >
-            Contact us
-          </a>{" "}
-          and we&apos;ll arrange a time.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div>
-      {loading && availableDates.length === 0 && (
+      {loading && slots.length === 0 && (
         <p style={{ fontSize: 13, color: "var(--ink-2)", textAlign: "center", padding: "24px 0" }}>
           Loading availability…
         </p>
       )}
 
       {/* Date cards */}
-      <div
-        className="grid grid-cols-3 sm:grid-cols-5"
-        style={{ gap: 10 }}
-      >
-        {visibleDates.map((dateStr) => {
-          const d = new Date(`${dateStr}T00:00:00`);
+      <div className="grid grid-cols-3 sm:grid-cols-5" style={{ gap: 10 }}>
+        {dateCards.map(({ date, dateStr, available }) => {
           const isSelected = selectedDate === dateStr;
+
+          let bg = "white";
+          let border = `1px solid ${available ? AVAILABLE_BORDER : UNAVAILABLE_BORDER}`;
+          let textMain = "var(--ink)";
+          let textMuted = available ? AVAILABLE_TEXT : UNAVAILABLE_TEXT;
+          let opacity = 1;
+          let cursor: React.CSSProperties["cursor"] = available ? "pointer" : "not-allowed";
+
+          if (isSelected) {
+            bg = "var(--red)";
+            border = "1px solid var(--red)";
+            textMain = "white";
+            textMuted = "rgba(255,255,255,0.85)";
+          } else if (!available) {
+            bg = UNAVAILABLE_BG;
+            opacity = 0.7;
+          } else {
+            bg = AVAILABLE_BG;
+          }
+
           return (
             <button
               key={dateStr}
+              disabled={!available}
               onClick={() => {
                 setSelectedDate(dateStr);
                 setSelectedSlot(null);
               }}
+              className={available && !isSelected ? "date-card-available" : ""}
               style={{
-                background: isSelected ? "var(--red)" : "white",
-                color: isSelected ? "white" : "var(--ink)",
-                border: isSelected ? "1px solid var(--red)" : "1px solid var(--rule)",
+                background: bg,
+                color: textMain,
+                border,
                 borderRadius: 8,
                 padding: "14px 8px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 gap: 4,
-                cursor: "pointer",
+                cursor,
+                opacity,
                 transition: "background 0.15s, border-color 0.15s",
               }}
             >
@@ -144,10 +164,10 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                   fontWeight: 600,
                   letterSpacing: "0.8px",
                   textTransform: "uppercase",
-                  color: isSelected ? "rgba(255,255,255,0.85)" : "var(--ink-3)",
+                  color: isSelected ? "rgba(255,255,255,0.85)" : textMuted,
                 }}
               >
-                {format(d, "EEE")}
+                {format(date, "EEE")}
               </span>
               <span
                 style={{
@@ -156,9 +176,10 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                   fontSize: 26,
                   lineHeight: 1,
                   letterSpacing: "-0.5px",
+                  color: textMain,
                 }}
               >
-                {format(d, "d")}
+                {format(date, "d")}
               </span>
               <span
                 style={{
@@ -166,10 +187,10 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                   fontWeight: 500,
                   letterSpacing: "0.4px",
                   textTransform: "uppercase",
-                  color: isSelected ? "rgba(255,255,255,0.85)" : "var(--ink-3)",
+                  color: isSelected ? "rgba(255,255,255,0.85)" : textMuted,
                 }}
               >
-                {format(d, "MMM")}
+                {format(date, "MMM")}
               </span>
             </button>
           );
@@ -177,32 +198,71 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
       </div>
 
       {/* Show more dates */}
-      {(hasMore || canLoadMoreMonths) && (
-        <div style={{ textAlign: "center", marginTop: 18 }}>
-          <button
-            onClick={() => {
-              if (hasMore) {
-                setVisibleLimit((n) => n + PAGE_INCREMENT);
-              } else {
-                setMonthsLoaded((m) => m + 1);
-              }
-            }}
-            disabled={loading}
+      <div style={{ textAlign: "center", marginTop: 18 }}>
+        <button
+          onClick={() => {
+            setDaysVisible((n) => n + DAY_INCREMENT);
+            // If we run out of fetched availability, fetch the next month too
+            const today = startOfDay(new Date());
+            const lastVisible = addDays(today, daysVisible + DAY_INCREMENT);
+            const fetchedThrough = endOfMonth(addMonths(today, monthsLoaded - 1));
+            if (lastVisible > fetchedThrough) setMonthsLoaded((m) => m + 1);
+          }}
+          disabled={loading}
+          style={{
+            fontSize: 13,
+            color: "var(--ink-2)",
+            background: "none",
+            border: "none",
+            cursor: loading ? "default" : "pointer",
+            textDecoration: "underline",
+            textUnderlineOffset: 3,
+            padding: 0,
+          }}
+        >
+          {loading ? "Loading…" : "Show more dates →"}
+        </button>
+      </div>
+
+      {/* Legend */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: 24,
+          marginTop: 16,
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: "0.5px",
+          textTransform: "uppercase",
+          color: "var(--ink-3)",
+        }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span
             style={{
-              fontSize: 13,
-              color: "var(--ink-2)",
-              background: "none",
-              border: "none",
-              cursor: loading ? "default" : "pointer",
-              textDecoration: "underline",
-              textUnderlineOffset: 3,
-              padding: 0,
+              width: 10,
+              height: 10,
+              borderRadius: 2,
+              border: `1px solid ${AVAILABLE_BORDER}`,
+              background: AVAILABLE_BG,
             }}
-          >
-            {loading ? "Loading…" : "Show more dates →"}
-          </button>
-        </div>
-      )}
+          />
+          Available
+        </span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 2,
+              border: `1px solid ${UNAVAILABLE_BORDER}`,
+              background: UNAVAILABLE_BG,
+            }}
+          />
+          Full
+        </span>
+      </div>
 
       {/* Time slots */}
       {selectedDate && (
@@ -244,10 +304,7 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
               No slots available for this day.
             </p>
           ) : (
-            <div
-              className="grid grid-cols-2 sm:grid-cols-4"
-              style={{ gap: 8 }}
-            >
+            <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 8 }}>
               {slotsForSelected.map((slot) => {
                 const isSelected = selectedSlot?.id === slot.id;
                 return (
@@ -260,7 +317,9 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                     style={{
                       background: isSelected ? "var(--red)" : "white",
                       color: isSelected ? "white" : "var(--ink)",
-                      border: isSelected ? "1px solid var(--red)" : "1px solid var(--rule)",
+                      border: isSelected
+                        ? "1px solid var(--red)"
+                        : "1px solid var(--rule-strong)",
                       borderRadius: 100,
                       padding: "12px 8px",
                       fontSize: 14,

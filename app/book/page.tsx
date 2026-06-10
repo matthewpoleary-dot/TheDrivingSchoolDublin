@@ -200,18 +200,20 @@ function BookPageInner() {
                 setSelectedSlot(null);
                 setStep(NO_SLOT_SERVICES.includes(opt.slug) ? "details" : "slot");
               }}
+              className="service-row"
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr auto",
+                gridTemplateColumns: "1fr auto auto",
                 alignItems: "center",
                 gap: 16,
-                padding: "20px 0",
+                padding: "20px 8px 20px 0",
                 background: "none",
                 border: "none",
                 borderBottom: "1px solid var(--rule)",
                 cursor: "pointer",
                 textAlign: "left",
                 width: "100%",
+                transition: "padding 0.15s ease",
               }}
             >
               <div>
@@ -233,6 +235,25 @@ function BookPageInner() {
               >
                 {opt.price}
               </div>
+              <span
+                aria-hidden="true"
+                className="service-arrow"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 32,
+                  height: 32,
+                  borderRadius: 100,
+                  border: "1px solid var(--rule-strong)",
+                  color: "var(--ink)",
+                  fontSize: 14,
+                  transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease",
+                  flexShrink: 0,
+                }}
+              >
+                →
+              </span>
             </button>
           ))}
         </div>
