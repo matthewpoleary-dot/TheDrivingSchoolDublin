@@ -55,6 +55,14 @@ type EdtPackage = {
   expires_at: string;
 };
 
+type EdtSession = {
+  id: string;
+  status: "scheduled" | "completed" | "cancelled";
+  lesson_number: number | null;
+  created_at: string;
+  slot: { date: string; start_time: string; end_time: string } | null;
+};
+
 type Tab = "calendar" | "add-availability" | "bookings" | "edt";
 
 const ALL_SERVICE_TYPES = ["standard", "pre-test", "refresher", "edt-6", "edt-bundle", "car-hire"];
@@ -247,6 +255,9 @@ export default function AdminPage() {
 
   const [edtPackages, setEdtPackages] = useState<EdtPackage[]>([]);
   const [loadingEdt, setLoadingEdt] = useState(false);
+  const [expandedPkgId, setExpandedPkgId] = useState<string | null>(null);
+  const [pkgSessions, setPkgSessions] = useState<Record<string, EdtSession[]>>({});
+  const [loadingPkgSessions, setLoadingPkgSessions] = useState<string | null>(null);
 
   const loadEdtPackages = useCallback(async () => {
     setLoadingEdt(true);
@@ -261,6 +272,28 @@ export default function AdminPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  const togglePackage = useCallback(async (id: string) => {
+    if (expandedPkgId === id) {
+      setExpandedPkgId(null);
+      return;
+    }
+    setExpandedPkgId(id);
+    if (!pkgSessions[id]) {
+      setLoadingPkgSessions(id);
+      try {
+        const res = await fetch(`/api/admin/edt-packages/${id}/sessions`, { headers: authHeader() });
+        if (!res.ok) throw new Error("Failed to load sessions");
+        const data = await res.json() as EdtSession[];
+        setPkgSessions((prev) => ({ ...prev, [id]: Array.isArray(data) ? data : [] }));
+      } catch (e) {
+        showError(getErrMsg(e));
+      } finally {
+        setLoadingPkgSessions(null);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedPkgId, pkgSessions, token]);
 
   // Load data when tab changes
   useEffect(() => {
@@ -928,38 +961,111 @@ export default function AdminPage() {
           )}
 
           {edtPackages.length > 0 && (
-            <div className="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Customer</th>
-                    <th className="px-4 py-3 font-semibold">Progress</th>
-                    <th className="px-4 py-3 font-semibold">Expires</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {edtPackages.map((p) => {
-                    const pct = Math.round((p.lessons_used / p.lessons_total) * 100);
-                    return (
-                      <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition">
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-slate-900">{p.customer_name}</div>
-                          <div className="text-slate-500 text-xs">{p.customer_email}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 w-28 rounded-full bg-slate-200 overflow-hidden">
-                              <div className="h-2 bg-[#d90429] rounded-full transition-all" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="text-slate-700 font-semibold tabular-nums">{p.lessons_used} of {p.lessons_total}</span>
+            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 overflow-hidden">
+              {/* Header row */}
+              <div className="hidden md:grid bg-slate-50 px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-semibold grid-cols-[2fr_2fr_1fr_auto] gap-4">
+                <div>Customer</div>
+                <div>Progress</div>
+                <div>Expires</div>
+                <div className="w-6" />
+              </div>
+
+              {edtPackages.map((p) => {
+                const pct = Math.round((p.lessons_used / p.lessons_total) * 100);
+                const isOpen = expandedPkgId === p.id;
+                const sessions = pkgSessions[p.id];
+                const loadingThis = loadingPkgSessions === p.id;
+                return (
+                  <div key={p.id} className="border-t border-slate-100">
+                    <button
+                      onClick={() => void togglePackage(p.id)}
+                      className="w-full text-left grid grid-cols-[1fr_auto] md:grid-cols-[2fr_2fr_1fr_auto] gap-4 items-center px-4 py-4 hover:bg-slate-50/70 transition"
+                    >
+                      <div>
+                        <div className="font-semibold text-slate-900">{p.customer_name}</div>
+                        <div className="text-slate-500 text-xs">{p.customer_email}</div>
+                        <div className="md:hidden mt-2 text-xs text-slate-500">
+                          {p.lessons_used} of {p.lessons_total} · expires {p.expires_at}
+                        </div>
+                      </div>
+                      <div className="hidden md:flex items-center gap-3">
+                        <div className="h-2 w-28 rounded-full bg-slate-200 overflow-hidden">
+                          <div className="h-2 bg-[#d90429] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-slate-700 font-semibold tabular-nums text-sm">
+                          {p.lessons_used} of {p.lessons_total}
+                        </span>
+                      </div>
+                      <div className="hidden md:block text-slate-700 text-sm">{p.expires_at}</div>
+                      <div
+                        className={`text-slate-400 transition-transform ${isOpen ? "rotate-90" : ""}`}
+                        aria-hidden="true"
+                      >
+                        ›
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="bg-slate-50/70 border-t border-slate-100 px-4 py-4">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+                          Scheduled lessons
+                        </p>
+                        {loadingThis && (
+                          <p className="text-sm text-slate-500">Loading sessions…</p>
+                        )}
+                        {!loadingThis && sessions && sessions.length === 0 && (
+                          <p className="text-sm text-slate-500">
+                            Nothing booked yet. The customer has their personal booking link by email.
+                          </p>
+                        )}
+                        {!loadingThis && sessions && sessions.length > 0 && (
+                          <div className="space-y-1.5">
+                            {sessions.map((s) => {
+                              const isCancelled = s.status === "cancelled";
+                              const isDone = s.status === "completed";
+                              return (
+                                <div
+                                  key={s.id}
+                                  className={`flex items-center gap-3 text-sm rounded-lg px-3 py-2 bg-white border ${
+                                    isCancelled
+                                      ? "border-slate-200 text-slate-400 line-through"
+                                      : isDone
+                                      ? "border-emerald-200 text-emerald-800"
+                                      : "border-slate-200 text-slate-800"
+                                  }`}
+                                >
+                                  <span className="font-semibold tabular-nums w-16 shrink-0">
+                                    {s.lesson_number != null ? `#${s.lesson_number}` : "—"}
+                                  </span>
+                                  {s.slot ? (
+                                    <>
+                                      <span className="font-medium">
+                                        {format(new Date(`${s.slot.date}T00:00:00`), "EEE d MMM yyyy")}
+                                      </span>
+                                      <span className="text-slate-500">
+                                        {s.slot.start_time.slice(0, 5)}–{s.slot.end_time.slice(0, 5)}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-slate-400 italic">No slot attached</span>
+                                  )}
+                                  <span
+                                    className={`ml-auto text-xs font-semibold uppercase tracking-wider ${
+                                      isCancelled ? "text-slate-400" : isDone ? "text-emerald-600" : "text-red-600"
+                                    }`}
+                                  >
+                                    {s.status}
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">{p.expires_at}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

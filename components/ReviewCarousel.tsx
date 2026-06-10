@@ -8,35 +8,39 @@ const REVIEWS = [
   {
     quote: (
       <>
-        Conor is brilliant — super calm and gave me{" "}
-        <em style={{ fontStyle: "italic" }}>clear, actionable feedback</em> every lesson.
-        Passed first time in Tallaght.
-      </>
-    ),
-    plainQuote: "Conor is brilliant — super calm and gave me clear, actionable feedback every lesson. Passed first time in Tallaght.",
-    attribution: "Aisling M. · Tallaght · July 2025",
-  },
-  {
-    quote: (
-      <>
         Conor knows the test{" "}
         <em style={{ fontStyle: "italic" }}>inside out</em> and gives you clear,
-        practical guidance on exactly what examiners are looking for. Passed first time.
+        practical guidance on exactly what examiners are looking for. Thanks to his
+        expert teaching I passed first time.
       </>
     ),
-    plainQuote: "Conor knows the test inside out and gives you clear, practical guidance on exactly what examiners are looking for. Passed first time.",
-    attribution: "Awais A. · January 2026",
+    plainQuote:
+      "Conor knows the test inside out and gives you clear, practical guidance on exactly what examiners are looking for. Thanks to his expert teaching I passed first time.",
+    attribution: "Awais A. · Local Guide · January 2026",
   },
   {
     quote: (
       <>
-        He made every lesson enjoyable, calm, and{" "}
-        <em style={{ fontStyle: "italic" }}>confidence-boosting.</em> Patient, clear, and
-        encouraging — always explaining things in a way that made sense.
+        Conor is a very experienced and patient driving instructor that helped me go
+        from <em style={{ fontStyle: "italic" }}>zero driving experience to fully licenced.</em>{" "}
+        He gave me the confidence and tools to practise before the test.
       </>
     ),
-    plainQuote: "He made every lesson enjoyable, calm, and confidence-boosting. Patient, clear, and encouraging — always explaining things in a way that made sense.",
-    attribution: "Johanna T. · December 2025",
+    plainQuote:
+      "Conor is a very experienced and patient driving instructor that helped me go from zero driving experience to fully licenced. He gave me the confidence and tools to practise before the test.",
+    attribution: "David Downes · February 2026",
+  },
+  {
+    quote: (
+      <>
+        The best driving instructor you could ask for. After trying a few instructors,
+        Conor had me <em style={{ fontStyle: "italic" }}>ready for the test in a few short lessons.</em>{" "}
+        I could not recommend him more highly.
+      </>
+    ),
+    plainQuote:
+      "The best driving instructor you could ask for. After trying a few instructors, Conor had me ready for the test in a few short lessons. I could not recommend him more highly.",
+    attribution: "Robbie Glynn · July 2025",
   },
 ];
 
