@@ -47,9 +47,72 @@ export default function About() {
             marginBottom: 56,
           }}
         >
-          Your RSA-approved ADI and former driving tester. Years of experience helping
-          Dublin learners pass with confidence.
+          Your RSA-approved ADI and former driving tester at both{" "}
+          <span style={{ color: "var(--ink)", fontWeight: 500 }}>Dún Laoghaire</span> and{" "}
+          <span style={{ color: "var(--ink)", fontWeight: 500 }}>Tallaght</span>.
+          He knows both routes inside out.
         </p>
+
+        {/* Test centre expertise — featured callout */}
+        <div
+          style={{
+            border: "1px solid var(--rule)",
+            borderRadius: 12,
+            padding: "24px 24px 20px",
+            background: "var(--tint)",
+            marginBottom: 48,
+            maxWidth: 680,
+          }}
+        >
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.8px",
+              textTransform: "uppercase",
+              color: "var(--red)",
+              marginBottom: 12,
+            }}
+          >
+            Test centre expertise
+          </p>
+          <div style={{ display: "grid", gap: 14, gridTemplateColumns: "1fr 1fr" }}>
+            <div>
+              <h3
+                style={{
+                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                  fontSize: 24,
+                  fontWeight: 400,
+                  letterSpacing: "-0.5px",
+                  color: "var(--ink)",
+                  marginBottom: 4,
+                }}
+              >
+                Dún Laoghaire
+              </h3>
+              <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.55 }}>
+                Years as an examiner. Every route, every junction, every common slip-up — he knows the lot.
+              </p>
+            </div>
+            <div>
+              <h3
+                style={{
+                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                  fontSize: 24,
+                  fontWeight: 400,
+                  letterSpacing: "-0.5px",
+                  color: "var(--ink)",
+                  marginBottom: 4,
+                }}
+              >
+                Tallaght
+              </h3>
+              <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.55 }}>
+                Tested out of Tallaght too — knows the routes, the traffic patterns, and what the examiners are watching for.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Hairline rule */}
         <div style={{ borderTop: "1px solid var(--rule)", marginBottom: 48 }} />

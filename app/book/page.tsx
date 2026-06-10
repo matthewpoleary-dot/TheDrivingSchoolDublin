@@ -16,7 +16,7 @@ const SERVICE_GROUPS: ServiceGroup[] = [
     heading: "Lessons",
     options: [
       { slug: "standard",  label: "Standard Lesson",   price: "€80",  subtitle: "60 minutes, one-to-one." },
-      { slug: "pre-test",  label: "Pre-Test Lesson",   price: "€100", subtitle: "Mock test route and manoeuvres." },
+      { slug: "pre-test",  label: "Pre-Test Lesson",   price: "€100", subtitle: "Mock route, manoeuvres, examiner feedback, plus exam questions and road signs." },
       { slug: "refresher", label: "Refresher Lesson",  price: "€80",  subtitle: "For licensed drivers returning to the wheel." },
     ],
   },
@@ -28,17 +28,19 @@ const SERVICE_GROUPS: ServiceGroup[] = [
       { slug: "edt-split",  label: "EDT Bundle, split payment", price: "€475 × 2", subtitle: "Pay €475 now. €475 before lessons 7 to 12. €950 total." },
     ],
   },
-  {
-    heading: "Car hire for your test",
-    options: [
-      { slug: "car-hire-centre", label: "At the test centre",            price: "€150", subtitle: "Meet me at the test centre." },
-      { slug: "car-hire-local",  label: "Local pickup and drop-off",     price: "€200", subtitle: "Collected and dropped back." },
-      { slug: "car-hire-lesson", label: "Car hire plus pre-test lesson", price: "€245", subtitle: "Lesson the morning of, then the car." },
-    ],
-  },
+];
+
+// Car hire = single row with a dropdown that picks the variant
+const CAR_HIRE_OPTIONS: { slug: ServiceSlug; label: string; price: string }[] = [
+  { slug: "car-hire-centre", label: "At the test centre",            price: "€150" },
+  { slug: "car-hire-local",  label: "Local pickup and drop-off",     price: "€200" },
+  { slug: "car-hire-lesson", label: "Car hire plus pre-test lesson", price: "€245" },
 ];
 
 const NO_SLOT_SERVICES: ServiceSlug[] = ["edt-bundle", "edt-6", "edt-split"];
+
+// Areas Conor covers — used in the customer details dropdown
+const COVERED_AREAS = ["D2", "D4", "D6", "D6W", "D8", "D12", "D14"] as const;
 
 type Step = "service" | "slot" | "details" | "redirecting";
 
@@ -137,6 +139,10 @@ function BookPageInner() {
   const [email, setEmail]  = useState("");
   const [phone, setPhone]  = useState("");
   const [notes, setNotes]  = useState("");
+  const [area,  setArea]   = useState("");
+
+  // Car-hire dropdown selection (single-row UX)
+  const [carHireSlug, setCarHireSlug] = useState<ServiceSlug>("car-hire-centre");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState("");
@@ -154,6 +160,11 @@ function BookPageInner() {
     setError("");
     setSubmitting(true);
     try {
+      const trimmedNotes = notes.trim();
+      const combinedNotes = area
+        ? `Pickup area: ${area}.${trimmedNotes ? ` ${trimmedNotes}` : ""}`
+        : trimmedNotes || undefined;
+
       const res  = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -163,7 +174,7 @@ function BookPageInner() {
           customer_name:   name.trim(),
           customer_email:  email.trim().toLowerCase(),
           customer_phone:  phone.trim(),
-          notes:           notes.trim() || undefined,
+          notes:           combinedNotes,
         }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
@@ -311,6 +322,99 @@ function BookPageInner() {
             </div>
           </div>
         ))}
+
+        {/* ── Car Hire — single row with dropdown ────────────────────────── */}
+        <div style={{ marginBottom: 36, marginTop: 24 }}>
+          <h2 className="section-label" style={{ marginBottom: 12 }}>
+            <span className="num">{String(SERVICE_GROUPS.length + 1).padStart(2, "0")}</span>{" "}
+            Car hire for your test
+          </h2>
+          <div style={{ borderTop: "1px solid var(--rule)" }}>
+            <div
+              className="service-row"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto auto",
+                alignItems: "center",
+                gap: 20,
+                padding: "22px 8px 22px 0",
+                borderBottom: "1px solid var(--rule)",
+                minHeight: 88,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: "var(--ink)", marginBottom: 8 }}>
+                  Car Hire for Test
+                </div>
+                <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 12, maxWidth: 420 }}>
+                  Choose your option:
+                </div>
+                <select
+                  value={carHireSlug}
+                  onChange={(e) => setCarHireSlug(e.target.value as ServiceSlug)}
+                  style={{
+                    appearance: "none",
+                    WebkitAppearance: "none",
+                    background:
+                      "white url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%230A0A0A' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>\") no-repeat right 16px center",
+                    border: "1px solid var(--rule-strong)",
+                    borderRadius: 8,
+                    padding: "12px 44px 12px 16px",
+                    fontSize: 15,
+                    color: "var(--ink)",
+                    cursor: "pointer",
+                    minWidth: 260,
+                    fontFamily: "inherit",
+                  }}
+                  aria-label="Pick a car-hire option"
+                >
+                  {CAR_HIRE_OPTIONS.map((o) => (
+                    <option key={o.slug} value={o.slug}>
+                      {o.label} — {o.price}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                  fontSize: 28,
+                  color: "var(--ink)",
+                  letterSpacing: "-0.5px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {CAR_HIRE_OPTIONS.find((o) => o.slug === carHireSlug)?.price}
+              </div>
+              <button
+                onClick={() => {
+                  setService(carHireSlug);
+                  setSelectedSlot(null);
+                  setStep("slot");
+                }}
+                aria-label="Continue with this car-hire option"
+                className="service-arrow"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 100,
+                  border: "1px solid var(--rule-strong)",
+                  background: "white",
+                  color: "var(--ink)",
+                  fontSize: 16,
+                  cursor: "pointer",
+                  transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease",
+                  flexShrink: 0,
+                }}
+              >
+                →
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -525,6 +629,41 @@ function BookPageInner() {
 
           <div>
             <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>
+              Pickup area <span style={{ color: "var(--red)" }}>*</span>
+            </label>
+            <select
+              required
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              style={{
+                ...inputStyle,
+                appearance: "none",
+                WebkitAppearance: "none",
+                background:
+                  "white url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%230A0A0A' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>\") no-repeat right 14px center",
+                paddingRight: 44,
+                cursor: "pointer",
+              }}
+            >
+              <option value="" disabled>Pick your Dublin postcode</option>
+              {COVERED_AREAS.map((a) => (
+                <option key={a} value={a}>Dublin {a.slice(1)}</option>
+              ))}
+              <option value="other">Other area (I&apos;ll contact you first)</option>
+            </select>
+            {area === "other" && (
+              <p style={{ fontSize: 12, color: "var(--red)", marginTop: 8, lineHeight: 1.5 }}>
+                We mainly cover D2, D4, D6, D6W, D8, D12, and D14.{" "}
+                <Link href="/contact" style={{ color: "var(--red)", textDecoration: "underline" }}>
+                  Contact us
+                </Link>{" "}
+                to confirm coverage before paying.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>
               Notes <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>(optional)</span>
             </label>
             <textarea
@@ -544,12 +683,14 @@ function BookPageInner() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || area === "other" || !area}
             className="btn-primary"
             style={{ width: "100%", padding: "16px 22px", fontSize: 16 }}
           >
             {submitting
               ? "Redirecting to payment…"
+              : area === "other"
+              ? "Contact us before paying"
               : `Pay ${formatPrice(serviceConfig.pricePence)} securely`}
           </button>
 

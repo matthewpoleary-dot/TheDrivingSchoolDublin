@@ -32,7 +32,7 @@ export const SERVICES: Record<ServiceSlug, ServiceConfig> = {
     label: "Pre-Test Lesson",
     pricePence: 10000,
     durationMinutes: 120,
-    description: "Full pre-test preparation: mock test route, manoeuvres, and examiner feedback style.",
+    description: "Mock test route, manoeuvres, examiner feedback style, plus the theory exam questions and road signs you'll be asked.",
   },
   refresher: {
     slug: "refresher",
