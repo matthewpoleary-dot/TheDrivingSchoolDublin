@@ -39,8 +39,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unknown service type" }, { status: 400 });
     }
 
-    // For slot-based services (not edt-bundle), validate the slot is still free
-    if (service_type !== "edt-bundle" && service_type !== "edt-6") {
+    // EDT packages (bundle, 6-lesson, split-pay) don't need a slot — booking link is emailed.
+    const isEdtPackage =
+      service_type === "edt-bundle" ||
+      service_type === "edt-6" ||
+      service_type === "edt-split";
+
+    // For slot-based services, validate the slot is still free
+    if (!isEdtPackage) {
       if (!slot_id) {
         return NextResponse.json({ error: "slot_id is required for this service" }, { status: 400 });
       }
