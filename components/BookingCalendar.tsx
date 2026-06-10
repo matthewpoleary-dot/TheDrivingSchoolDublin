@@ -19,14 +19,14 @@ type Props = {
 const INITIAL_DAYS = 15;
 const DAY_INCREMENT = 15;
 
-// Professional availability colours — soft, not punchy.
-const AVAILABLE_BORDER = "#9FC0A6";
-const AVAILABLE_BG = "#F4FAF5";
-const AVAILABLE_TEXT = "#3A6A45";
+// Availability colours — clearly distinct, still professional.
+const AVAILABLE_BORDER = "#5DAB6F";   // forest green
+const AVAILABLE_BG = "#E8F5EC";
+const AVAILABLE_TEXT = "#2E6B3B";
 
-const UNAVAILABLE_BORDER = "#E5C5C0";
-const UNAVAILABLE_BG = "#FBF3F2";
-const UNAVAILABLE_TEXT = "#A06257";
+const UNAVAILABLE_BORDER = "#D5867F";  // brick red
+const UNAVAILABLE_BG = "#FBE7E4";
+const UNAVAILABLE_TEXT = "#8A3D33";
 
 export default function BookingCalendar({ serviceType, onSlotSelected }: Props) {
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -147,12 +147,14 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                 background: bg,
                 color: textMain,
                 border,
-                borderRadius: 8,
-                padding: "14px 8px",
+                borderWidth: 2,
+                borderRadius: 10,
+                padding: "18px 8px",
+                minHeight: 96,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 4,
+                gap: 6,
                 cursor,
                 opacity,
                 transition: "background 0.15s, border-color 0.15s",
@@ -160,11 +162,11 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
             >
               <span
                 style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.8px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "1px",
                   textTransform: "uppercase",
-                  color: isSelected ? "rgba(255,255,255,0.85)" : textMuted,
+                  color: isSelected ? "rgba(255,255,255,0.9)" : textMuted,
                 }}
               >
                 {format(date, "EEE")}
@@ -173,9 +175,9 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                 style={{
                   fontFamily: "var(--font-instrument-serif), Georgia, serif",
                   fontStyle: "italic",
-                  fontSize: 26,
+                  fontSize: 34,
                   lineHeight: 1,
-                  letterSpacing: "-0.5px",
+                  letterSpacing: "-1px",
                   color: textMain,
                 }}
               >
@@ -183,11 +185,11 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
               </span>
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 500,
-                  letterSpacing: "0.4px",
+                  letterSpacing: "0.6px",
                   textTransform: "uppercase",
-                  color: isSelected ? "rgba(255,255,255,0.85)" : textMuted,
+                  color: isSelected ? "rgba(255,255,255,0.9)" : textMuted,
                 }}
               >
                 {format(date, "MMM")}
@@ -304,35 +306,42 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
               No slots available for this day.
             </p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 8 }}>
-              {slotsForSelected.map((slot) => {
-                const isSelected = selectedSlot?.id === slot.id;
-                return (
-                  <button
-                    key={slot.id}
-                    onClick={() => {
-                      setSelectedSlot(slot);
-                      onSlotSelected(slot);
-                    }}
-                    style={{
-                      background: isSelected ? "var(--red)" : "white",
-                      color: isSelected ? "white" : "var(--ink)",
-                      border: isSelected
-                        ? "1px solid var(--red)"
-                        : "1px solid var(--rule-strong)",
-                      borderRadius: 100,
-                      padding: "12px 8px",
-                      fontSize: 14,
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      transition: "background 0.15s, border-color 0.15s",
-                    }}
-                  >
-                    {slot.start_time.slice(0, 5)}
-                  </button>
-                );
-              })}
-            </div>
+            <>
+              <p style={{ fontSize: 12, color: "var(--ink-3)", marginBottom: 10 }}>
+                Booked times don&apos;t appear. Pick any time below.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 10 }}>
+                {slotsForSelected.map((slot) => {
+                  const isSelected = selectedSlot?.id === slot.id;
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => {
+                        setSelectedSlot(slot);
+                        onSlotSelected(slot);
+                      }}
+                      className="time-pill"
+                      style={{
+                        background: isSelected ? "var(--red)" : "white",
+                        color: isSelected ? "white" : "var(--ink)",
+                        border: isSelected
+                          ? "2px solid var(--red)"
+                          : "2px solid var(--rule-strong)",
+                        borderRadius: 100,
+                        padding: "16px 8px",
+                        fontSize: 16,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        minHeight: 56,
+                        transition: "background 0.15s, border-color 0.15s, color 0.15s",
+                      }}
+                    >
+                      {slot.start_time.slice(0, 5)}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       )}

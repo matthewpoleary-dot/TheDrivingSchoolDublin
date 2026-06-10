@@ -36,33 +36,135 @@ const PRIMARY: PriceRow[] = [
     unit: "per hour",
     service: "refresher",
   },
+];
+
+const EDT_OPTIONS: PriceRow[] = [
   {
     title: "6 Reduced EDT Lessons",
-    description: "Completes the reduced EDT syllabus over six structured hours.",
+    description: "The reduced EDT package. Six structured hours covering the syllabus.",
     price: "€455",
     unit: "6 lessons",
     service: "edt-6",
   },
   {
     title: "EDT Bundle, 12 lessons",
-    description: "Full EDT programme. Personal booking link emailed instantly. Valid 12 months.",
+    description: "Full EDT programme paid up front. Personal booking link emailed instantly. Valid 12 months.",
     price: "€905",
     unit: "€75.42 / hour",
     service: "edt-bundle",
     tag: "Best value",
   },
+  {
+    title: "EDT Bundle, split payment",
+    description: "Pay €475 now for lessons 1 to 6. Pay €475 again before lessons 7 to 12.",
+    price: "€475 × 2",
+    unit: "€950 total",
+    service: "edt-split",
+  },
 ];
 
-const CAR_HIRE = [
-  { opt: "i.",   desc: "At the test centre",            price: "€150" },
-  { opt: "ii.",  desc: "Local pickup and drop-off",     price: "€200" },
-  { opt: "iii.", desc: "Car hire plus pre-test lesson", price: "€245" },
+const CAR_HIRE: PriceRow[] = [
+  {
+    title: "At the test centre",
+    description: "Meet at the test centre. Roadworthy, fully insured car. Arrive early, paperwork checked.",
+    price: "€150",
+    unit: "test day",
+    service: "car-hire-centre",
+  },
+  {
+    title: "Local pickup and drop-off",
+    description: "We collect you and drop you back. Roadworthy, fully insured car. Mon to Fri tests.",
+    price: "€200",
+    unit: "test day",
+    service: "car-hire-local",
+  },
+  {
+    title: "Car hire plus pre-test lesson",
+    description: "A pre-test lesson the morning of, then the car for your test. The best preparation.",
+    price: "€245",
+    unit: "test day",
+    service: "car-hire-lesson",
+  },
 ];
 
 const SECTION_STYLE = {
   padding: "64px 22px",
   borderTop: "1px solid var(--rule)",
 } as React.CSSProperties;
+
+function PriceRowComponent({ row, first }: { row: PriceRow; first: boolean }) {
+  return (
+    <div
+      style={{
+        padding: "28px 0",
+        borderTop: first ? "1px solid var(--rule)" : "none",
+        borderBottom: "1px solid var(--rule)",
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        gap: 24,
+        alignItems: "start",
+      }}
+    >
+      <div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+          <h3 style={{ fontSize: 18, fontWeight: 500, letterSpacing: "-0.2px", color: "var(--ink)" }}>
+            {row.title}
+          </h3>
+          {row.tag && (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "var(--red)",
+                textTransform: "uppercase",
+                letterSpacing: "0.6px",
+                padding: "3px 7px",
+                border: "1px solid var(--red)",
+                borderRadius: 100,
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {row.tag}
+            </span>
+          )}
+        </div>
+        <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.55, maxWidth: 460 }}>
+          {row.description}
+        </p>
+        {row.note && (
+          <p style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.55, marginTop: 6, maxWidth: 460, fontStyle: "italic" }}>
+            {row.note}
+          </p>
+        )}
+        <Link
+          href={`/book?service=${row.service}`}
+          className="btn-primary"
+          style={{ display: "inline-flex", marginTop: 16, padding: "10px 18px", fontSize: 13 }}
+        >
+          Book this →
+        </Link>
+      </div>
+      <div style={{ textAlign: "right" }}>
+        <div
+          style={{
+            fontFamily: "var(--font-instrument-serif), Georgia, serif",
+            fontSize: 38,
+            lineHeight: 1,
+            letterSpacing: "-1.5px",
+            color: "var(--ink)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {row.price}
+        </div>
+        <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 6, whiteSpace: "nowrap" }}>
+          {row.unit}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export const metadata = {
   title: "Prices | The Driving School Dublin",
@@ -104,99 +206,62 @@ export default function PricesPage() {
         </p>
       </div>
 
-      {/* ── PRICE ROWS ───────────────────────────────────────────────────── */}
+      {/* ── LESSONS ──────────────────────────────────────────────────────── */}
       <section style={SECTION_STYLE}>
+        <div className="section-label">
+          <span className="num">01</span> Lessons
+        </div>
         {PRIMARY.map((p, i) => (
-          <div
-            key={p.service}
-            style={{
-              padding: "28px 0",
-              borderTop: i === 0 ? "1px solid var(--rule)" : "none",
-              borderBottom: "1px solid var(--rule)",
-              display: "grid",
-              gridTemplateColumns: "1fr auto",
-              gap: 24,
-              alignItems: "start",
-            }}
-          >
-            <div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-                <h3 style={{ fontSize: 18, fontWeight: 500, letterSpacing: "-0.2px", color: "var(--ink)" }}>
-                  {p.title}
-                </h3>
-                {p.tag && (
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      color: "var(--red)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.6px",
-                      padding: "3px 7px",
-                      border: "1px solid var(--red)",
-                      borderRadius: 100,
-                      lineHeight: 1,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {p.tag}
-                  </span>
-                )}
-              </div>
-              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.55, maxWidth: 380 }}>
-                {p.description}
-              </p>
-              {p.note && (
-                <p style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.55, marginTop: 6, maxWidth: 380, fontStyle: "italic" }}>
-                  {p.note}
-                </p>
-              )}
-              <Link
-                href={`/book?service=${p.service}`}
-                style={{
-                  display: "inline-block",
-                  marginTop: 14,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "var(--red)",
-                  textDecoration: "none",
-                  borderBottom: "1px solid var(--red)",
-                  paddingBottom: 1,
-                }}
-              >
-                Book {p.title.split(",")[0].toLowerCase()} →
-              </Link>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                  fontSize: 38,
-                  lineHeight: 1,
-                  letterSpacing: "-1.5px",
-                  color: "var(--ink)",
-                }}
-              >
-                {p.price}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 6 }}>
-                {p.unit}
-              </div>
-            </div>
-          </div>
+          <PriceRowComponent key={p.service} row={p} first={i === 0} />
+        ))}
+      </section>
+
+      {/* ── EDT ──────────────────────────────────────────────────────────── */}
+      <section style={SECTION_STYLE}>
+        <div className="section-label">
+          <span className="num">02</span> EDT Programmes
+        </div>
+        <h2
+          style={{
+            fontFamily: "var(--font-instrument-serif), Georgia, serif",
+            fontWeight: 400,
+            fontSize: "clamp(32px, 4vw, 48px)",
+            lineHeight: 1.05,
+            letterSpacing: "-1px",
+            marginBottom: 14,
+            color: "var(--ink)",
+          }}
+        >
+          Essential Driver <em style={{ fontStyle: "italic" }}>Training.</em>
+        </h2>
+        <p
+          style={{
+            fontSize: 16,
+            letterSpacing: "-0.1px",
+            color: "var(--ink-2)",
+            maxWidth: 520,
+            marginBottom: 36,
+          }}
+        >
+          The 12-lesson EDT programme is mandatory for new learner drivers in Ireland.
+          We also offer the reduced 6-lesson option for eligible drivers.
+        </p>
+
+        {EDT_OPTIONS.map((p, i) => (
+          <PriceRowComponent key={p.service} row={p} first={i === 0} />
         ))}
       </section>
 
       {/* ── CAR HIRE ─────────────────────────────────────────────────────── */}
       <section style={SECTION_STYLE}>
         <div className="section-label">
-          <span className="num">—</span> Test day
+          <span className="num">03</span> Test day
         </div>
         <h2
           style={{
             fontFamily: "var(--font-instrument-serif), Georgia, serif",
             fontWeight: 400,
-            fontSize: "clamp(36px, 5vw, 56px)",
+            fontSize: "clamp(32px, 4vw, 48px)",
             lineHeight: 1.05,
             letterSpacing: "-1px",
             marginBottom: 14,
@@ -214,57 +279,12 @@ export default function PricesPage() {
             marginBottom: 36,
           }}
         >
-          Roadworthy, fully insured car. Mon to Fri tests. Saturday on request.
+          Roadworthy, fully insured car. Three options to suit you. Mon to Fri tests, Saturday on request.
         </p>
 
-        {CAR_HIRE.map((row, i) => (
-          <div
-            key={row.opt}
-            style={{
-              padding: "24px 0",
-              borderTop: i === 0 ? "1px solid var(--rule)" : "none",
-              borderBottom: "1px solid var(--rule)",
-              display: "grid",
-              gridTemplateColumns: "36px 1fr auto",
-              gap: 18,
-              alignItems: "center",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                fontStyle: "italic",
-                fontSize: 20,
-                color: "var(--red)",
-              }}
-            >
-              {row.opt}
-            </div>
-            <div style={{ fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>
-              {row.desc}
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                fontSize: 26,
-                color: "var(--ink)",
-                letterSpacing: "-0.8px",
-              }}
-            >
-              {row.price}
-            </div>
-          </div>
+        {CAR_HIRE.map((p, i) => (
+          <PriceRowComponent key={p.service} row={p} first={i === 0} />
         ))}
-
-        <div style={{ marginTop: 32 }}>
-          <Link
-            href="/book?service=car-hire"
-            className="btn-primary"
-            style={{ display: "inline-flex", padding: "14px 28px" }}
-          >
-            Book car hire →
-          </Link>
-        </div>
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}

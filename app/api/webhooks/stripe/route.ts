@@ -73,16 +73,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  // Lock the slot (single-lesson bookings)
-  if (slotId && serviceType !== "edt-bundle" && serviceType !== "edt-6") {
+  // Lock the slot (single-lesson bookings). All EDT variants are package-based, no slot.
+  const isEdtPackage =
+    serviceType === "edt-bundle" ||
+    serviceType === "edt-6" ||
+    serviceType === "edt-split";
+
+  if (slotId && !isEdtPackage) {
     await supabaseServer
       .from("availability_slots")
       .update({ is_booked: true, booking_id: bookingId })
       .eq("id", slotId);
   }
 
-  // For EDT bundle: create the package record
-  if (serviceType === "edt-bundle" || serviceType === "edt-6") {
+  // For EDT packages: create the package record
+  if (isEdtPackage) {
+    // edt-bundle = 12, edt-6 / edt-split = 6 lessons in this package
+    // (edt-split charges a second €475 later for lessons 7-12, handled manually for now)
     const lessonsTotal = serviceType === "edt-bundle" ? 12 : 6;
     const expiresAt = format(addYears(new Date(), 1), "yyyy-MM-dd");
 
@@ -147,6 +154,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     refresher: "Refresher Lesson",
     "edt-6": "EDT 6-Lesson Package",
     "car-hire": "Car Hire",
+    "car-hire-centre": "Car Hire (test centre)",
+    "car-hire-local": "Car Hire (local pickup)",
+    "car-hire-lesson": "Car Hire + Pre-Test Lesson",
   };
   const gcalEventId = await createCalendarEvent({
     title: `${serviceLabel[serviceType ?? ""] ?? serviceType} — ${booking.customer_name}`,

@@ -6,16 +6,39 @@ import Link from "next/link";
 import BookingCalendar, { type Slot } from "@/components/BookingCalendar";
 import { SERVICES, type ServiceSlug, formatPrice } from "@/lib/pricing";
 
-const SERVICE_OPTIONS: { slug: ServiceSlug; label: string; price: string }[] = [
-  { slug: "standard",    label: "Standard Lesson",        price: "€80" },
-  { slug: "pre-test",    label: "Pre-Test Lesson",         price: "€100" },
-  { slug: "refresher",   label: "Refresher Lesson",        price: "€80" },
-  { slug: "edt-6",       label: "6 EDT Lessons",           price: "€455" },
-  { slug: "edt-bundle",  label: "EDT Bundle (12 lessons)", price: "€905" },
-  { slug: "car-hire",    label: "Car Hire for Test",       price: "from €150" },
+type ServiceGroup = {
+  heading: string;
+  options: { slug: ServiceSlug; label: string; price: string; subtitle?: string; tag?: string }[];
+};
+
+const SERVICE_GROUPS: ServiceGroup[] = [
+  {
+    heading: "Lessons",
+    options: [
+      { slug: "standard",  label: "Standard Lesson",   price: "€80",  subtitle: "60 minutes, one-to-one." },
+      { slug: "pre-test",  label: "Pre-Test Lesson",   price: "€100", subtitle: "Mock test route and manoeuvres." },
+      { slug: "refresher", label: "Refresher Lesson",  price: "€80",  subtitle: "For licensed drivers returning to the wheel." },
+    ],
+  },
+  {
+    heading: "EDT programmes",
+    options: [
+      { slug: "edt-6",      label: "6 Reduced EDT Lessons",     price: "€455", subtitle: "The reduced EDT package." },
+      { slug: "edt-bundle", label: "EDT Bundle, 12 lessons",    price: "€905", subtitle: "Pay once. Book sessions one at a time.", tag: "Best value" },
+      { slug: "edt-split",  label: "EDT Bundle, split payment", price: "€475 × 2", subtitle: "Pay €475 now. €475 before lessons 7 to 12. €950 total." },
+    ],
+  },
+  {
+    heading: "Car hire for your test",
+    options: [
+      { slug: "car-hire-centre", label: "At the test centre",            price: "€150", subtitle: "Meet me at the test centre." },
+      { slug: "car-hire-local",  label: "Local pickup and drop-off",     price: "€200", subtitle: "Collected and dropped back." },
+      { slug: "car-hire-lesson", label: "Car hire plus pre-test lesson", price: "€245", subtitle: "Lesson the morning of, then the car." },
+    ],
+  },
 ];
 
-const NO_SLOT_SERVICES: ServiceSlug[] = ["edt-bundle", "edt-6"];
+const NO_SLOT_SERVICES: ServiceSlug[] = ["edt-bundle", "edt-6", "edt-split"];
 
 type Step = "service" | "slot" | "details" | "redirecting";
 
@@ -156,107 +179,138 @@ function BookPageInner() {
   // ── Service selection ───────────────────────────────────────────────────────
   if (step === "service") {
     return (
-      <div style={{ padding: "48px 22px 64px", maxWidth: 640, margin: "0 auto" }}>
+      <div style={{ padding: "48px 22px 64px", maxWidth: 720, margin: "0 auto" }}>
         <StepIndicator current="service" />
         <h1
           style={{
             fontFamily: "var(--font-instrument-serif), Georgia, serif",
             fontWeight: 400,
-            fontSize: 36,
+            fontSize: 44,
             lineHeight: 1.05,
-            letterSpacing: "-0.8px",
+            letterSpacing: "-1px",
             color: "var(--ink)",
-            marginBottom: 8,
+            marginBottom: 10,
           }}
         >
           Book a <em style={{ fontStyle: "italic" }}>lesson.</em>
         </h1>
-        <p style={{ fontSize: 15, color: "var(--ink-2)", marginBottom: 32 }}>
+        <p style={{ fontSize: 17, color: "var(--ink-2)", marginBottom: 40 }}>
           Choose your lesson type to get started.
         </p>
 
         {cancelled && (
           <div
             style={{
-              borderRadius: 6,
+              borderRadius: 8,
               border: "1px solid #fde68a",
               background: "#fffbeb",
-              padding: "12px 16px",
-              fontSize: 14,
+              padding: "14px 18px",
+              fontSize: 15,
               color: "#92400e",
-              marginBottom: 24,
+              marginBottom: 28,
             }}
           >
-            Payment cancelled — your slot has not been reserved. Select a service to try again.
+            Payment cancelled. Your slot has not been reserved. Select a service to try again.
           </div>
         )}
 
-        <div style={{ display: "grid", gap: 1, borderTop: "1px solid var(--rule)" }}>
-          {SERVICE_OPTIONS.map((opt) => (
-            <button
-              key={opt.slug}
-              onClick={() => {
-                setService(opt.slug);
-                setSelectedSlot(null);
-                setStep(NO_SLOT_SERVICES.includes(opt.slug) ? "details" : "slot");
-              }}
-              className="service-row"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr auto auto",
-                alignItems: "center",
-                gap: 16,
-                padding: "20px 8px 20px 0",
-                background: "none",
-                border: "none",
-                borderBottom: "1px solid var(--rule)",
-                cursor: "pointer",
-                textAlign: "left",
-                width: "100%",
-                transition: "padding 0.15s ease",
-              }}
+        {SERVICE_GROUPS.map((group, gi) => (
+          <div key={group.heading} style={{ marginBottom: 36, marginTop: gi === 0 ? 0 : 24 }}>
+            <h2
+              className="section-label"
+              style={{ marginBottom: 12 }}
             >
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 500, color: "var(--ink)", marginBottom: 4 }}>
-                  {opt.label}
-                </div>
-                <div style={{ fontSize: 13, color: "var(--ink-3)" }}>
-                  {SERVICES[opt.slug].description}
-                </div>
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                  fontSize: 24,
-                  color: "var(--ink)",
-                  letterSpacing: "-0.5px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {opt.price}
-              </div>
-              <span
-                aria-hidden="true"
-                className="service-arrow"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 32,
-                  height: 32,
-                  borderRadius: 100,
-                  border: "1px solid var(--rule-strong)",
-                  color: "var(--ink)",
-                  fontSize: 14,
-                  transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease",
-                  flexShrink: 0,
-                }}
-              >
-                →
-              </span>
-            </button>
-          ))}
-        </div>
+              <span className="num">{String(gi + 1).padStart(2, "0")}</span> {group.heading}
+            </h2>
+            <div style={{ display: "grid", gap: 0, borderTop: "1px solid var(--rule)" }}>
+              {group.options.map((opt) => (
+                <button
+                  key={opt.slug}
+                  onClick={() => {
+                    setService(opt.slug);
+                    setSelectedSlot(null);
+                    setStep(NO_SLOT_SERVICES.includes(opt.slug) ? "details" : "slot");
+                  }}
+                  className="service-row"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto auto",
+                    alignItems: "center",
+                    gap: 20,
+                    padding: "22px 8px 22px 0",
+                    background: "none",
+                    border: "none",
+                    borderBottom: "1px solid var(--rule)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    width: "100%",
+                    minHeight: 88,
+                    transition: "background 0.15s ease",
+                  }}
+                >
+                  <div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "baseline", marginBottom: 6, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 18, fontWeight: 500, color: "var(--ink)" }}>
+                        {opt.label}
+                      </div>
+                      {opt.tag && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            color: "var(--red)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.6px",
+                            padding: "3px 7px",
+                            border: "1px solid var(--red)",
+                            borderRadius: 100,
+                            lineHeight: 1,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {opt.tag}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.5, maxWidth: 420 }}>
+                      {opt.subtitle ?? SERVICES[opt.slug].description}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                      fontSize: 28,
+                      color: "var(--ink)",
+                      letterSpacing: "-0.5px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {opt.price}
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="service-arrow"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 40,
+                      height: 40,
+                      borderRadius: 100,
+                      border: "1px solid var(--rule-strong)",
+                      color: "var(--ink)",
+                      fontSize: 16,
+                      transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease",
+                      flexShrink: 0,
+                    }}
+                  >
+                    →
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

@@ -227,8 +227,17 @@ html, body {
 
 /* ─── Date cards (calendar) ───────────────────────────────────────────────── */
 .date-card-available:hover {
-  background: #EAF3EC !important;
-  border-color: #7FAE89 !important;
+  background: #D6EBDB !important;
+  border-color: #3E8E51 !important;
+}
+
+/* Time-slot pill hover */
+.time-pill:hover {
+  border-color: var(--red) !important;
+  color: var(--red) !important;
+}
+.time-pill:hover[style*="var(--red)"] {
+  color: white !important;
 }
 
 /* ─── Nav link ────────────────────────────────────────────────────────────── */
