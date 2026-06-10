@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { supabaseServer } from "@/lib/supabase-server";
 import { emailOnBooking, emailOnEdtPackageCreated } from "@/lib/email";
 import { createCalendarEvent } from "@/lib/google-calendar";
+import { dublinLocalToUtcISO } from "@/lib/time";
 import { addYears, format } from "date-fns";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -139,9 +140,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     slotInfo = slot;
   }
 
-  // Local-time ISO strings (no UTC offset). Google's timeZone: "Europe/Dublin"
-  // interprets them correctly across DST. Hardcoding "+01:00" used to break
-  // winter bookings by an hour.
+  // Local-time strings (no UTC offset) for Google Calendar. Google's
+  // timeZone: "Europe/Dublin" interprets them correctly across DST.
   const startsLocal = slotInfo
     ? `${slotInfo.date}T${slotInfo.start_time}`
     : new Date().toISOString().slice(0, 19);
@@ -149,10 +149,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ? `${slotInfo.date}T${slotInfo.end_time}`
     : startsLocal;
 
-  // ISO with offset for the customer-facing confirmation email, recomputed
-  // per-booking so DST flips correctly.
+  // True UTC ISO for the confirmation email. We can't use `new Date(string)`
+  // here because on a UTC runtime (Vercel) it interprets the no-offset string
+  // as UTC instead of Dublin local — which made the email read an hour ahead.
+  // dublinLocalToUtcISO reads the actual Dublin offset for this specific date.
   const startsAtISO = slotInfo
-    ? new Date(`${slotInfo.date}T${slotInfo.start_time}`).toISOString()
+    ? dublinLocalToUtcISO(slotInfo.date, slotInfo.start_time)
     : new Date().toISOString();
 
   // Idempotency guard: Stripe can replay the webhook. If we've already

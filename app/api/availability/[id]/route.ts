@@ -2,10 +2,13 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { requireAdmin } from "@/lib/auth";
-import { deleteCalendarEvent } from "@/lib/google-calendar";
+import { deleteCalendarEvent, findAndDeleteEventsAt } from "@/lib/google-calendar";
+import { dublinLocalToUtcISO } from "@/lib/time";
 
 // DELETE /api/availability/[id] — admin only
-// Deletes any slot. If the slot was booked, also marks the booking as cancelled.
+// Deletes any slot. If the slot was booked, also marks the booking as cancelled
+// and removes the Google Calendar event (either by stored ID, or by searching
+// the calendar in the slot's time range if the booking row is gone — orphan case).
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -16,7 +19,7 @@ export async function DELETE(
 
     const { data: slot, error: fetchErr } = await supabaseServer
       .from("availability_slots")
-      .select("is_booked, booking_id")
+      .select("is_booked, booking_id, date, start_time, end_time")
       .eq("id", id)
       .single();
 
@@ -24,17 +27,32 @@ export async function DELETE(
       return NextResponse.json({ error: "Slot not found" }, { status: 404 });
     }
 
-    // If booked, mark the linked booking as cancelled and remove Google Calendar event
-    if (slot.is_booked && slot.booking_id) {
-      const { data: booking } = await supabaseServer
-        .from("bookings")
-        .update({ payment_status: "cancelled" })
-        .eq("id", slot.booking_id)
-        .select("google_calendar_event_id")
-        .single();
+    if (slot.is_booked) {
+      let calendarEventCleared = false;
 
-      if (booking?.google_calendar_event_id) {
-        await deleteCalendarEvent(booking.google_calendar_event_id);
+      // Happy path: we have a booking row, possibly with the calendar event ID.
+      if (slot.booking_id) {
+        const { data: booking } = await supabaseServer
+          .from("bookings")
+          .update({ payment_status: "cancelled" })
+          .eq("id", slot.booking_id)
+          .select("google_calendar_event_id")
+          .single();
+
+        if (booking?.google_calendar_event_id) {
+          await deleteCalendarEvent(booking.google_calendar_event_id);
+          calendarEventCleared = true;
+        }
+      }
+
+      // Orphan fallback: booking row is missing, or the event ID wasn't stored.
+      // Search Google Calendar for any of our events that start at this slot
+      // and delete them. Safe to run unconditionally because findAndDeleteEventsAt
+      // only deletes events whose description contains our "Booking ID:" marker.
+      if (!calendarEventCleared && slot.date && slot.start_time && slot.end_time) {
+        const startISO = dublinLocalToUtcISO(slot.date, slot.start_time);
+        const endISO = dublinLocalToUtcISO(slot.date, slot.end_time);
+        await findAndDeleteEventsAt(startISO, endISO);
       }
     }
 

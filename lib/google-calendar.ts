@@ -129,6 +129,63 @@ export async function updateCalendarEvent(
 }
 
 /**
+ * Orphan-cleanup helper. Lists events in [startISO, endISO], filters to
+ * those that start within 1 minute of startISO and have our "Booking ID:"
+ * marker in the description, and deletes each one. Returns the number deleted.
+ *
+ * Used when an admin frees a slot whose `bookings` row is gone, so we have
+ * no event ID to look up but still need to clean the calendar.
+ */
+export async function findAndDeleteEventsAt(
+  startISO: string,
+  endISO: string,
+): Promise<number> {
+  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  const auth = getAuth();
+  if (!auth || !calendarId) return 0;
+
+  try {
+    const calendar = google.calendar({ version: "v3", auth });
+    // Widen the range by ±2 minutes so list returns events that start exactly at startISO.
+    const wideStart = new Date(new Date(startISO).getTime() - 2 * 60_000).toISOString();
+    const wideEnd = new Date(new Date(endISO).getTime() + 2 * 60_000).toISOString();
+
+    const res = await calendar.events.list({
+      calendarId,
+      timeMin: wideStart,
+      timeMax: wideEnd,
+      singleEvents: true,
+      maxResults: 50,
+    });
+
+    let deleted = 0;
+    for (const event of res.data.items ?? []) {
+      if (!event.id || !event.start?.dateTime) continue;
+
+      // Only delete events that start within 1 minute of the target slot start.
+      const eventStartMs = new Date(event.start.dateTime).getTime();
+      if (Math.abs(eventStartMs - new Date(startISO).getTime()) > 60_000) continue;
+
+      // Safety filter: only delete events created by us (they have a Booking
+      // ID line in the description). This avoids nuking unrelated events Conor
+      // may have added manually at the same time.
+      if (!event.description?.includes("Booking ID:")) continue;
+
+      try {
+        await calendar.events.delete({ calendarId, eventId: event.id });
+        deleted++;
+      } catch (inner) {
+        console.error("[google-calendar] orphan delete failed for event", event.id, inner);
+      }
+    }
+    return deleted;
+  } catch (e) {
+    console.error("[google-calendar] findAndDeleteEventsAt failed:", e);
+    return 0;
+  }
+}
+
+/**
  * Deletes a Google Calendar event by ID. 404/410 (event already gone) is
  * treated as success.
  */

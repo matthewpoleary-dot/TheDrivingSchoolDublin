@@ -28,6 +28,43 @@ export function formatZonedTime(iso: string): string {
   }).format(d);
 }
 
+/**
+ * Convert a Europe/Dublin wall-clock time (date + time strings) to a UTC ISO
+ * string. Handles IST/GMT (DST) automatically by reading the actual offset
+ * from Intl for that specific date.
+ *
+ * Example:
+ *   dublinLocalToUtcISO("2026-06-10", "19:00:00") → "2026-06-10T18:00:00.000Z"
+ *   dublinLocalToUtcISO("2026-01-10", "19:00:00") → "2026-01-10T19:00:00.000Z"
+ */
+export function dublinLocalToUtcISO(date: string, time: string): string {
+  // Step 1: pretend the wall-clock IS UTC. This gives us a Date object whose
+  // .getTime() corresponds to "if you read the digits as UTC."
+  const asIfUtc = new Date(`${date}T${time}Z`);
+
+  // Step 2: format that Date in Europe/Dublin and reconstruct the digits.
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(asIfUtc);
+
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+  const dublinReading = new Date(
+    `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}Z`
+  );
+
+  // Step 3: the difference between Dublin's reading and the asIfUtc gives the
+  // offset for this date. Apply the inverse to translate wall-clock → UTC.
+  const offsetMs = dublinReading.getTime() - asIfUtc.getTime();
+  return new Date(asIfUtc.getTime() - offsetMs).toISOString();
+}
+
 /** Returns a YYYY-MM-DD string for the ISO time in the configured TIMEZONE. */
 export function dateKeyZoned(iso: string): string {
   const d = new Date(iso);
