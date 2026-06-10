@@ -139,42 +139,78 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     slotInfo = slot;
   }
 
+  // Local-time ISO strings (no UTC offset). Google's timeZone: "Europe/Dublin"
+  // interprets them correctly across DST. Hardcoding "+01:00" used to break
+  // winter bookings by an hour.
+  const startsLocal = slotInfo
+    ? `${slotInfo.date}T${slotInfo.start_time}`
+    : new Date().toISOString().slice(0, 19);
+  const endsLocal = slotInfo
+    ? `${slotInfo.date}T${slotInfo.end_time}`
+    : startsLocal;
+
+  // ISO with offset for the customer-facing confirmation email, recomputed
+  // per-booking so DST flips correctly.
   const startsAtISO = slotInfo
-    ? `${slotInfo.date}T${slotInfo.start_time}+01:00`
+    ? new Date(`${slotInfo.date}T${slotInfo.start_time}`).toISOString()
     : new Date().toISOString();
 
-  const endsAtISO = slotInfo
-    ? `${slotInfo.date}T${slotInfo.end_time}+01:00`
-    : startsAtISO;
+  // Idempotency guard: Stripe can replay the webhook. If we've already
+  // attached a calendar event ID, skip the second create.
+  if (!booking.google_calendar_event_id) {
+    const serviceLabel: Record<string, string> = {
+      standard: "Standard Lesson",
+      "pre-test": "Pre-Test Lesson",
+      refresher: "Refresher Lesson",
+      "edt-6": "EDT 6-Lesson Package",
+      "car-hire": "Car Hire",
+      "car-hire-centre": "Car Hire (test centre)",
+      "car-hire-local": "Car Hire (local pickup)",
+      "car-hire-lesson": "Car Hire + Pre-Test Lesson",
+    };
 
-  // Create Google Calendar event (silently skipped if not configured)
-  const serviceLabel: Record<string, string> = {
-    standard: "Standard Lesson",
-    "pre-test": "Pre-Test Lesson",
-    refresher: "Refresher Lesson",
-    "edt-6": "EDT 6-Lesson Package",
-    "car-hire": "Car Hire",
-    "car-hire-centre": "Car Hire (test centre)",
-    "car-hire-local": "Car Hire (local pickup)",
-    "car-hire-lesson": "Car Hire + Pre-Test Lesson",
-  };
-  const gcalEventId = await createCalendarEvent({
-    title: `${serviceLabel[serviceType ?? ""] ?? serviceType} — ${booking.customer_name}`,
-    description: [
-      `Phone: ${booking.customer_phone}`,
-      `Email: ${booking.customer_email}`,
-      booking.notes ? `Notes: ${booking.notes}` : "",
-      `Booking ID: ${bookingId}`,
-    ].filter(Boolean).join("\n"),
-    startISO: startsAtISO,
-    endISO: endsAtISO,
-  });
+    // Pickup area is prepended to the notes field by the booking form
+    // ("Pickup area: D6. <user notes>"). Extract it for the event location.
+    let pickupArea: string | undefined;
+    let cleanedNotes: string | undefined;
+    if (booking.notes) {
+      const match = booking.notes.match(/^Pickup area:\s*([^.]+)\.\s*(.*)$/);
+      if (match) {
+        pickupArea = `Dublin ${match[1].replace(/^D/, "")}`;
+        cleanedNotes = match[2].trim() || undefined;
+      } else {
+        cleanedNotes = booking.notes;
+      }
+    }
 
-  if (gcalEventId) {
-    await supabaseServer
-      .from("bookings")
-      .update({ google_calendar_event_id: gcalEventId })
-      .eq("id", bookingId);
+    try {
+      const gcalEventId = await createCalendarEvent({
+        title: `${serviceLabel[serviceType ?? ""] ?? serviceType} — ${booking.customer_name}`,
+        description: [
+          `Customer: ${booking.customer_name}`,
+          `Phone: ${booking.customer_phone}`,
+          `Email: ${booking.customer_email}`,
+          pickupArea ? `Pick-up: ${pickupArea}` : null,
+          cleanedNotes ? `Notes: ${cleanedNotes}` : null,
+          "",
+          `Booking ID: ${bookingId}`,
+        ].filter(Boolean).join("\n"),
+        location: pickupArea,
+        startISO: startsLocal,
+        endISO: endsLocal,
+      });
+
+      if (gcalEventId) {
+        await supabaseServer
+          .from("bookings")
+          .update({ google_calendar_event_id: gcalEventId })
+          .eq("id", bookingId);
+      }
+    } catch (e) {
+      // Failure isolation: calendar problems must not fail the webhook. The
+      // booking is still valid even if the event doesn't land.
+      console.error("[stripe-webhook] calendar create failed for booking", bookingId, e);
+    }
   }
 
   await emailOnBooking({
