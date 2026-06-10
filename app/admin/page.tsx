@@ -493,63 +493,91 @@ export default function AdminPage() {
 
             {loadingSlots && <p className="text-sm text-slate-500">Loading…</p>}
 
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-3">
               {weekDays.map((day) => {
                 const dateKey = format(day, "yyyy-MM-dd");
                 const todayKey = format(new Date(), "yyyy-MM-dd");
                 const isToday = dateKey === todayKey;
                 const isPast = dateKey < todayKey;
                 const daySlots = slots.filter((s) => s.date === dateKey);
+                const bookedCount = daySlots.filter((s) => s.is_booked).length;
                 return (
-                  <div key={dateKey} className={`min-h-24 ${isPast ? "opacity-50" : ""}`}>
-                    <div className={`text-xs font-semibold mb-2 text-center pb-2 border-b ${
-                      isToday ? "text-red-600 border-red-200"
-                        : isPast ? "text-slate-400 border-slate-100"
-                        : "text-slate-500 border-slate-100"
-                    }`}>
-                      <div>{format(day, "EEE")}</div>
-                      <div className={`text-lg font-extrabold ${
+                  <div key={dateKey} className={isPast ? "opacity-40" : ""}>
+                    {/* Day header */}
+                    <div className="text-center pb-3 mb-3 border-b border-slate-100">
+                      <div className={`text-[11px] font-semibold uppercase tracking-wider ${
+                        isToday ? "text-red-600" : isPast ? "text-slate-400" : "text-slate-400"
+                      }`}>
+                        {format(day, "EEE")}
+                      </div>
+                      <div className={`text-2xl font-bold mt-0.5 ${
                         isToday ? "text-red-600" : isPast ? "text-slate-400" : "text-slate-900"
-                      }`}>{format(day, "d")}</div>
-                    </div>
-                    <div className="space-y-1.5">
-                      {daySlots.map((s) => (
-                        <div
-                          key={s.id}
-                          onClick={() => s.is_booked && setSelectedSlot(s)}
-                          className={`rounded-lg p-1.5 text-xs relative group transition ${
-                            s.is_booked
-                              ? "bg-red-100 text-red-700 cursor-pointer hover:bg-red-200 ring-1 ring-red-200"
-                              : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                          }`}
-                        >
-                          <div className="font-bold">{s.start_time.slice(0, 5)}</div>
-                          <div className="opacity-70 text-[10px]">{s.duration_minutes}m</div>
-                          {s.is_booked && s.booking?.customer_name && (
-                            <div className="text-red-700 font-semibold truncate max-w-full text-[10px] leading-tight">
-                              {s.booking.customer_name.split(" ")[0]}
-                            </div>
-                          )}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); void deleteSlot(s.id); }}
-                            disabled={deletingId === s.id}
-                            className="absolute top-0.5 right-0.5 hidden group-hover:flex items-center justify-center w-4 h-4 rounded-full bg-white text-red-600 hover:bg-red-50 text-xs font-bold leading-none shadow-sm"
-                            title={s.is_booked ? "Cancel booking & delete slot" : "Delete slot"}
-                          >
-                            ×
-                          </button>
+                      }`}>
+                        {format(day, "d")}
+                      </div>
+                      {bookedCount > 0 && !isPast && (
+                        <div className="text-[10px] font-semibold text-red-600 mt-1">
+                          {bookedCount} booked
                         </div>
-                      ))}
-                      {!daySlots.length && <div className="text-xs text-slate-300 text-center py-2">—</div>}
+                      )}
+                    </div>
+
+                    {/* Slot list */}
+                    <div className="space-y-1">
+                      {daySlots.map((s) => {
+                        const hasCustomer = s.is_booked && s.booking?.customer_name;
+                        return (
+                          <div
+                            key={s.id}
+                            onClick={() => s.is_booked && setSelectedSlot(s)}
+                            className={`rounded-md px-2 py-1.5 relative group transition ${
+                              s.is_booked
+                                ? "bg-red-50 text-red-800 cursor-pointer hover:bg-red-100 border border-red-200"
+                                : "text-slate-600 hover:bg-slate-50 border border-transparent"
+                            }`}
+                          >
+                            <div className={`text-sm ${s.is_booked ? "font-semibold" : "font-medium"}`}>
+                              {s.start_time.slice(0, 5)}
+                            </div>
+                            {hasCustomer && (
+                              <div className="text-[11px] text-red-700 font-medium truncate mt-0.5">
+                                {s.booking!.customer_name!.split(" ")[0]}
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); void deleteSlot(s.id); }}
+                              disabled={deletingId === s.id}
+                              className="absolute top-0.5 right-0.5 hidden group-hover:flex items-center justify-center w-4 h-4 rounded-full bg-white text-slate-400 hover:text-red-600 text-xs font-bold leading-none border border-slate-200"
+                              title={s.is_booked ? "Cancel booking & delete slot" : "Delete slot"}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {!daySlots.length && (
+                        <div className="text-[11px] text-slate-300 text-center py-3">
+                          No slots
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="flex gap-5 text-xs text-slate-600 pt-3 border-t border-slate-100">
-              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded bg-emerald-100 ring-1 ring-emerald-200" /> Open for booking</span>
-              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded bg-red-100 ring-1 ring-red-200" /> Booked — click to view</span>
-              <span className="hidden sm:flex items-center gap-1.5 text-slate-500">Hover any slot to reveal × delete</span>
+
+            <div className="flex gap-5 text-xs text-slate-500 pt-4 border-t border-slate-100 flex-wrap">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded bg-red-50 border border-red-200" />
+                Booked
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded border border-slate-200" />
+                Open
+              </span>
+              <span className="hidden sm:inline text-slate-400">
+                · Hover a slot to reveal × delete · Tap a booked slot to see the customer
+              </span>
             </div>
           </div>
         </div>
@@ -835,11 +863,17 @@ export default function AdminPage() {
                   )}
                 </>
               ) : (
-                <div className="rounded-xl bg-amber-50 ring-1 ring-amber-200 p-3 text-sm text-amber-800">
-                  <p className="font-semibold">No booking record found</p>
-                  <p className="text-xs mt-1">
-                    This slot is marked booked but the customer record is missing (likely from a test cleanup).
-                    Use the button below to free this slot up so customers can book it again.
+                <div className="rounded-xl bg-amber-50 ring-1 ring-amber-200 p-3 text-sm text-amber-800 space-y-2">
+                  <p className="font-semibold">Orphan slot</p>
+                  <p className="text-xs">
+                    This slot is locked as booked, but we couldn&apos;t find a customer
+                    in the bookings list <em>or</em> in the EDT sessions table.
+                  </p>
+                  <p className="text-xs">
+                    Most likely the booking was cancelled mid-flow, a payment didn&apos;t
+                    complete, or a test booking was cleaned up. Use{" "}
+                    <span className="font-semibold">Free this slot</span> below to
+                    re-open it for customers.
                   </p>
                 </div>
               )}
