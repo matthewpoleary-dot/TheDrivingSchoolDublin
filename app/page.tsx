@@ -2,6 +2,7 @@
 import Link from "next/link";
 import StickyCTA from "@/components/StickyCTA";
 import ReviewCarousel from "@/components/ReviewCarousel";
+import RotatingWord from "@/components/RotatingWord";
 
 export const metadata = {
   title: "Driving Lessons Dublin | RSA-Approved ADI | The Driving School Dublin",
@@ -36,21 +37,24 @@ export default function Home() {
   return (
     <>
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <div style={{ padding: "96px 22px 120px" }}>
+      <div style={{ padding: "96px 22px 120px", textAlign: "center" }}>
         <h1
           style={{
             fontFamily: "var(--font-instrument-serif), Georgia, serif",
             fontWeight: 400,
-            fontSize: "clamp(64px, 12vw, 160px)",
+            fontSize: "clamp(64px, 11vw, 144px)",
             lineHeight: 0.98,
             letterSpacing: "-3px",
-            marginBottom: 36,
+            marginBottom: 32,
             color: "var(--ink)",
-            maxWidth: "100%",
           }}
         >
-          Pass your test.<br />
-          <em style={{ fontStyle: "italic" }}>First time.</em>
+          Pass your test.{" "}
+          <em style={{ fontStyle: "italic" }}>
+            <RotatingWord
+              words={["First time.", "Confidently.", "Calmly.", "Stress-free."]}
+            />
+          </em>
         </h1>
 
         <p
@@ -59,14 +63,14 @@ export default function Home() {
             lineHeight: 1.5,
             letterSpacing: "-0.1px",
             color: "var(--ink-2)",
-            maxWidth: 460,
-            marginBottom: 40,
+            maxWidth: 520,
+            margin: "0 auto 40px",
           }}
         >
           Manual lessons in my car. Automatic in yours. Across Dublin.
         </p>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <Link href="/book" className="btn-primary">Book a lesson</Link>
           <Link href="/prices" className="btn-ghost">View prices</Link>
         </div>
@@ -280,102 +284,74 @@ export default function Home() {
           From your first message to your first lesson.
         </p>
 
-        {/* Step i */}
-        <div
-          style={{
-            padding: "28px 0",
-            borderTop: "1px solid var(--rule)",
-            display: "grid",
-            gridTemplateColumns: "36px 1fr",
-            gap: 18,
-            alignItems: "start",
-          }}
-        >
+        {[
+          {
+            num: "01",
+            title: "Pick your lesson type",
+            desc: "Standard hour, EDT bundle, pre-test, or car hire for test day.",
+            meta: "60 MIN",
+          },
+          {
+            num: "02",
+            title: "Pick a time that suits",
+            desc: "See all available slots on a live calendar and book the one that fits.",
+            meta: "INSTANT",
+          },
+          {
+            num: "03",
+            title: "Pay and you're confirmed",
+            desc: "Pay securely online and receive a confirmation by email. Usually back to you within a few hours.",
+            meta: "SAME DAY",
+          },
+        ].map((step, i, arr) => (
           <div
+            key={step.num}
             style={{
-              fontFamily: "var(--font-instrument-serif), Georgia, serif",
-              fontStyle: "italic",
-              fontSize: 22,
-              color: "var(--red)",
-              paddingTop: 2,
+              padding: "32px 0",
+              borderTop: "1px solid var(--rule)",
+              borderBottom: i === arr.length - 1 ? "1px solid var(--rule)" : "none",
+              display: "grid",
+              gridTemplateColumns: "auto 1fr auto",
+              gap: 24,
+              alignItems: "start",
             }}
           >
-            i.
+            <div
+              style={{
+                fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                fontStyle: "italic",
+                fontSize: 36,
+                lineHeight: 1,
+                color: "var(--red)",
+                minWidth: 56,
+                paddingTop: 4,
+              }}
+            >
+              {step.num}
+            </div>
+            <div>
+              <h3 style={{ fontSize: 17, fontWeight: 500, marginBottom: 6, letterSpacing: "-0.2px" }}>
+                {step.title}
+              </h3>
+              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 460 }}>
+                {step.desc}
+              </p>
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                letterSpacing: "0.8px",
+                color: "var(--ink-3)",
+                textTransform: "uppercase",
+                paddingTop: 12,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {step.meta}
+            </div>
           </div>
-          <div>
-            <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 6, letterSpacing: "-0.2px" }}>
-              Pick your lesson type
-            </h3>
-            <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6 }}>
-              Standard hour, EDT bundle, pre-test, or car hire for test day.
-            </p>
-          </div>
-        </div>
-
-        {/* Step ii */}
-        <div
-          style={{
-            padding: "28px 0",
-            borderTop: "1px solid var(--rule)",
-            display: "grid",
-            gridTemplateColumns: "36px 1fr",
-            gap: 18,
-            alignItems: "start",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "var(--font-instrument-serif), Georgia, serif",
-              fontStyle: "italic",
-              fontSize: 22,
-              color: "var(--red)",
-              paddingTop: 2,
-            }}
-          >
-            ii.
-          </div>
-          <div>
-            <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 6, letterSpacing: "-0.2px" }}>
-              Pick a time that suits
-            </h3>
-            <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6 }}>
-              See all available slots on a live calendar and book the one that fits.
-            </p>
-          </div>
-        </div>
-
-        {/* Step iii */}
-        <div
-          style={{
-            padding: "28px 0",
-            borderTop: "1px solid var(--rule)",
-            borderBottom: "1px solid var(--rule)",
-            display: "grid",
-            gridTemplateColumns: "36px 1fr",
-            gap: 18,
-            alignItems: "start",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "var(--font-instrument-serif), Georgia, serif",
-              fontStyle: "italic",
-              fontSize: 22,
-              color: "var(--red)",
-              paddingTop: 2,
-            }}
-          >
-            iii.
-          </div>
-          <div>
-            <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 6, letterSpacing: "-0.2px" }}>
-              Pay and you&apos;re confirmed
-            </h3>
-            <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6 }}>
-              Pay securely online and receive a confirmation by email. Usually back to you within a few hours.
-            </p>
-          </div>
-        </div>
+        ))}
       </section>
 
       {/* ── REVIEWS ───────────────────────────────────────────────────────── */}

@@ -1,12 +1,7 @@
 "use client";
-// components/BookingCalendar.tsx
-// Renders a month grid and time-slot picker for booking.
-import {
-  startOfMonth, endOfMonth, eachDayOfInterval,
-  startOfWeek, endOfWeek, isSameMonth, isSameDay,
-  addMonths, subMonths, format, isBefore, startOfDay
-} from "date-fns";
-import { useState, useEffect } from "react";
+// components/BookingCalendar.tsx — nomad-style date cards + time-slot pills
+import { useState, useEffect, useMemo } from "react";
+import { format, addMonths, endOfMonth, startOfMonth } from "date-fns";
 
 export type Slot = {
   id: string;
@@ -21,153 +16,266 @@ type Props = {
   onSlotSelected: (slot: Slot) => void;
 };
 
+const INITIAL_LIMIT = 15;
+const PAGE_INCREMENT = 15;
+
 export default function BookingCalendar({ serviceType, onSlotSelected }: Props) {
-  const [viewMonth, setViewMonth] = useState(() => startOfMonth(new Date()));
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [monthsLoaded, setMonthsLoaded] = useState(1);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [visibleLimit, setVisibleLimit] = useState(INITIAL_LIMIT);
 
-  // Fetch slots for the visible month
+  // Fetch availability across N months from today
   useEffect(() => {
-    const start = format(viewMonth, "yyyy-MM-dd");
-    const end = format(endOfMonth(viewMonth), "yyyy-MM-dd");
+    let cancelled = false;
     setLoading(true);
-    setSelectedDate(null);
-    setSelectedSlot(null);
 
-    fetch(`/api/availability?start_date=${start}&end_date=${end}&service_type=${encodeURIComponent(serviceType)}`)
+    const today = new Date();
+    const start = format(startOfMonth(today), "yyyy-MM-dd");
+    const end = format(endOfMonth(addMonths(today, monthsLoaded - 1)), "yyyy-MM-dd");
+
+    fetch(
+      `/api/availability?start_date=${start}&end_date=${end}&service_type=${encodeURIComponent(
+        serviceType
+      )}`
+    )
       .then((r) => r.json())
-      .then((data: Slot[]) => setSlots(Array.isArray(data) ? data : []))
-      .catch(() => setSlots([]))
-      .finally(() => setLoading(false));
-  }, [viewMonth, serviceType]);
+      .then((data: Slot[]) => {
+        if (cancelled) return;
+        setSlots(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSlots([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
 
-  const today = startOfDay(new Date());
+    return () => {
+      cancelled = true;
+    };
+  }, [serviceType, monthsLoaded]);
 
-  // Build calendar grid
-  const monthStart = startOfMonth(viewMonth);
-  const monthEnd = endOfMonth(viewMonth);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
+  // Filter past slots
+  const futureSlots = useMemo(() => {
+    const now = Date.now();
+    return slots.filter((s) => {
+      const startISO = `${s.date}T${s.start_time}`;
+      return new Date(startISO).getTime() > now;
+    });
+  }, [slots]);
 
-  const nowMs = Date.now();
-  // Filter slots whose start time is already in the past
-  const futureSlots = slots.filter((s) => {
-    const startISO = `${s.date}T${s.start_time}`;
-    return new Date(startISO).getTime() > nowMs;
-  });
+  // Unique dates with availability, sorted
+  const availableDates = useMemo(() => {
+    const set = new Set(futureSlots.map((s) => s.date));
+    return Array.from(set).sort();
+  }, [futureSlots]);
 
-  const availableDates = new Set(futureSlots.map((s) => s.date));
+  const visibleDates = availableDates.slice(0, visibleLimit);
+  const hasMore = availableDates.length > visibleLimit;
+  const canLoadMoreMonths = monthsLoaded < 4;
 
   const slotsForSelected = selectedDate
-    ? futureSlots.filter((s) => s.date === format(selectedDate, "yyyy-MM-dd"))
+    ? futureSlots.filter((s) => s.date === selectedDate)
     : [];
 
+  // Empty state — nothing in current load
+  if (!loading && availableDates.length === 0) {
+    return (
+      <div style={{ padding: "32px 0", textAlign: "center" }}>
+        <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6 }}>
+          No availability right now.{" "}
+          <a
+            href="/contact"
+            style={{ color: "var(--red)", textDecoration: "underline", textUnderlineOffset: 3 }}
+          >
+            Contact us
+          </a>{" "}
+          and we&apos;ll arrange a time.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      {/* Month nav */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => setViewMonth((m) => subMonths(m, 1))}
-          disabled={isBefore(endOfMonth(subMonths(viewMonth, 1)), today)}
-          className="rounded border px-3 py-1.5 text-sm hover:bg-gray-50 disabled:opacity-30"
-        >
-          ← Prev
-        </button>
-        <span className="font-semibold">{format(viewMonth, "MMMM yyyy")}</span>
-        <button
-          onClick={() => setViewMonth((m) => addMonths(m, 1))}
-          className="rounded border px-3 py-1.5 text-sm hover:bg-gray-50"
-        >
-          Next →
-        </button>
-      </div>
+    <div>
+      {loading && availableDates.length === 0 && (
+        <p style={{ fontSize: 13, color: "var(--ink-2)", textAlign: "center", padding: "24px 0" }}>
+          Loading availability…
+        </p>
+      )}
 
-      {loading && <p className="text-sm text-gray-500 text-center">Loading availability…</p>}
-
-      {/* Day-of-week headers */}
-      <div className="grid grid-cols-7 text-center text-xs font-medium text-gray-500">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="py-1">{d}</div>
-        ))}
-      </div>
-
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
-        {days.map((day) => {
-          const key = format(day, "yyyy-MM-dd");
-          const inMonth = isSameMonth(day, viewMonth);
-          const isPast = isBefore(day, today);
-          const hasSlots = availableDates.has(key);
-          const isSelected = selectedDate && isSameDay(day, selectedDate);
-
-          let cellClass = "relative h-10 rounded text-sm flex items-center justify-center ";
-
-          if (!inMonth || isPast) {
-            cellClass += "text-gray-300 cursor-default";
-          } else if (isSelected) {
-            cellClass += "bg-[#d90429] text-white font-semibold cursor-pointer shadow-sm";
-          } else if (hasSlots) {
-            cellClass += "bg-emerald-50 text-emerald-700 font-semibold cursor-pointer hover:bg-emerald-100 border border-emerald-200";
-          } else {
-            cellClass += "text-gray-400 cursor-default";
-          }
-
+      {/* Date cards */}
+      <div
+        className="grid grid-cols-3 sm:grid-cols-5"
+        style={{ gap: 10 }}
+      >
+        {visibleDates.map((dateStr) => {
+          const d = new Date(`${dateStr}T00:00:00`);
+          const isSelected = selectedDate === dateStr;
           return (
             <button
-              key={key}
-              disabled={!inMonth || isPast || !hasSlots}
-              onClick={() => { setSelectedDate(day); setSelectedSlot(null); }}
-              className={cellClass}
+              key={dateStr}
+              onClick={() => {
+                setSelectedDate(dateStr);
+                setSelectedSlot(null);
+              }}
+              style={{
+                background: isSelected ? "var(--red)" : "white",
+                color: isSelected ? "white" : "var(--ink)",
+                border: isSelected ? "1px solid var(--red)" : "1px solid var(--rule)",
+                borderRadius: 8,
+                padding: "14px 8px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 4,
+                cursor: "pointer",
+                transition: "background 0.15s, border-color 0.15s",
+              }}
             >
-              {format(day, "d")}
-              {hasSlots && !isSelected && inMonth && !isPast && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-500" />
-              )}
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.8px",
+                  textTransform: "uppercase",
+                  color: isSelected ? "rgba(255,255,255,0.85)" : "var(--ink-3)",
+                }}
+              >
+                {format(d, "EEE")}
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                  fontStyle: "italic",
+                  fontSize: 26,
+                  lineHeight: 1,
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                {format(d, "d")}
+              </span>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 500,
+                  letterSpacing: "0.4px",
+                  textTransform: "uppercase",
+                  color: isSelected ? "rgba(255,255,255,0.85)" : "var(--ink-3)",
+                }}
+              >
+                {format(d, "MMM")}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* Slot picker */}
-      {selectedDate && (
-        <div className="mt-4 space-y-2">
-          <p className="text-sm font-medium text-gray-700">
-            Available times for {format(selectedDate, "EEEE, d MMMM")}:
-          </p>
-          {slotsForSelected.length === 0 ? (
-            <p className="text-sm text-gray-500">No slots available for this day.</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {slotsForSelected.map((slot) => (
-                <button
-                  key={slot.id}
-                  onClick={() => {
-                    setSelectedSlot(slot);
-                    onSlotSelected(slot);
-                  }}
-                  className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                    selectedSlot?.id === slot.id
-                      ? "bg-[#d90429] text-white border-[#d90429] shadow-sm"
-                      : "bg-white text-gray-700 hover:border-red-400 hover:text-red-600"
-                  }`}
-                >
-                  {slot.start_time.slice(0, 5)} — {slot.end_time.slice(0, 5)}
-                  <span className="ml-1 text-xs opacity-70">({slot.duration_minutes}min)</span>
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Show more dates */}
+      {(hasMore || canLoadMoreMonths) && (
+        <div style={{ textAlign: "center", marginTop: 18 }}>
+          <button
+            onClick={() => {
+              if (hasMore) {
+                setVisibleLimit((n) => n + PAGE_INCREMENT);
+              } else {
+                setMonthsLoaded((m) => m + 1);
+              }
+            }}
+            disabled={loading}
+            style={{
+              fontSize: 13,
+              color: "var(--ink-2)",
+              background: "none",
+              border: "none",
+              cursor: loading ? "default" : "pointer",
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+              padding: 0,
+            }}
+          >
+            {loading ? "Loading…" : "Show more dates →"}
+          </button>
         </div>
       )}
 
-      {!loading && !availableDates.size && (
-        <p className="text-sm text-center text-gray-500 mt-2">
-          No availability this month. Try the next month or{" "}
-          <a href="/contact" className="text-red-600 underline">contact us</a>.
-        </p>
+      {/* Time slots */}
+      {selectedDate && (
+        <div style={{ marginTop: 36 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              marginBottom: 16,
+            }}
+          >
+            <h3
+              style={{
+                fontFamily: "var(--font-instrument-serif), Georgia, serif",
+                fontSize: 22,
+                fontStyle: "italic",
+                color: "var(--ink)",
+                letterSpacing: "-0.5px",
+              }}
+            >
+              Pick a time
+            </h3>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: "0.8px",
+                color: "var(--ink-3)",
+                textTransform: "uppercase",
+              }}
+            >
+              Dublin
+            </span>
+          </div>
+
+          {slotsForSelected.length === 0 ? (
+            <p style={{ fontSize: 14, color: "var(--ink-2)" }}>
+              No slots available for this day.
+            </p>
+          ) : (
+            <div
+              className="grid grid-cols-2 sm:grid-cols-4"
+              style={{ gap: 8 }}
+            >
+              {slotsForSelected.map((slot) => {
+                const isSelected = selectedSlot?.id === slot.id;
+                return (
+                  <button
+                    key={slot.id}
+                    onClick={() => {
+                      setSelectedSlot(slot);
+                      onSlotSelected(slot);
+                    }}
+                    style={{
+                      background: isSelected ? "var(--red)" : "white",
+                      color: isSelected ? "white" : "var(--ink)",
+                      border: isSelected ? "1px solid var(--red)" : "1px solid var(--rule)",
+                      borderRadius: 100,
+                      padding: "12px 8px",
+                      fontSize: 14,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      transition: "background 0.15s, border-color 0.15s",
+                    }}
+                  >
+                    {slot.start_time.slice(0, 5)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

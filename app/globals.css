@@ -133,17 +133,42 @@ html, body {
   text-transform: none;
 }
 
-/* ─── Nav pill ────────────────────────────────────────────────────────────── */
+/* ─── Morphing nav ────────────────────────────────────────────────────────── */
 
-.nav-pill {
+/* Shared layout container — both states use this */
+.nav-shell {
   position: relative;
   overflow: hidden;
+  transition:
+    background 0.28s ease,
+    border-color 0.28s ease,
+    border-radius 0.28s ease,
+    max-width 0.28s ease,
+    padding 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+/* Top-of-page state: full-width flat bar */
+.nav-flat {
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  max-width: 100%;
+  padding: 14px 28px;
+}
+
+/* Scrolled state: contained pill with subtle shadow */
+.nav-pill {
   border-radius: 100px;
   background: #F0F0F0;
   border: 1px solid #E4E4E4;
+  max-width: 1160px;
+  padding: 10px 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
-/* Shimmer — bright sweep across the grey pill every 4 s */
+/* Shimmer — runs only when pill class is active (not flat) */
 .nav-pill::after {
   content: '';
   position: absolute;
@@ -161,6 +186,7 @@ html, body {
   animation: nav-shimmer 5s ease-in-out infinite;
   pointer-events: none;
 }
+.nav-flat::after { display: none; }
 
 @keyframes nav-shimmer {
   0%   { transform: translateX(-200%); }
@@ -175,6 +201,21 @@ html, body {
 }
 .bar-enter {
   animation: bar-slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ─── Rotating hero word ──────────────────────────────────────────────────── */
+.rotating-word {
+  display: inline-block;
+  transition: opacity 0.28s ease;
+  will-change: opacity;
+}
+.rotating-word.fading { opacity: 0; }
+
+/* ─── FAQ row toggle (+ rotates to ×) ─────────────────────────────────────── */
+.faq-row summary::-webkit-details-marker { display: none; }
+.faq-row[open] .faq-toggle {
+  transform: rotate(45deg);
+  color: var(--red);
 }
 
 /* ─── Nav link ────────────────────────────────────────────────────────────── */
