@@ -30,6 +30,9 @@ type SlotBooking = {
   payment_status: string;
   amount_pence: number;
   notes: string | null;
+  source?: "regular" | "edt";
+  edt_session_number?: number;
+  edt_package_total?: number;
 };
 
 type AvailabilitySlot = {
@@ -52,7 +55,7 @@ type EdtPackage = {
   expires_at: string;
 };
 
-type Tab = "bookings" | "availability" | "edt";
+type Tab = "calendar" | "add-availability" | "bookings" | "edt";
 
 const ALL_SERVICE_TYPES = ["standard", "pre-test", "refresher", "edt-6", "edt-bundle", "car-hire"];
 
@@ -65,7 +68,7 @@ function getErrMsg(e: unknown): string {
 export default function AdminPage() {
   const [token, setToken] = useState("");
   const [inputToken, setInputToken] = useState("");
-  const [tab, setTab] = useState<Tab>("bookings");
+  const [tab, setTab] = useState<Tab>("calendar");
   const [toast, setToast] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -263,7 +266,8 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isAuthed) return;
     if (tab === "bookings") void loadBookings();
-    if (tab === "availability") void loadSlots();
+    if (tab === "calendar") void loadSlots();
+    if (tab === "add-availability") void loadSlots();
     if (tab === "edt") void loadEdtPackages();
   }, [tab, isAuthed, loadBookings, loadSlots, loadEdtPackages]);
 
@@ -329,9 +333,10 @@ export default function AdminPage() {
       {/* Tabs */}
       <div className="flex gap-2 flex-wrap bg-slate-100 p-1.5 rounded-2xl w-fit">
         {([
-          { key: "bookings",     label: "📋 Bookings" },
-          { key: "availability", label: "📅 My schedule" },
-          { key: "edt",          label: "🎓 EDT packages" },
+          { key: "calendar",         label: "📅 My calendar" },
+          { key: "add-availability", label: "➕ Add availability" },
+          { key: "bookings",         label: "📋 Bookings list" },
+          { key: "edt",              label: "🎓 EDT packages" },
         ] as { key: Tab; label: string }[]).map((t) => (
           <button
             key={t.key}
@@ -438,16 +443,16 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ── AVAILABILITY TAB ──────────────────────────────────────────────── */}
-      {tab === "availability" && (
+      {/* ── CALENDAR TAB ──────────────────────────────────────────────────── */}
+      {tab === "calendar" && (
         <div className="space-y-6">
           {/* Quick-help banner */}
           <div className="bg-gradient-to-br from-red-50 via-white to-emerald-50 ring-1 ring-slate-100 rounded-2xl p-5">
-            <p className="font-bold text-slate-900">How your schedule works</p>
+            <p className="font-bold text-slate-900">Your week at a glance</p>
             <p className="text-sm text-slate-600 mt-1">
-              <span className="font-semibold text-emerald-700">Green</span> slots are open for customers to book.
-              <span className="font-semibold text-red-700"> Red</span> slots already have a customer — tap one to see their details.
-              To block off time off, just delete the slot using the <span className="font-bold">×</span> button.
+              <span className="font-semibold text-red-700">Red</span> slots are confirmed lessons — tap one to see the customer&apos;s details.
+              <span className="font-semibold text-emerald-700"> Green</span> slots are open for customers to book.
+              To add more open slots, switch to the <span className="font-semibold">Add availability</span> tab.
             </p>
           </div>
 
@@ -546,6 +551,20 @@ export default function AdminPage() {
               <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded bg-red-100 ring-1 ring-red-200" /> Booked — click to view</span>
               <span className="hidden sm:flex items-center gap-1.5 text-slate-500">Hover any slot to reveal × delete</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ADD AVAILABILITY TAB ──────────────────────────────────────────── */}
+      {tab === "add-availability" && (
+        <div className="space-y-6">
+          {/* Quick-help banner */}
+          <div className="bg-emerald-50 ring-1 ring-emerald-100 rounded-2xl p-5">
+            <p className="font-bold text-slate-900">Add open slots for customers to book</p>
+            <p className="text-sm text-slate-600 mt-1">
+              Use <span className="font-semibold">Fill my schedule automatically</span> for the easiest setup — pick a date range and your usual hours,
+              and we&apos;ll create every slot in one go. Use <span className="font-semibold">Add one slot manually</span> for one-off appointments.
+            </p>
           </div>
 
           {/* Add single slot */}
@@ -778,22 +797,36 @@ export default function AdminPage() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">Service</span>
-                    <span className="font-medium capitalize">{selectedSlot.booking.service_type || "—"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Amount</span>
-                    <span className="font-medium">
-                      {typeof selectedSlot.booking.amount_pence === "number"
-                        ? `€${(selectedSlot.booking.amount_pence / 100).toFixed(2)}`
-                        : "—"}
+                    <span className="font-medium capitalize">
+                      {selectedSlot.booking.source === "edt"
+                        ? `EDT lesson ${selectedSlot.booking.edt_session_number} of ${selectedSlot.booking.edt_package_total}`
+                        : selectedSlot.booking.service_type || "—"}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Status</span>
-                    <span className={`font-medium capitalize ${selectedSlot.booking.payment_status === "paid" ? "text-green-600" : "text-yellow-600"}`}>
-                      {selectedSlot.booking.payment_status}
-                    </span>
-                  </div>
+                  {selectedSlot.booking.source !== "edt" && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Amount</span>
+                        <span className="font-medium">
+                          {typeof selectedSlot.booking.amount_pence === "number"
+                            ? `€${(selectedSlot.booking.amount_pence / 100).toFixed(2)}`
+                            : "—"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Status</span>
+                        <span className={`font-medium capitalize ${selectedSlot.booking.payment_status === "paid" ? "text-green-600" : "text-yellow-600"}`}>
+                          {selectedSlot.booking.payment_status}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  {selectedSlot.booking.source === "edt" && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Paid via</span>
+                      <span className="font-medium">EDT package (already paid)</span>
+                    </div>
+                  )}
                   {selectedSlot.booking.notes && (
                     <div className="border-t pt-2">
                       <p className="text-gray-500 text-xs mb-1">Notes</p>
