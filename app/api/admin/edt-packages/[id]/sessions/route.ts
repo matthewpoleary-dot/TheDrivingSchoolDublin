@@ -13,9 +13,9 @@ export async function GET(req: Request, { params }: Params) {
 
     const { data: sessions, error } = await supabaseServer
       .from("edt_sessions")
-      .select("id, status, lesson_number, created_at, slot_id")
+      .select("id, status, session_number, created_at, slot_id")
       .eq("package_id", id)
-      .order("lesson_number", { ascending: true });
+      .order("session_number", { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -44,7 +44,7 @@ export async function GET(req: Request, { params }: Params) {
     const hydrated = (sessions ?? []).map((s) => ({
       id: s.id,
       status: s.status as "scheduled" | "completed" | "cancelled",
-      lesson_number: s.lesson_number,
+      lesson_number: s.session_number,
       created_at: s.created_at,
       slot: s.slot_id ? slotMap[s.slot_id] ?? null : null,
     }));

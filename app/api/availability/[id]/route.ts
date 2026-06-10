@@ -6,9 +6,13 @@ import { deleteCalendarEvent, findAndDeleteEventsAt } from "@/lib/google-calenda
 import { dublinLocalToUtcISO } from "@/lib/time";
 
 // DELETE /api/availability/[id] — admin only
-// Deletes any slot. If the slot was booked, also marks the booking as cancelled
-// and removes the Google Calendar event (either by stored ID, or by searching
-// the calendar in the slot's time range if the booking row is gone — orphan case).
+// Removes any slot. If the slot was booked, cancel the linked booking/EDT
+// session AND remove the matching Google Calendar event.
+//
+// Three paths for finding the GCAL event ID:
+//   1. The bookings row (regular bookings)
+//   2. The edt_sessions row (EDT-package bookings)
+//   3. Time-range search on the calendar as a last-ditch fallback (orphans)
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -30,7 +34,7 @@ export async function DELETE(
     if (slot.is_booked) {
       let calendarEventCleared = false;
 
-      // Happy path: we have a booking row, possibly with the calendar event ID.
+      // Path 1: regular booking with stored event ID
       if (slot.booking_id) {
         const { data: booking } = await supabaseServer
           .from("bookings")
@@ -45,10 +49,30 @@ export async function DELETE(
         }
       }
 
-      // Orphan fallback: booking row is missing, or the event ID wasn't stored.
-      // Search Google Calendar for any of our events that start at this slot
-      // and delete them. Safe to run unconditionally because findAndDeleteEventsAt
-      // only deletes events whose description contains our "Booking ID:" marker.
+      // Path 2: EDT session attached to this slot
+      if (!calendarEventCleared) {
+        const { data: edtSession } = await supabaseServer
+          .from("edt_sessions")
+          .select("id, google_calendar_event_id")
+          .eq("slot_id", id)
+          .in("status", ["scheduled", "completed"])
+          .maybeSingle();
+
+        if (edtSession) {
+          if (edtSession.google_calendar_event_id) {
+            await deleteCalendarEvent(edtSession.google_calendar_event_id);
+            calendarEventCleared = true;
+          }
+          // Mark the session as cancelled so it stops counting against the
+          // package's active-session limit.
+          await supabaseServer
+            .from("edt_sessions")
+            .update({ status: "cancelled" })
+            .eq("id", edtSession.id);
+        }
+      }
+
+      // Path 3: time-range search fallback (true orphans)
       if (!calendarEventCleared && slot.date && slot.start_time && slot.end_time) {
         const startISO = dublinLocalToUtcISO(slot.date, slot.start_time);
         const endISO = dublinLocalToUtcISO(slot.date, slot.end_time);

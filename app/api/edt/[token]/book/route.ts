@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 import { emailOnEdtSessionBooked } from "@/lib/email";
+import { createCalendarEvent } from "@/lib/google-calendar";
+import { dublinLocalToUtcISO } from "@/lib/time";
 
 // Max sessions a package holder can have scheduled (not yet completed) at once
 const MAX_ADVANCE_SESSIONS = 2;
@@ -81,6 +83,7 @@ export async function POST(
       .single();
 
     if (sessionErr || !session) {
+      console.error("[edt/book] failed to insert edt_session:", sessionErr);
       return NextResponse.json({ error: sessionErr?.message ?? "Failed to create session" }, { status: 500 });
     }
 
@@ -96,8 +99,39 @@ export async function POST(
       .update({ lessons_used: pkg.lessons_used + 1 })
       .eq("id", pkg.id);
 
-    // 7. Send confirmation emails
-    const startsAtISO = `${slot.date}T${slot.start_time}+01:00`;
+    // 7. Create Google Calendar event so Conor sees it on his calendar.
+    //    Failure is isolated — booking is valid even if the calendar call fails.
+    try {
+      const startsLocal = `${slot.date}T${slot.start_time}`;
+      const endsLocal = `${slot.date}T${slot.end_time}`;
+      const gcalEventId = await createCalendarEvent({
+        title: `EDT Lesson ${sessionNumber}/${pkg.lessons_total} — ${pkg.customer_name}`,
+        description: [
+          `Customer: ${pkg.customer_name}`,
+          `Email: ${pkg.customer_email}`,
+          `EDT lesson ${sessionNumber} of ${pkg.lessons_total}`,
+          "",
+          `Booking ID: ${session.id}`,
+        ].join("\n"),
+        startISO: startsLocal,
+        endISO: endsLocal,
+      });
+
+      if (gcalEventId) {
+        // Store the event ID on the session so admin cancellations can delete it.
+        // If the column doesn't exist this will fail softly — log and move on.
+        const { error: updErr } = await supabaseServer
+          .from("edt_sessions")
+          .update({ google_calendar_event_id: gcalEventId })
+          .eq("id", session.id);
+        if (updErr) console.warn("[edt/book] could not persist gcal event ID on session:", updErr.message);
+      }
+    } catch (e) {
+      console.error("[edt/book] calendar create failed for session", session.id, e);
+    }
+
+    // 8. Send confirmation emails — DST-aware ISO so the email isn't off by an hour
+    const startsAtISO = dublinLocalToUtcISO(slot.date, slot.start_time);
     await emailOnEdtSessionBooked({
       packageId: pkg.id,
       sessionNumber,
