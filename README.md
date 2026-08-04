@@ -34,3 +34,23 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Booking checkout setup
+
+The `/book` route contains a custom three-step booking flow. In local and Vercel
+preview environments it shows labelled preview slots until Cal.com is connected.
+Production does not expose preview availability.
+
+To enable live booking:
+
+1. Create Standard (60 min), Pre-Test (120 min), and Refresher (60 min) Cal.com
+   event types. Set a 30-minute after-event buffer on each one. Add booking fields
+   with the slugs `pickupAddress`, `eircode`, `carChoice`, `paymentChoice`, and
+   `outstandingCash` so operational details are copied to the calendar booking.
+2. Connect the instructor's Google Calendar as both a conflict calendar and the
+   destination calendar in Cal.com.
+3. Apply `supabase/migrations/202608040001_booking_checkout.sql` to Supabase.
+4. Copy `.env.example` to `.env.local` and fill the Cal.com, Supabase, and Stripe
+   values. Keep every server secret out of `NEXT_PUBLIC_` variables.
+5. Register `/api/stripe/webhook` in Stripe for
+   `payment_intent.succeeded` events and set `STRIPE_WEBHOOK_SECRET`.

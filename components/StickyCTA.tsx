@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 
 const TEL_HREF = "tel:+353860235666";
 const WHATSAPP_HREF = "https://wa.me/353860235666?text=" + encodeURIComponent("Hi! I'd like to arrange a driving lesson.");
@@ -49,4 +48,3 @@ export default function StickyCTA() {
     </div>
   );
 }
-
