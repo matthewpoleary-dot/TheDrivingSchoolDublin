@@ -134,3 +134,68 @@ describe("service-role key never reaches the browser", () => {
     }
   });
 });
+
+describe("reminder heading matches the actual day", () => {
+  /**
+   * The reminder job uses a wide window so it is correct at any cron
+   * frequency, which means it can fire anywhere from roughly one to two days
+   * out. A hardcoded "Lesson tomorrow" would tell some pupils the wrong day.
+   */
+  it("says today, tomorrow, or names the weekday", async () => {
+    const { reminderHeading } = await import("@/lib/email");
+    const { zonedTimeToUtc, DUBLIN } = await import("@/lib/time");
+
+    const now = zonedTimeToUtc("2026-08-10", "18:00", DUBLIN); // Monday evening
+
+    expect(reminderHeading(zonedTimeToUtc("2026-08-10", "20:00", DUBLIN), now)).toBe(
+      "Lesson today"
+    );
+    expect(reminderHeading(zonedTimeToUtc("2026-08-11", "09:00", DUBLIN), now)).toBe(
+      "Lesson tomorrow"
+    );
+    // ~40 hours out: must NOT claim tomorrow.
+    expect(reminderHeading(zonedTimeToUtc("2026-08-12", "10:00", DUBLIN), now)).toBe(
+      "Lesson on Wednesday"
+    );
+  });
+
+  it("uses calendar days in the school's zone, not raw hours", async () => {
+    const { reminderHeading } = await import("@/lib/email");
+    const { zonedTimeToUtc, DUBLIN } = await import("@/lib/time");
+
+    // 23:00 Monday to 08:00 Tuesday is only 9 hours, but it is still tomorrow.
+    const now = zonedTimeToUtc("2026-08-10", "23:00", DUBLIN);
+    expect(reminderHeading(zonedTimeToUtc("2026-08-11", "08:00", DUBLIN), now)).toBe(
+      "Lesson tomorrow"
+    );
+  });
+});
+
+describe("the reminder claim is atomic, not check-then-act", () => {
+  it("the cron claims before sending and releases on failure", () => {
+    const source = readFileSync(join(ROOT, "app/api/cron/maintenance/route.ts"), "utf8");
+
+    // The claim must happen before the send. Match the CALL site, not the
+    // import at the top of the file.
+    const claimAt = source.indexOf('rpc("claim_reminder"');
+    const sendAt = source.indexOf("await sendLessonReminder(");
+    expect(claimAt, "claim_reminder must be called").toBeGreaterThan(-1);
+    expect(sendAt, "sendLessonReminder must be called").toBeGreaterThan(-1);
+    expect(sendAt, "the claim must precede the send").toBeGreaterThan(claimAt);
+
+    // A failed send must give the claim back, or one outage burns the reminder.
+    expect(source).toMatch(/rpc\("release_reminder_claim"/);
+
+    // The old check-then-act shape must not come back.
+    expect(source).not.toMatch(/eq\("event", "reminder_sent"\)/);
+  });
+
+  it("a partial unique index backs the claim at the database level", () => {
+    const sql = readFileSync(
+      join(ROOT, "supabase/migrations/0006_reminder_claim.sql"),
+      "utf8"
+    );
+    expect(sql).toMatch(/create unique index[\s\S]*booking_events \(booking_id\)[\s\S]*where event = 'reminder_sent'/i);
+    expect(sql).toMatch(/on conflict do nothing/i);
+  });
+});

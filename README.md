@@ -16,7 +16,7 @@ deploying or changing anything.
 - **Cannot double-book.** A Postgres exclusion constraint makes overlapping
   bookings impossible at the database level, including the instructor's travel
   buffer between lessons.
-- **Heals itself.** An hourly job releases abandoned holds, retries failed
+- **Heals itself.** A scheduled job releases abandoned holds, retries failed
   calendar syncs and sends reminders.
 - **Degrades instead of breaking.** With no services configured it still runs
   as a brochure site pointing at the phone. Each key you add switches on the
@@ -31,7 +31,7 @@ app/
     bookings/              Create a booking; cancel via manage token
     stripe/webhook/        The only thing that confirms a paid booking
     admin/                 Session, bookings, working hours
-    cron/maintenance/      Hourly self-healing job
+    cron/maintenance/      Scheduled self-healing job
   book/                    The booking flow
   booking/[token]/         The pupil's own booking page
   admin/                   Instructor dashboard

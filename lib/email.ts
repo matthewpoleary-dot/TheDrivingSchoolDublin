@@ -14,7 +14,12 @@
 import { Resend } from "resend";
 import { createEvent, type EventAttributes } from "ics";
 import { SITE, CONTACT, INSTRUCTOR, BOOKING_POLICY, formatEuro } from "@/lib/config";
-import { formatDateTimeInZone, utcToZonedParts } from "@/lib/time";
+import {
+  formatDateTimeInZone,
+  utcToZonedParts,
+  dateKeyInZone,
+  addDaysToDateKey,
+} from "@/lib/time";
 
 export type SendResult = { ok: true; id?: string } | { ok: false; error: string };
 
@@ -372,12 +377,21 @@ export async function sendCancellationEmails(
 export async function sendLessonReminder(b: BookingEmailData): Promise<SendResult> {
   const when = formatDateTimeInZone(b.startsAt, SITE.timezone);
 
+  /**
+   * The reminder job runs on a wide window, so this can fire anywhere from
+   * roughly one to two days out. Saying "tomorrow" unconditionally would tell
+   * some pupils the wrong day, which is worse than not reminding them at all.
+   */
+  const heading = reminderHeading(b.startsAt);
+
   return send({
     to: b.customerEmail,
     subject: `Reminder: driving lesson ${when}`,
     html: shell(
       "Lesson reminder",
-      `<h1 style="margin:0 0 6px;font:700 26px/1.2 Helvetica,Arial,sans-serif;">Lesson tomorrow</h1>
+      `<h1 style="margin:0 0 6px;font:700 26px/1.2 Helvetica,Arial,sans-serif;">${escapeHtml(
+        heading
+      )}</h1>
        ${detailRows([
          ["Lesson", b.serviceName],
          ["When", when],
@@ -391,6 +405,27 @@ export async function sendLessonReminder(b: BookingEmailData): Promise<SendResul
       b.manageToken
     )}`,
   });
+}
+
+/**
+ * "Lesson tomorrow" / "Lesson on Thursday" / "Lesson today", chosen from the
+ * calendar-day gap in the school's own timezone rather than from raw hours, so
+ * a lesson at 9am tomorrow reads as "tomorrow" whether the reminder went out
+ * at 6pm or at 2am.
+ */
+export function reminderHeading(startsAt: Date, now: Date = new Date()): string {
+  const today = dateKeyInZone(now, SITE.timezone);
+  const lessonDay = dateKeyInZone(startsAt, SITE.timezone);
+
+  if (lessonDay === today) return "Lesson today";
+  if (lessonDay === addDaysToDateKey(today, 1)) return "Lesson tomorrow";
+
+  const weekday = new Intl.DateTimeFormat("en-IE", {
+    timeZone: SITE.timezone,
+    weekday: "long",
+  }).format(startsAt);
+
+  return `Lesson on ${weekday}`;
 }
 
 export async function sendEnquiryEmail(enquiry: {

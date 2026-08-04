@@ -23,12 +23,13 @@ Online booking does not work without this. Do it first.
 
 1. Create a project at [supabase.com](https://supabase.com). Pick the **EU
    (Ireland)** region so customer data stays in the EU, which matters for GDPR.
-2. Open **SQL Editor** and run these five files, in order:
+2. Open **SQL Editor** and run these six files, in order:
    - `supabase/migrations/0001_booking_core.sql`
    - `supabase/migrations/0002_booking_functions.sql`
    - `supabase/migrations/0003_seed.sql`
    - `supabase/migrations/0004_reviews_seed.sql`
    - `supabase/migrations/0005_review_fixes.sql`
+   - `supabase/migrations/0006_reminder_claim.sql`
 3. Go to **Project Settings → API** and copy into your environment:
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`

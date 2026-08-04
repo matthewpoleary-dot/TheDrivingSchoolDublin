@@ -127,24 +127,34 @@ export async function GET(request: Request) {
       .eq("status", "confirmed")
       .gte("starts_at", now.toISOString())
       .lt("starts_at", windowEnd.toISOString())
+      // Soonest first, so if the cap is ever reached it drops the lessons with
+      // the most time left rather than an arbitrary set.
+      .order("starts_at", { ascending: true })
       .limit(100);
 
     for (const row of (data ?? []) as BookingRow[]) {
-      // Skip anything already reminded, so an extra cron run costs nothing.
-      const { count } = await db
-        .from("booking_events")
-        .select("id", { count: "exact", head: true })
-        .eq("booking_id", row.id)
-        .eq("event", "reminder_sent");
+      // Claim the send BEFORE sending. A read-then-send-then-write would let
+      // two overlapping runs both pass the read and both email the pupil,
+      // which is a mistake already in the ledger from a previous project.
+      // A partial unique index decides the winner; losers get false.
+      const { data: claimed, error: claimError } = await db.rpc("claim_reminder", {
+        p_booking_id: row.id,
+      });
 
-      if ((count ?? 0) > 0) continue;
+      if (claimError) {
+        console.error(`[cron] could not claim reminder for ${row.reference}:`, claimError);
+        continue;
+      }
+      if (!claimed) continue; // Already reminded, or another run won the race.
 
       const result = await sendLessonReminder(toEmailData(row));
 
       if (result.ok) {
-        await logEvent(row.id, "reminder_sent", {});
         report.remindersSent++;
       } else {
+        // Give the claim back so a later run can retry, otherwise one Resend
+        // outage permanently consumes this pupil's only reminder.
+        await db.rpc("release_reminder_claim", { p_booking_id: row.id });
         report.remindersFailed++;
       }
     }

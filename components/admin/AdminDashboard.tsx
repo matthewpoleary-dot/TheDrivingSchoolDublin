@@ -194,7 +194,7 @@ export default function AdminDashboard() {
             {stats.unsynced === 1 ? "lesson is" : "lessons are"} not on your calendar yet
           </p>
           <p className="mt-1">
-            The hourly job retries these automatically. If it persists, check that the
+            The maintenance job retries these automatically. If it persists, check that the
             calendar is still shared with the service account.
           </p>
         </div>
