@@ -23,10 +23,12 @@ Online booking does not work without this. Do it first.
 
 1. Create a project at [supabase.com](https://supabase.com). Pick the **EU
    (Ireland)** region so customer data stays in the EU, which matters for GDPR.
-2. Open **SQL Editor** and run these three files, in order:
+2. Open **SQL Editor** and run these five files, in order:
    - `supabase/migrations/0001_booking_core.sql`
    - `supabase/migrations/0002_booking_functions.sql`
    - `supabase/migrations/0003_seed.sql`
+   - `supabase/migrations/0004_reviews_seed.sql`
+   - `supabase/migrations/0005_review_fixes.sql`
 3. Go to **Project Settings → API** and copy into your environment:
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -71,7 +73,9 @@ also impossible.
 3. **Developers → Webhooks → Add endpoint**:
    - URL: `https://YOUR-DOMAIN/api/stripe/webhook`
    - Events: `checkout.session.completed`, `checkout.session.expired`,
-     `charge.refunded`, `charge.dispute.created`
+     `charge.refunded`, `charge.dispute.created`,
+     `checkout.session.async_payment_succeeded`,
+     `checkout.session.async_payment_failed`
    - Copy the signing secret → `STRIPE_WEBHOOK_SECRET`
 
 **Test locally** with the Stripe CLI:
@@ -147,7 +151,7 @@ it reads "Off", step 6 was missed.
   and the site will stop offering that slot.
 
 If Google is unreachable, **bookings still succeed**. The failure is recorded
-and the hourly cron retries it. The admin dashboard warns about anything still
+and the maintenance cron retries it. The admin dashboard warns about anything still
 unsynced.
 
 ---
@@ -173,17 +177,31 @@ Push the branch and let Vercel build it. Set every variable from
 
 `vercel.json` already configures:
 
-- Region `dub1` (Dublin), so the database round trips are short
-- An hourly cron on `/api/cron/maintenance`
+- A daily cron on `/api/cron/maintenance`
 - Security headers, and `noindex` on `/admin` and `/booking/*`
+
+> **Plan limits.** The cron is scheduled daily and no `regions` are pinned,
+> because Vercel's Hobby plan permits only one cron run per day and rejects a
+> deployment that pins a function region. Both restrictions are lifted on Pro.
+> On Pro you can change the schedule to `"0 * * * *"` and add
+> `"regions": ["dub1"]` for shorter database round trips from Dublin. Neither
+> is required for correctness, see below.
 
 ### The maintenance job
 
-Runs hourly and is the reason the system heals itself:
+The reason the system heals itself:
 
-1. Expires abandoned holds, releasing those slots
+1. Sweeps expired holds and abandoned checkouts, releasing those slots
 2. Retries calendar syncs that failed earlier
-3. Sends reminder emails for lessons roughly 24 hours out
+3. Sends reminder emails for upcoming lessons
+
+**It is deliberately frequency-independent**, so it is correct whether it runs
+once a day or once an hour. Reminders cover a 48-hour window and are
+deduplicated by a `reminder_sent` event, rather than matching a narrow slice
+that a daily run would miss. Hold expiry does not depend on the cron at all:
+`hold_slot()` sweeps stale holds at the head of every booking attempt, so a
+slot is always reclaimed on demand. The cron is the backstop, not the
+mechanism.
 
 Every step is idempotent, so running it twice is harmless.
 

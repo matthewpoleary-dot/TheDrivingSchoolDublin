@@ -12,18 +12,28 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * The self-healing job. Runs hourly via Vercel Cron.
+ * The self-healing job.
  *
  * Three things, each of which exists because the alternative is a silent
  * failure that nobody notices until a pupil is standing on a kerb:
  *
- *   1. Sweep expired holds, so abandoned checkouts release their slot.
+ *   1. Sweep expired holds and abandoned checkouts, releasing their slots.
  *   2. Retry calendar syncs that failed. Google being down for ten minutes
  *      should not permanently cost the instructor a diary entry.
- *   3. Send tomorrow's reminders, which is the cheapest no-show prevention
- *      there is.
+ *   3. Send reminders, which is the cheapest no-show prevention there is.
  *
- * Everything is idempotent, so a double-fire is harmless.
+ * FREQUENCY-INDEPENDENT BY DESIGN. Vercel's Hobby plan only permits one cron
+ * run per day, Pro permits hourly, and this must be correct on either. So
+ * nothing here assumes a schedule:
+ *
+ *   - Reminders cover every confirmed lesson in the next 48 hours and are
+ *     deduplicated by a `reminder_sent` event, rather than matching a narrow
+ *     24-to-25-hour window that a daily run would mostly miss.
+ *   - Hold expiry does not depend on this job at all: hold_slot() calls
+ *     expire_stale_holds() at the head of every booking attempt, so a slot is
+ *     always reclaimed on demand. This is the backstop, not the mechanism.
+ *
+ * Everything is idempotent, so running it twice, or ten times, is harmless.
  */
 export async function GET(request: Request) {
   if (!verifyCronRequest(request)) {
@@ -59,7 +69,7 @@ export async function GET(request: Request) {
       const { data } = await db
         .from("bookings")
         .select(
-          "id,reference,status,customer_name,customer_email,customer_phone,pickup_address,test_centre,transmission,notes,starts_at,ends_at,price_cents,deposit_cents,manage_token,google_event_id,stripe_payment_intent_id,services(name)"
+          "id,reference,status,customer_name,customer_email,customer_phone,pickup_address,test_centre,transmission,notes,starts_at,ends_at,price_cents,deposit_cents,manage_token,google_event_id,stripe_payment_intent_id,refunded_at,refund_cents,services(name)"
         )
         .eq("status", "confirmed")
         .is("google_event_id", null)
@@ -101,21 +111,23 @@ export async function GET(request: Request) {
     }
   }
 
-  // --- 3. Reminders for lessons in the next 24 to 25 hours -----------------
+  // --- 3. Reminders ---------------------------------------------------------
+  // A wide window plus deduplication, rather than a narrow window plus a
+  // precise schedule. A daily cron would miss almost everything in a
+  // 24-to-25-hour slice; this is correct whether it runs hourly or once a day.
   try {
     const now = new Date();
-    const windowStart = addMinutes(now, 24 * 60);
-    const windowEnd = addMinutes(now, 25 * 60);
+    const windowEnd = addMinutes(now, 48 * 60);
 
     const { data } = await db
       .from("bookings")
       .select(
-        "id,reference,status,customer_name,customer_email,customer_phone,pickup_address,test_centre,transmission,notes,starts_at,ends_at,price_cents,deposit_cents,manage_token,google_event_id,stripe_payment_intent_id,services(name)"
+        "id,reference,status,customer_name,customer_email,customer_phone,pickup_address,test_centre,transmission,notes,starts_at,ends_at,price_cents,deposit_cents,manage_token,google_event_id,stripe_payment_intent_id,refunded_at,refund_cents,services(name)"
       )
       .eq("status", "confirmed")
-      .gte("starts_at", windowStart.toISOString())
+      .gte("starts_at", now.toISOString())
       .lt("starts_at", windowEnd.toISOString())
-      .limit(50);
+      .limit(100);
 
     for (const row of (data ?? []) as BookingRow[]) {
       // Skip anything already reminded, so an extra cron run costs nothing.
