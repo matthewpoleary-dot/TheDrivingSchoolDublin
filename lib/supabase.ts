@@ -17,7 +17,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let adminClient: SupabaseClient | null = null;
-let publicClient: SupabaseClient | null = null;
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -46,18 +45,6 @@ export function supabaseAdmin(): SupabaseClient {
     );
   }
   return adminClient;
-}
-
-/** Anon-key client, safe for the browser. Reads are governed by RLS. */
-export function supabasePublic(): SupabaseClient {
-  if (!publicClient) {
-    publicClient = createClient(
-      requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
-      requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-      { auth: { persistSession: false } }
-    );
-  }
-  return publicClient;
 }
 
 /** True when the database is configured. Lets pages degrade instead of crash. */

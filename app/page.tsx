@@ -19,7 +19,12 @@ import {
   contactLinks,
   formatPrice,
 } from "@/lib/config";
-import { getPublishedReviews, aggregateFromVerified, localBusinessJsonLd } from "@/lib/reviews";
+import {
+  getPublishedReviews,
+  aggregateFromVerified,
+  localBusinessJsonLd,
+  serialiseJsonLd,
+} from "@/lib/reviews";
 
 export const metadata: Metadata = {
   title: "Driving Lessons Dublin | Taught by a Former RSA Tester",
@@ -48,7 +53,7 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(localBusinessJsonLd({ aggregate, reviews })),
+          __html: serialiseJsonLd(localBusinessJsonLd({ aggregate, reviews })),
         }}
       />
     </>

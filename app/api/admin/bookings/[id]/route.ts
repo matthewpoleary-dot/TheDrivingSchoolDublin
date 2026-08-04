@@ -52,24 +52,18 @@ export async function PATCH(
   const { action, reason } = parsed.data;
 
   if (action === "cancel") {
-    const shouldRefund = parsed.data.refund ?? true;
-    let refundedCents: number | null = null;
-
-    if (shouldRefund && isStripeConfigured() && booking.deposit_cents > 0) {
-      try {
-        refundedCents = await refundDeposit({
-          bookingId: booking.id,
-          paymentIntentId: booking.stripe_payment_intent_id,
-          amountCents: booking.deposit_cents,
-        });
-      } catch (error) {
-        console.error(`[admin] refund failed for ${booking.reference}:`, error);
-        await logEvent(booking.id, "refund_failed", {
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+    // Already cancelled is a no-op, not a second refund. Without this an
+    // instructor who taps cancel twice more than 24 hours apart pays the pupil
+    // back twice: Stripe's idempotency keys expire after a day.
+    if (booking.status === "cancelled") {
+      return NextResponse.json({ ok: true, alreadyCancelled: true, refundedCents: null });
     }
 
+    const shouldRefund = parsed.data.refund ?? true;
+    const alreadyRefunded = Boolean(booking.refunded_at);
+
+    // Cancel first: a refund issued before a failed cancellation leaves the
+    // pupil paid back with the lesson still on the books.
     const { error } = await supabaseAdmin().rpc("cancel_booking", {
       p_booking_id: id,
       p_actor: "instructor",
@@ -78,6 +72,38 @@ export async function PATCH(
 
     if (error) {
       return NextResponse.json({ error: "Could not cancel booking" }, { status: 500 });
+    }
+
+    let refundedCents: number | null = null;
+
+    if (
+      shouldRefund &&
+      !alreadyRefunded &&
+      isStripeConfigured() &&
+      booking.deposit_cents > 0 &&
+      // No payment intent means the money never actually landed, typically
+      // because the pupil is still in Checkout. Nothing to give back.
+      booking.stripe_payment_intent_id
+    ) {
+      try {
+        refundedCents = await refundDeposit({
+          bookingId: booking.id,
+          paymentIntentId: booking.stripe_payment_intent_id,
+          amountCents: booking.deposit_cents,
+        });
+
+        if (refundedCents) {
+          await supabaseAdmin()
+            .from("bookings")
+            .update({ refunded_at: new Date().toISOString(), refund_cents: refundedCents })
+            .eq("id", id);
+        }
+      } catch (error) {
+        console.error(`[admin] refund failed for ${booking.reference}:`, error);
+        await logEvent(booking.id, "refund_failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     await cancelBookingSideEffects(id, { cancelledBy: "instructor", refundedCents });

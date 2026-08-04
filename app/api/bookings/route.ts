@@ -6,7 +6,7 @@ import { getCalendarBusy } from "@/lib/google-calendar";
 import { createCheckoutSession, isStripeConfigured } from "@/lib/stripe";
 import { confirmBookingSideEffects } from "@/lib/booking-service";
 import { BOOKING_POLICY, lessonTypeBySlug } from "@/lib/config";
-import { clientIp } from "@/lib/auth";
+import { clientIp, rateLimit } from "@/lib/auth";
 import { TIMEZONE, addMinutes, formatDateTimeInZone } from "@/lib/time";
 
 export const runtime = "nodejs";
@@ -42,27 +42,18 @@ const bookingSchema = z.object({
   testCentre: z.string().trim().max(120).optional().or(z.literal("")),
   transmission: z.enum(["manual", "automatic"]).optional(),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
-  /** Honeypot. Real people leave it empty. */
-  website: z.string().max(0).optional().or(z.literal("")),
+  /**
+   * Honeypot. Must accept ANY value: validating it to empty makes the field
+   * fail schema validation, which both names the honeypot in the 400 response
+   * and makes the "silently accept" branch below unreachable.
+   */
+  website: z.string().optional(),
 });
-
-// Coarse per-IP throttle, enough to stop a script hammering hold_slot().
-const recent = new Map<string, number[]>();
-const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = 6;
-
-function throttled(ip: string): boolean {
-  const now = Date.now();
-  const hits = (recent.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  hits.push(now);
-  recent.set(ip, hits);
-  return hits.length > MAX_PER_WINDOW;
-}
 
 export async function POST(request: Request) {
   const ip = clientIp(request);
 
-  if (throttled(ip)) {
+  if (rateLimit(`book:${ip}`, { limit: 6 })) {
     return NextResponse.json(
       { error: "Too many attempts. Wait a minute and try again." },
       { status: 429 }
@@ -181,11 +172,16 @@ export async function POST(request: Request) {
 
     // No Stripe configured: confirm immediately and treat it as pay-on-the-day.
     if (!isStripeConfigured() || booking.deposit_cents === 0) {
-      await supabaseAdmin().rpc("confirm_booking", {
+      const { data: confirmData } = await supabaseAdmin().rpc("confirm_booking", {
         p_booking_id: booking.id,
         p_paid: false,
       });
-      await confirmBookingSideEffects(booking.id);
+
+      // Only the caller that actually performed the transition sends email.
+      const confirmed = Array.isArray(confirmData) ? confirmData[0] : confirmData;
+      if (confirmed?.transitioned) {
+        await confirmBookingSideEffects(booking.id);
+      }
 
       return NextResponse.json({
         ok: true,

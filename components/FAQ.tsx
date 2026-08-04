@@ -1,5 +1,6 @@
 import { Container, Plate } from "@/components/brand";
 import { BOOKING_POLICY, TEST_CENTRES, formatPrice } from "@/lib/config";
+import { serialiseJsonLd } from "@/lib/reviews";
 
 /**
  * FAQ, rendered as native details/summary.
@@ -105,7 +106,7 @@ export default function FAQ() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serialiseJsonLd(jsonLd) }}
       />
     </section>
   );

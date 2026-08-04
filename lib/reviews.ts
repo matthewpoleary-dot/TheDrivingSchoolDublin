@@ -83,6 +83,22 @@ export function aggregateFromVerified(reviews: Review[]): AggregateRating | null
   };
 }
 
+/**
+ * Serialise for embedding in a <script type="application/ld+json"> block.
+ *
+ * JSON.stringify does not escape `<` or `/`, so a review body containing
+ * `</script>` would close the tag and inject markup. Not reachable today
+ * because reviews are admin-only, but it becomes stored XSS the moment review
+ * submission is opened up, so it is escaped at the boundary rather than
+ * depending on where the data came from.
+ */
+export function serialiseJsonLd(schema: Record<string, unknown>): string {
+  return JSON.stringify(schema)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
 /** LocalBusiness JSON-LD, with the rating attached only when it is earned. */
 export function localBusinessJsonLd(options: {
   aggregate?: AggregateRating | null;

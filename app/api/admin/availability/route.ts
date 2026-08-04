@@ -99,32 +99,22 @@ export async function POST(request: Request) {
       }
     }
 
-    const { error: deleteError } = await db
-      .from("weekly_template")
-      .delete()
-      .not("id", "is", null);
+    // One RPC, therefore one transaction. Doing this as a DELETE followed by
+    // an INSERT means a failed insert leaves the instructor with no working
+    // hours at all, and the site with zero availability on every day.
+    const { data, error } = await db.rpc("replace_weekly_template", {
+      p_windows: parsed.data.windows,
+    });
 
-    if (deleteError) {
-      return NextResponse.json({ error: "Could not clear the old pattern" }, { status: 500 });
-    }
-
-    if (parsed.data.windows.length > 0) {
-      const { error } = await db.from("weekly_template").insert(
-        parsed.data.windows.map((w) => ({
-          weekday: w.weekday,
-          start_time: w.startTime,
-          end_time: w.endTime,
-          slot_interval_minutes: w.slotIntervalMinutes,
-        }))
+    if (error) {
+      console.error("[admin/availability] replace failed:", error.message);
+      return NextResponse.json(
+        { error: "Could not save the new pattern. Your existing hours are unchanged." },
+        { status: 500 }
       );
-
-      if (error) {
-        console.error("[admin/availability] insert failed:", error.message);
-        return NextResponse.json({ error: "Could not save the new pattern" }, { status: 500 });
-      }
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, windows: data ?? 0 });
   }
 
   const override = parsed.data;

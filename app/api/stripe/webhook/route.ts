@@ -1,8 +1,55 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { constructWebhookEvent } from "@/lib/stripe";
+import { constructWebhookEvent, refundDeposit } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase";
-import { confirmBookingSideEffects, logEvent } from "@/lib/booking-service";
+import {
+  confirmBookingSideEffects,
+  cancelBookingSideEffects,
+  logEvent,
+} from "@/lib/booking-service";
+
+/**
+ * Money arrived for a booking that can never be confirmed. Give it straight
+ * back rather than sitting on it, and leave a loud trail either way.
+ */
+async function autoRefundOrphanedPayment(
+  bookingId: string,
+  paymentIntentId: string | null,
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const amount = session.amount_total ?? 0;
+
+  try {
+    const refunded = await refundDeposit({
+      bookingId,
+      paymentIntentId,
+      amountCents: amount,
+      reason: "duplicate",
+    });
+    await logEvent(
+      bookingId,
+      "orphaned_payment_refunded",
+      { session: session.id, amount: refunded },
+      "system"
+    );
+  } catch (error) {
+    // Now it genuinely needs a human, so make that unmissable in the logs.
+    console.error(
+      `[stripe-webhook] ALERT: could not auto-refund orphaned payment on ${bookingId}. MANUAL REFUND REQUIRED.`,
+      error
+    );
+    await logEvent(
+      bookingId,
+      "orphaned_payment_refund_failed",
+      {
+        session: session.id,
+        amount,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "system"
+    );
+  }
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,7 +112,7 @@ export async function POST(request: Request) {
             ? session.payment_intent
             : (session.payment_intent?.id ?? null);
 
-        const { error } = await supabaseAdmin().rpc("confirm_booking", {
+        const { data, error } = await supabaseAdmin().rpc("confirm_booking", {
           p_booking_id: bookingId,
           p_stripe_session_id: session.id,
           p_payment_intent_id: paymentIntentId,
@@ -73,14 +120,85 @@ export async function POST(request: Request) {
         });
 
         if (error) {
-          // A 500 here makes Stripe retry, which is what we want: the payment
-          // is real and the booking must eventually be confirmed.
+          // A booking that can never be confirmed (already cancelled, or
+          // expired while the customer was paying) is a PERMANENT failure.
+          // Returning 500 would make Stripe retry for three days and fail
+          // identically every time, leaving money captured and nobody told.
+          // Refund it, shout about it, and acknowledge the event.
+          if (error.message.includes("BOOKING_NOT_CONFIRMABLE")) {
+            console.error(
+              `[stripe-webhook] ALERT: paid for booking ${bookingId} that cannot be confirmed (${error.message}). Auto-refunding.`
+            );
+            await autoRefundOrphanedPayment(bookingId, paymentIntentId, session);
+            break;
+          }
+
+          // Anything else may be transient, so let Stripe retry.
           console.error(`[stripe-webhook] confirm_booking failed for ${bookingId}:`, error);
           return NextResponse.json({ error: "Could not confirm booking" }, { status: 500 });
         }
 
-        // Side effects are best-effort and must not trigger a Stripe retry.
-        await confirmBookingSideEffects(bookingId);
+        // confirm_booking reports whether THIS call did the transition. Stripe
+        // delivers at least once and retries, so without this gate the
+        // customer receives a fresh confirmation email per delivery.
+        const result = Array.isArray(data) ? data[0] : data;
+        if (result?.transitioned) {
+          await confirmBookingSideEffects(bookingId);
+        } else {
+          console.log(
+            `[stripe-webhook] ${bookingId} was already confirmed; skipping duplicate side effects`
+          );
+        }
+        break;
+      }
+
+      // Non-card methods (SEPA, Bancontact, iDEAL) settle after the session
+      // completes. Without this the money lands and the booking is never
+      // confirmed, which is a silent, total failure for that customer.
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const bookingId =
+          session.client_reference_id ?? session.metadata?.bookingId ?? null;
+        if (!bookingId) break;
+
+        const paymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : (session.payment_intent?.id ?? null);
+
+        const { data, error } = await supabaseAdmin().rpc("confirm_booking", {
+          p_booking_id: bookingId,
+          p_stripe_session_id: session.id,
+          p_payment_intent_id: paymentIntentId,
+          p_paid: true,
+        });
+
+        if (error) {
+          if (error.message.includes("BOOKING_NOT_CONFIRMABLE")) {
+            await autoRefundOrphanedPayment(bookingId, paymentIntentId, session);
+            break;
+          }
+          return NextResponse.json({ error: "Could not confirm booking" }, { status: 500 });
+        }
+
+        const result = Array.isArray(data) ? data[0] : data;
+        if (result?.transitioned) await confirmBookingSideEffects(bookingId);
+        break;
+      }
+
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const bookingId =
+          session.client_reference_id ?? session.metadata?.bookingId ?? null;
+        if (!bookingId) break;
+
+        await supabaseAdmin()
+          .from("bookings")
+          .update({ status: "expired", expires_at: null })
+          .eq("id", bookingId)
+          .in("status", ["held", "pending"]);
+
+        await logEvent(bookingId, "async_payment_failed", { session: session.id });
         break;
       }
 
@@ -103,8 +221,32 @@ export async function POST(request: Request) {
 
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
-        const bookingId = charge.metadata?.bookingId;
-        if (!bookingId) break;
+
+        // Metadata is set on the PaymentIntent, and whether Stripe copies it
+        // onto the Charge is version-dependent. Fall back to looking the
+        // booking up by payment intent so a dashboard-issued refund is never
+        // silently dropped.
+        let bookingId: string | null = charge.metadata?.bookingId ?? null;
+
+        if (!bookingId && charge.payment_intent) {
+          const intentId =
+            typeof charge.payment_intent === "string"
+              ? charge.payment_intent
+              : charge.payment_intent.id;
+
+          const { data } = await supabaseAdmin()
+            .from("bookings")
+            .select("id")
+            .eq("stripe_payment_intent_id", intentId)
+            .maybeSingle();
+
+          bookingId = (data?.id as string | undefined) ?? null;
+        }
+
+        if (!bookingId) {
+          console.error(`[stripe-webhook] refund ${charge.id} could not be matched to a booking`);
+          break;
+        }
 
         await supabaseAdmin()
           .from("bookings")
@@ -113,6 +255,28 @@ export async function POST(request: Request) {
             refund_cents: charge.amount_refunded,
           })
           .eq("id", bookingId);
+
+        // A refund issued from the Stripe dashboard must also free the slot,
+        // otherwise the money is back but the lesson is still on the books.
+        if (charge.refunded) {
+          const { data: booking } = await supabaseAdmin()
+            .from("bookings")
+            .select("status")
+            .eq("id", bookingId)
+            .maybeSingle();
+
+          if (booking && ["held", "pending", "confirmed"].includes(booking.status as string)) {
+            await supabaseAdmin().rpc("cancel_booking", {
+              p_booking_id: bookingId,
+              p_actor: "system",
+              p_reason: "Fully refunded in Stripe",
+            });
+            await cancelBookingSideEffects(bookingId, {
+              cancelledBy: "instructor",
+              refundedCents: charge.amount_refunded,
+            });
+          }
+        }
 
         await logEvent(bookingId, "refunded", { amount: charge.amount_refunded }, "stripe");
         break;

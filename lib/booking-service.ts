@@ -44,11 +44,13 @@ type BookingRow = {
   manage_token: string;
   google_event_id: string | null;
   stripe_payment_intent_id: string | null;
+  refunded_at: string | null;
+  refund_cents: number | null;
   services?: { name: string } | { name: string }[] | null;
 };
 
 const BOOKING_COLUMNS =
-  "id,reference,status,customer_name,customer_email,customer_phone,pickup_address,test_centre,transmission,notes,starts_at,ends_at,price_cents,deposit_cents,manage_token,google_event_id,stripe_payment_intent_id,services(name)";
+  "id,reference,status,customer_name,customer_email,customer_phone,pickup_address,test_centre,transmission,notes,starts_at,ends_at,price_cents,deposit_cents,manage_token,google_event_id,stripe_payment_intent_id,refunded_at,refund_cents,services(name)";
 
 function serviceName(row: BookingRow): string {
   const service = Array.isArray(row.services) ? row.services[0] : row.services;
@@ -122,7 +124,12 @@ export async function loadBookingByToken(token: string): Promise<BookingRow | nu
 
 /**
  * Everything that should happen once a booking is genuinely confirmed.
- * Idempotent: safe to run twice, which matters because Stripe retries.
+ *
+ * IMPORTANT: only call this when the caller actually performed the
+ * held/pending -> confirmed transition. `confirm_booking` returns a
+ * `transitioned` flag for exactly this reason. The calendar write is guarded
+ * by google_event_id, but the emails are not and cannot easily be, so calling
+ * this on a Stripe retry sends the pupil a second confirmation.
  */
 export async function confirmBookingSideEffects(bookingId: string): Promise<void> {
   const booking = await loadBooking(bookingId);

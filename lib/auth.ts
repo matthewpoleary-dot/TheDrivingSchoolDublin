@@ -117,6 +117,25 @@ const attempts = new Map<string, Attempt>();
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000;
 const LOCKOUT_MS = 15 * 60 * 1000;
+/** Hard ceiling so a spoofed-IP flood cannot grow this map without bound. */
+const MAX_TRACKED_IPS = 5_000;
+
+/** Drop entries that have aged out, and hard-cap the map size. */
+function pruneAttempts(now: number): void {
+  for (const [ip, entry] of attempts) {
+    const expired = now - entry.firstAt > WINDOW_MS;
+    const unlocked = !entry.lockedUntil || entry.lockedUntil < now;
+    if (expired && unlocked) attempts.delete(ip);
+  }
+
+  // Still too big means someone is minting fresh keys. Evict oldest first.
+  if (attempts.size > MAX_TRACKED_IPS) {
+    const oldest = [...attempts.entries()]
+      .sort((a, b) => a[1].firstAt - b[1].firstAt)
+      .slice(0, attempts.size - MAX_TRACKED_IPS);
+    for (const [ip] of oldest) attempts.delete(ip);
+  }
+}
 
 export function checkLoginAllowed(ip: string): { allowed: boolean; retryAfterSeconds?: number } {
   const now = Date.now();
@@ -138,6 +157,7 @@ export function checkLoginAllowed(ip: string): { allowed: boolean; retryAfterSec
 
 export function recordFailedLogin(ip: string): void {
   const now = Date.now();
+  pruneAttempts(now);
   const entry = attempts.get(ip);
 
   if (!entry || now - entry.firstAt > WINDOW_MS) {
@@ -155,11 +175,66 @@ export function clearLoginAttempts(ip: string): void {
   attempts.delete(ip);
 }
 
-/** Best-effort client IP behind Vercel's proxy. */
+/**
+ * Client IP behind Vercel's proxy.
+ *
+ * `x-real-ip` is set BY the platform and cannot be forged by the caller.
+ * `x-forwarded-for` can: its leftmost element is whatever the client sent, so
+ * keying a rate limiter on it lets an attacker mint a fresh bucket per request
+ * and bypass the limit entirely, while growing the map without bound. Prefer
+ * the trustworthy header and only fall back when it is absent.
+ */
 export function clientIp(req: Request): string {
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  // Local development and non-Vercel hosts. Take the RIGHTMOST entry, which is
+  // the one appended by the nearest trusted proxy rather than the client.
   const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return req.headers.get("x-real-ip") ?? "unknown";
+  if (forwarded) {
+    const parts = forwarded.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[parts.length - 1];
+  }
+
+  return "unknown";
+}
+
+/**
+ * Shared fixed-window throttle for the public routes.
+ *
+ * In-memory and therefore per-instance, which is honest about what it is: a
+ * brake on casual abuse, not a distributed rate limiter. It is bounded, which
+ * the previous per-route Maps were not.
+ */
+const buckets = new Map<string, number[]>();
+const MAX_BUCKETS = 10_000;
+
+export function rateLimit(
+  key: string,
+  options: { limit: number; windowMs?: number }
+): boolean {
+  const windowMs = options.windowMs ?? 60_000;
+  const now = Date.now();
+
+  if (buckets.size > MAX_BUCKETS) {
+    for (const [k, hits] of buckets) {
+      if (hits.length === 0 || now - hits[hits.length - 1] > windowMs) buckets.delete(k);
+    }
+    // Still oversized: drop arbitrary entries rather than grow for ever.
+    if (buckets.size > MAX_BUCKETS) {
+      let toDrop = buckets.size - MAX_BUCKETS;
+      for (const k of buckets.keys()) {
+        buckets.delete(k);
+        if (--toDrop <= 0) break;
+      }
+    }
+  }
+
+  const hits = (buckets.get(key) ?? []).filter((t) => now - t < windowMs);
+  hits.push(now);
+  buckets.set(key, hits);
+
+  return hits.length > options.limit;
 }
 
 /**

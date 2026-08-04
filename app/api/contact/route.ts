@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { sendEnquiryEmail } from "@/lib/email";
-import { clientIp } from "@/lib/auth";
+import { clientIp, rateLimit } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,23 +21,15 @@ const schema = z.object({
   phone: z.string().trim().max(30).optional().or(z.literal("")),
   subject: z.string().trim().max(200).optional().or(z.literal("")),
   message: z.string().trim().min(10, "Tell us a little more").max(4000),
-  company: z.string().max(0).optional().or(z.literal("")), // honeypot
+  // Honeypot: accept any value, then drop it silently below. Validating it
+  // to empty would reject the request and name the field in the response.
+  company: z.string().optional(),
 });
-
-const recent = new Map<string, number[]>();
-
-function throttled(ip: string): boolean {
-  const now = Date.now();
-  const hits = (recent.get(ip) ?? []).filter((t) => now - t < 60_000);
-  hits.push(now);
-  recent.set(ip, hits);
-  return hits.length > 5;
-}
 
 export async function POST(request: Request) {
   const ip = clientIp(request);
 
-  if (throttled(ip)) {
+  if (rateLimit(`contact:${ip}`, { limit: 5 })) {
     return NextResponse.json(
       { error: "Too many messages. Please wait a minute." },
       { status: 429 }

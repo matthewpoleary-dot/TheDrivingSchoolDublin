@@ -6,6 +6,7 @@ import {
   getPublishedReviews,
   aggregateFromVerified,
   localBusinessJsonLd,
+  serialiseJsonLd,
   type Review,
 } from "@/lib/reviews";
 
@@ -91,7 +92,7 @@ export default async function ReviewsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(localBusinessJsonLd({ aggregate, reviews })),
+          __html: serialiseJsonLd(localBusinessJsonLd({ aggregate, reviews })),
         }}
       />
     </>

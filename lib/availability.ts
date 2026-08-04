@@ -234,23 +234,21 @@ export async function getAvailability(options: {
 
   const db = supabaseAdmin();
 
-  const [templatesRes, overridesRes, bookingsRes, holdsRes] = await Promise.all([
+  const [templatesRes, overridesRes, bookingsRes] = await Promise.all([
     db.from("weekly_template").select("weekday,start_time,end_time,slot_interval_minutes"),
     db
       .from("date_overrides")
       .select("date,start_time,end_time,is_blackout")
       .gte("date", fromDateKey)
       .lte("date", dateKeys[dateKeys.length - 1]),
+    // Holds are NOT a separate table. They are bookings with status 'held',
+    // which is what lets one exclusion constraint cover both. This filter must
+    // stay in step with the constraint predicate in 0001_booking_core.sql, or
+    // the site will offer slots the database will then refuse.
     db
       .from("bookings")
-      .select("starts_at,ends_at")
-      .in("status", ["pending", "confirmed"])
-      .gte("starts_at", rangeStart.toISOString())
-      .lt("starts_at", rangeEnd.toISOString()),
-    db
-      .from("slot_holds")
-      .select("starts_at,ends_at")
-      .gt("expires_at", new Date().toISOString())
+      .select("starts_at,ends_at,status")
+      .in("status", ["held", "pending", "confirmed"])
       .gte("starts_at", rangeStart.toISOString())
       .lt("starts_at", rangeEnd.toISOString()),
   ]);
@@ -259,7 +257,6 @@ export async function getAvailability(options: {
     ["weekly_template", templatesRes],
     ["date_overrides", overridesRes],
     ["bookings", bookingsRes],
-    ["slot_holds", holdsRes],
   ] as const) {
     if (res.error) throw new Error(`Failed to load ${label}: ${res.error.message}`);
   }
@@ -268,12 +265,7 @@ export async function getAvailability(options: {
     ...(bookingsRes.data ?? []).map((b) => ({
       start: new Date(b.starts_at as string),
       end: new Date(b.ends_at as string),
-      source: "booking" as const,
-    })),
-    ...(holdsRes.data ?? []).map((h) => ({
-      start: new Date(h.starts_at as string),
-      end: new Date(h.ends_at as string),
-      source: "hold" as const,
+      source: (b.status === "held" ? "hold" : "booking") as BusySource,
     })),
     ...(options.calendarBusy ?? []),
   ];
