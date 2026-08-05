@@ -124,7 +124,7 @@ create table if not exists public.bookings (
   starts_at           timestamptz not null,
   ends_at             timestamptz not null,
 
-  -- The protected range: lesson plus travel buffer either side.
+  -- The protected range: the lesson plus its travel buffer afterwards.
   blocked_from        timestamptz not null,
   blocked_to          timestamptz not null,
   blocked_during      tstzrange generated always as

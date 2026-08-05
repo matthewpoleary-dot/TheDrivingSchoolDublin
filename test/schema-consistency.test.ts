@@ -142,6 +142,15 @@ describe("availability agrees with the exclusion constraint", () => {
     // only covers 'held', an abandoned checkout blocks the slot for ever.
     expect(SQL).toMatch(/where status in \('held', 'pending'\)\s*\n\s*and expires_at is not null/i);
   });
+
+  it("stores one travel buffer after the lesson, not a buffer on both ends", () => {
+    expect(SQL).not.toMatch(
+      /p_starts_at\s*-\s*make_interval\(mins\s*=>\s*v_service\.buffer_minutes\)/i
+    );
+    expect(SQL).toMatch(
+      /v_ends_at\s*\+\s*make_interval\(mins\s*=>\s*v_service\.buffer_minutes\)/i
+    );
+  });
 });
 
 describe("security invariants in the SQL", () => {

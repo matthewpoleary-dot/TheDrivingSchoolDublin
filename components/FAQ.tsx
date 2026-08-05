@@ -24,7 +24,7 @@ const ITEMS = [
   {
     question: "How long is a lesson?",
     answer:
-      "Standard, EDT and refresher lessons are 60 minutes. Pre-test lessons are 90 minutes, because a mock test plus a proper debrief does not fit into an hour.",
+      "Standard, EDT and refresher lessons are 60 minutes. Pre-test lessons are two hours, so there is time for a proper mock test on the routes and a useful debrief afterwards.",
   },
   {
     question: "What makes a pre-test lesson different?",
@@ -42,11 +42,11 @@ const ITEMS = [
   },
   {
     question: "How much do I pay up front?",
-    answer: `A ${formatPrice(BOOKING_POLICY.depositCents)} deposit by card holds your slot. The balance is paid to Conor on the day, cash or card. The deposit exists so slots are not held by people who never turn up.`,
+    answer: `You choose at checkout: pay a ${formatPrice(BOOKING_POLICY.depositCents)} deposit and the balance to Conor on the day, or pay for the lesson in full. Card payments are handled securely by Stripe.`,
   },
   {
     question: "What if I need to cancel?",
-    answer: `Cancel from the link in your confirmation email any time up to ${BOOKING_POLICY.freeCancellationHours} hours before the lesson and the deposit is refunded automatically. Inside ${BOOKING_POLICY.freeCancellationHours} hours it is not refunded, because the slot can rarely be filled at that notice. If something genuinely went wrong, ring, he is reasonable.`,
+    answer: `Cancel from the link in your confirmation email any time up to ${BOOKING_POLICY.freeCancellationHours} hours before the lesson and the amount you paid is refunded automatically. Inside ${BOOKING_POLICY.freeCancellationHours} hours it is not refunded, because the slot can rarely be filled at that notice. If something genuinely went wrong, ring, he is reasonable.`,
   },
   {
     question: "Where do you pick up from?",

@@ -13,7 +13,7 @@ Each service you connect switches on the next capability.
 | Supabase | Booking pages show "ring or WhatsApp us" |
 | Stripe | Bookings confirm immediately, no deposit taken |
 | Resend | Bookings still save, no confirmation email |
-| Google Calendar | Bookings still save, nothing appears on the calendar |
+| Google Calendar | Online slots pause so a paid double-booking cannot happen |
 
 ---
 
@@ -23,13 +23,14 @@ Online booking does not work without this. Do it first.
 
 1. Create a project at [supabase.com](https://supabase.com). Pick the **EU
    (Ireland)** region so customer data stays in the EU, which matters for GDPR.
-2. Open **SQL Editor** and run these six files, in order:
+2. Open **SQL Editor** and run these seven files, in order:
    - `supabase/migrations/0001_booking_core.sql`
    - `supabase/migrations/0002_booking_functions.sql`
    - `supabase/migrations/0003_seed.sql`
    - `supabase/migrations/0004_reviews_seed.sql`
    - `supabase/migrations/0005_review_fixes.sql`
    - `supabase/migrations/0006_reminder_claim.sql`
+   - `supabase/migrations/0007_launch_booking_policy.sql`
 3. Go to **Project Settings → API** and copy into your environment:
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -46,7 +47,8 @@ select slug, duration_minutes, price_cents from services order by sort_order;
 select weekday, start_time, end_time from weekly_template order by weekday;
 ```
 
-You should get four services and six working days.
+You should get four services. The default schedule has six working days; the
+instructor can replace that immediately with a weekday preset in `/admin`.
 
 ### What the schema guarantees
 
@@ -61,8 +63,8 @@ Two live bookings can never overlap in time. Not "unlikely to" — the database
 rejects the second write. This holds under any number of simultaneous requests
 across any number of serverless instances, and it would hold even if the
 application code were wrong. `blocked_during` includes the instructor's travel
-buffer either side, so back-to-back lessons in different parts of Dublin are
-also impossible.
+30-minute travel buffer after each lesson, so back-to-back lessons in different
+parts of Dublin are also impossible without forcing a full hour between them.
 
 ---
 
@@ -93,15 +95,17 @@ all four of these happened:
 - [ ] The booking row moved to `confirmed` in Supabase
 - [ ] The pupil received a confirmation email with a working `.ics` attachment
 - [ ] The lesson appeared on the instructor's Google Calendar
-- [ ] Cancelling from the pupil's own page refunded the deposit in Stripe
+- [ ] Cancelling from the pupil's own page refunded the amount paid in Stripe
+- [ ] Both the deposit and pay-in-full choices charged the correct amount
 
 Only then swap the test keys for live ones.
 
 ### How the money works
 
-A fixed €20 deposit is taken at booking; the balance is paid to the instructor
-on the day. Change the amount in **one** place, `BOOKING_POLICY.depositCents`
-in `lib/config.ts`, and in the `deposit_cents` column of the `services` table.
+The customer chooses between a fixed €20 deposit with the balance paid on the
+day, or the full lesson price online. Change the deposit amount in
+`BOOKING_POLICY.depositCents` in `lib/config.ts` and in the `deposit_cents`
+column of the `services` table.
 
 ---
 
@@ -262,9 +266,14 @@ the calendar entry in one action.
 **Time off.** Put it in your own Google Calendar. The website reads it and
 stops offering those slots. No second system to keep up to date.
 
-**Changing working hours.** `weekly_template` in Supabase, or the admin
-availability endpoint. Times are wall-clock Dublin time and stay correct
-across the clock changes in March and October.
+**Changing working hours.** Open **Working hours & time off** in `/admin`.
+Choose 7–3, 8–4 or 9–5, or set any start and finish time. Add a second block
+for evening lessons. Times are wall-clock Dublin time and stay correct across
+the clock changes in March and October.
+
+**One-off changes.** The same panel can add a day off or extra opening hours.
+For ordinary appointments, simply put the event in Google Calendar; the
+website stops offering that time automatically.
 
 **Prices.** `lib/config.ts` for what is displayed, and the `services` table for
 what is charged. Change both together.
@@ -277,7 +286,7 @@ what is charged. Change both together.
 npm install
 cp .env.example .env.local   # fill in what you have
 npm run dev
-npm test                     # 59 tests, no services required
+npm test                     # 87 tests, no services required
 ```
 
 The tests cover the parts where a bug is expensive and invisible: timezone

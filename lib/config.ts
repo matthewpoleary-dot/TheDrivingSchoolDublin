@@ -41,8 +41,8 @@ export const contactLinks = {
 
 /** Displayed opening hours. Real bookable availability comes from the database. */
 export const OPENING_HOURS = {
-  display: "Monday to Saturday, 8am to 6pm",
-  schemaOrg: ["Mo-Sa 08:00-18:00"],
+  display: "Weekday and evening lessons by appointment",
+  schemaOrg: ["Mo-Fr 07:00-20:00"],
 } as const;
 
 export const AREAS = [
@@ -73,7 +73,7 @@ export const BOOKING_POLICY = {
   freeCancellationHours: 24,
   /** How long a slot is held while the customer is in Stripe Checkout. */
   holdMinutes: 15,
-  /** Deposit taken at booking, in cents. Balance is paid to the instructor. */
+  /** Deposit option at booking, in cents. Customers may instead pay in full. */
   depositCents: 2000,
 } as const;
 
@@ -134,13 +134,13 @@ export const LESSON_TYPES: readonly LessonType[] = [
     slug: "pre-test-lesson",
     name: "Pre-test lesson",
     category: "pretest",
-    durationMinutes: 90,
+    durationMinutes: 120,
     priceCents: 10000,
     priceUnit: "per session",
     summary:
       "A full mock test on the real routes, marked the way an examiner marks it, by someone who used to do the marking.",
     includes: [
-      "Mock test on the actual test routes",
+      "Two-hour session on the actual test routes",
       "Marked to the RSA sheet, fault by fault",
       "Debrief on exactly what would have failed you",
     ],

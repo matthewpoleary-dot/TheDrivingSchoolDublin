@@ -1,9 +1,8 @@
 /**
- * Stripe: deposits, refunds and webhook verification.
+ * Stripe: deposits, full payments, refunds and webhook verification.
  *
- * The money model is a fixed deposit at booking with the balance paid to the
- * instructor on the day. That is the lever against no-shows, which is the real
- * cost in this business.
+ * Customers can pay a fixed deposit and the balance on the day, or settle the
+ * full lesson price at booking.
  *
  * Two things are load-bearing:
  *
@@ -45,7 +44,8 @@ export type CheckoutInput = {
   bookingId: string;
   reference: string;
   serviceName: string;
-  depositCents: number;
+  paymentCents: number;
+  paymentOption: "deposit" | "full";
   totalCents: number;
   customerEmail: string;
   startsAtISO: string;
@@ -56,7 +56,8 @@ export type CheckoutInput = {
 export async function createCheckoutSession(
   input: CheckoutInput
 ): Promise<{ url: string; sessionId: string }> {
-  const balance = input.totalCents - input.depositCents;
+  const balance = input.totalCents - input.paymentCents;
+  const paymentLabel = input.paymentOption === "full" ? "full payment" : "deposit";
 
   const session = await stripe().checkout.sessions.create(
     {
@@ -70,7 +71,7 @@ export async function createCheckoutSession(
         startsAt: input.startsAtISO,
       },
       payment_intent_data: {
-        description: `${input.serviceName} deposit — ${input.reference}`,
+        description: `${input.serviceName} ${paymentLabel} — ${input.reference}`,
         metadata: { bookingId: input.bookingId, reference: input.reference },
       },
       line_items: [
@@ -78,9 +79,9 @@ export async function createCheckoutSession(
           quantity: 1,
           price_data: {
             currency: "eur",
-            unit_amount: input.depositCents,
+            unit_amount: input.paymentCents,
             product_data: {
-              name: `${input.serviceName} — deposit`,
+              name: `${input.serviceName} — ${paymentLabel}`,
               description:
                 balance > 0
                   ? `${input.whenLine}. Balance of ${formatEuro(

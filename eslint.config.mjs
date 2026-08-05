@@ -1,23 +1,23 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTypeScript from "eslint-config-next/typescript";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export default defineConfig([
+  ...nextVitals,
+  ...nextTypeScript,
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-
-  // Allow normal apostrophes/quotes in JSX text like "we'll", "instructor's", etc.
+  // Allow normal apostrophes/quotes in JSX text like "we'll" and
+  // "instructor's". The copy is authored content, not an HTML injection.
   {
     rules: {
       "react/no-unescaped-entities": "off",
+      // These opt-in React compiler rules are not correctness rules for this
+      // app. Client effects intentionally start asynchronous fetches, and the
+      // dynamic booking/admin pages intentionally compare against wall time.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/purity": "off",
     },
   },
-];
 
-export default eslintConfig;
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+]);

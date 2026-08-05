@@ -102,7 +102,7 @@ function Hero() {
                 ["Ex-RSA", "driving tester"],
                 ["3", "test centres known"],
                 ["EDT", "logged same day"],
-                ["7 days", "a week"],
+                ["Evenings", "when available"],
               ].map(([value, label]) => (
                 <div key={label} className="border-t-2 border-ink pt-2.5">
                   <dt className="tabular text-2xl font-extrabold leading-none tracking-[-0.03em]">
@@ -159,8 +159,8 @@ function HowItWorks() {
       body: "Real availability, straight from Conor's calendar. Choose a slot that suits you, no phone tag.",
     },
     {
-      title: "Pay a small deposit",
-      body: `${formatPrice(2000)} holds the slot. The rest is paid to Conor on the day. Free cancellation up to 24 hours before.`,
+      title: "Choose how to pay",
+      body: `Pay a ${formatPrice(2000)} deposit and the rest on the day, or pay in full. Free cancellation up to 24 hours before.`,
     },
     {
       title: "He collects you",
@@ -419,8 +419,8 @@ function FinalCta() {
               Get it done.
             </h2>
             <p className="mt-3 max-w-md text-lg text-white/90">
-              Pick a time that suits you and pay a {formatPrice(2000)} deposit. That is the
-              whole booking.
+              Pick a time that suits you, then pay a {formatPrice(2000)} deposit or settle in
+              full. That is the whole booking.
             </p>
           </div>
 

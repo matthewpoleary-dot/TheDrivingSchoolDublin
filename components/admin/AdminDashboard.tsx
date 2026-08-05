@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Plate, Check } from "@/components/brand";
 import { formatPrice } from "@/lib/config";
+import AvailabilityEditor from "@/components/admin/AvailabilityEditor";
 
 /**
  * The instructor's dashboard.
@@ -114,9 +115,9 @@ export default function AdminDashboard() {
 
   async function act(booking: Booking, action: "cancel" | "complete" | "no_show") {
     const labels = {
-      cancel: `Cancel ${booking.customer_name}'s lesson and refund the deposit?`,
+      cancel: `Cancel ${booking.customer_name}'s lesson and refund the amount paid if eligible?`,
       complete: `Mark ${booking.customer_name}'s lesson as done?`,
-      no_show: `Mark ${booking.customer_name} as a no-show? The deposit is not refunded.`,
+      no_show: `Mark ${booking.customer_name} as a no-show? The amount paid is not refunded.`,
     };
 
     if (!window.confirm(labels[action])) return;
@@ -211,6 +212,8 @@ export default function AdminDashboard() {
           tone={calendar?.connected ? "pass" : "caution"}
         />
       </div>
+
+      <AvailabilityEditor />
 
       {/* Tabs */}
       <div className="mt-8 flex gap-2 border-b-2 border-ink pb-3">

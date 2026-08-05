@@ -232,6 +232,7 @@ async function send(args: SendArgs): Promise<SendResult> {
 export async function sendBookingConfirmation(b: BookingEmailData): Promise<SendResult> {
   const when = formatDateTimeInZone(b.startsAt, SITE.timezone);
   const balance = b.priceCents - b.depositCents;
+  const paidInFull = balance === 0;
 
   const rows: Array<[string, string | null | undefined]> = [
     ["Lesson", b.serviceName],
@@ -239,7 +240,7 @@ export async function sendBookingConfirmation(b: BookingEmailData): Promise<Send
     ["Pick-up", b.pickupAddress],
     ["Test centre", b.testCentre],
     ["Reference", b.reference],
-    ["Deposit paid", formatEuro(b.depositCents)],
+    [paidInFull ? "Paid in full" : "Deposit paid", formatEuro(b.depositCents)],
     ["Balance on the day", balance > 0 ? formatEuro(balance) : null],
   ];
 
@@ -251,7 +252,7 @@ export async function sendBookingConfirmation(b: BookingEmailData): Promise<Send
      )} is confirmed.</p>
      ${detailRows(rows)}
      <p style="margin:0 0 6px;">${escapeHtml(
-       `Free cancellation up to ${BOOKING_POLICY.freeCancellationHours} hours before. After that the deposit is not refunded.`
+       `Free cancellation up to ${BOOKING_POLICY.freeCancellationHours} hours before. After that the amount paid is not refunded.`
      )}</p>
      ${button(manageUrl(b.manageToken), "View or cancel this lesson")}
      <p style="margin:18px 0 0;color:#5C5651;font-size:14px;">${escapeHtml(
@@ -267,7 +268,7 @@ export async function sendBookingConfirmation(b: BookingEmailData): Promise<Send
     b.pickupAddress ? `Pick-up: ${b.pickupAddress}` : null,
     b.testCentre ? `Test centre: ${b.testCentre}` : null,
     `Reference: ${b.reference}`,
-    `Deposit paid: ${formatEuro(b.depositCents)}`,
+    `${paidInFull ? "Paid in full" : "Deposit paid"}: ${formatEuro(b.depositCents)}`,
     balance > 0 ? `Balance on the day: ${formatEuro(balance)}` : null,
     ``,
     `Free cancellation up to ${BOOKING_POLICY.freeCancellationHours} hours before.`,
@@ -290,6 +291,7 @@ export async function sendBookingConfirmation(b: BookingEmailData): Promise<Send
 
 export async function sendInstructorNotification(b: BookingEmailData): Promise<SendResult> {
   const when = formatDateTimeInZone(b.startsAt, SITE.timezone);
+  const paidInFull = b.depositCents === b.priceCents;
 
   const rows: Array<[string, string | null | undefined]> = [
     ["Lesson", b.serviceName],
@@ -311,7 +313,7 @@ export async function sendInstructorNotification(b: BookingEmailData): Promise<S
     html: shell(
       "New booking",
       `<h1 style="margin:0 0 6px;font:700 26px/1.2 Helvetica,Arial,sans-serif;">New booking</h1>
-       <p style="margin:0 0 4px;color:#5C5651;">Deposit of ${formatEuro(
+       <p style="margin:0 0 4px;color:#5C5651;">${paidInFull ? "Paid in full" : "Deposit"}: ${formatEuro(
          b.depositCents
        )} paid. It is already on your calendar.</p>
        ${detailRows(rows)}`
@@ -335,8 +337,8 @@ export async function sendCancellationEmails(
     options.refundedCents && options.refundedCents > 0
       ? `Your ${formatEuro(
           options.refundedCents
-        )} deposit has been refunded and will be back with you in five to ten days.`
-      : `As this is inside the ${BOOKING_POLICY.freeCancellationHours}-hour window, the deposit is not refunded.`;
+        )} payment has been refunded and will be back with you in five to ten days.`
+      : `As this is inside the ${BOOKING_POLICY.freeCancellationHours}-hour window, the amount paid is not refunded.`;
 
   await send({
     to: b.customerEmail,

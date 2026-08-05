@@ -12,19 +12,19 @@ insert into public.services
 values
   ('standard-lesson', 'Standard lesson',
    'One-to-one tuition in a fully insured dual-control car.',
-   60, 15, 8000, 2000, true, false, true, 1),
+   60, 30, 8000, 2000, true, false, true, 1),
 
   ('pre-test-lesson', 'Pre-test lesson',
    'A full mock test on the real routes, marked the way an examiner marks it.',
-   90, 15, 10000, 2000, true, true, true, 2),
+   120, 30, 10000, 2000, true, true, true, 2),
 
   ('edt-single', 'Single EDT lesson',
    'One of the twelve mandatory Essential Driver Training lessons, logged on the day.',
-   60, 15, 8000, 2000, true, false, true, 3),
+   60, 30, 8000, 2000, true, false, true, 3),
 
   ('refresher-lesson', 'Refresher lesson',
    'For licence holders returning to the road after a break.',
-   60, 15, 8000, 2000, true, false, true, 4)
+   60, 30, 8000, 2000, true, false, true, 4)
 on conflict (slug) do update set
   name                 = excluded.name,
   description          = excluded.description,

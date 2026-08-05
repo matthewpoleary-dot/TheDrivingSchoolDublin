@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SITE, CONTACT, OPENING_HOURS, contactLinks, AREAS } from "@/lib/config";
 import { LogoLink, Container, Chevrons } from "@/components/brand";
 import SiteNav from "@/components/SiteNav";
+import BrandIntro from "@/components/BrandIntro";
 
 /**
  * One typeface doing all the work, the way a signage system does. Archivo is a
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-IE" className={archivo.variable}>
       <body className="flex min-h-dvh flex-col bg-paper text-ink antialiased">
+        <BrandIntro />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-3 focus:font-bold focus:text-white"

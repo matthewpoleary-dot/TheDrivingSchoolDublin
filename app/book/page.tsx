@@ -7,7 +7,7 @@ import { BOOKING_POLICY, formatPrice } from "@/lib/config";
 export const metadata: Metadata = {
   title: "Book a Driving Lesson",
   description:
-    "Pick a time that suits you and book a driving lesson in Dublin online. Real availability, small deposit, free cancellation up to 24 hours before.",
+    "Pick a time that suits you and book a driving lesson in Dublin online. Real availability, flexible payment, free cancellation up to 24 hours before.",
   alternates: { canonical: "/book" },
 };
 
@@ -27,8 +27,8 @@ export default function BookPage() {
               </h1>
               <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
                 Times below come straight from Conor&apos;s calendar, so anything you can see
-                is genuinely free. A {formatPrice(BOOKING_POLICY.depositCents)} deposit holds
-                it, and the balance is paid on the day.
+                is genuinely free. Pay a {formatPrice(BOOKING_POLICY.depositCents)} deposit
+                and the balance on the day, or pay in full now.
               </p>
             </div>
           </div>

@@ -1,6 +1,6 @@
 # The Driving School Dublin
 
-Website and booking system for a Dublin driving instructor. Next.js 15, React
+Website and booking system for a Dublin driving instructor. Next.js 16, React
 19, Tailwind 4, Supabase, Stripe, Resend and Google Calendar.
 
 **Setup and handover: [`docs/SETUP.md`](docs/SETUP.md).** Read that before
@@ -11,13 +11,18 @@ deploying or changing anything.
 ## What it does
 
 - **Books lessons online** against the instructor's real Google Calendar, with
-  a deposit taken through Stripe and confirmation emails carrying a calendar
-  invite.
+  a choice of deposit or full payment through Stripe and confirmation emails
+  carrying a calendar invite.
 - **Cannot double-book.** A Postgres exclusion constraint makes overlapping
   bookings impossible at the database level, including the instructor's travel
-  buffer between lessons.
+  buffer between lessons. Launch policy uses a simple 30-minute buffer.
 - **Heals itself.** A scheduled job releases abandoned holds, retries failed
   calendar syncs and sends reminders.
+- **Simple for the instructor.** The admin screen has weekday presets, custom
+  time blocks, evening hours and one-off exceptions; ordinary appointments are
+  still blocked in Google Calendar.
+- **Fails closed on calendar reads.** If Google Calendar is unavailable, the
+  site pauses online slots rather than risk a paid double-booking.
 - **Degrades instead of breaking.** With no services configured it still runs
   as a brochure site pointing at the phone. Each key you add switches on the
   next capability.
@@ -45,7 +50,7 @@ lib/
   config.ts                Single source of truth for the business
   booking-service.ts       Calendar and email side effects
 supabase/migrations/       Schema, atomic functions, seed
-test/                      59 tests, no services required
+test/                      87 tests, no services required
 ```
 
 ## Development
@@ -74,7 +79,7 @@ which silently breaks things like `hidden sm:grid`.
 ## Testing
 
 ```bash
-npm test                 # 59 tests
+npm test                 # 87 tests
 npm run test:coverage
 ```
 

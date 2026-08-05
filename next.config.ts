@@ -5,11 +5,9 @@ const nextConfig: NextConfig = {
   // without node_modules. Vercel ignores this; it costs nothing there.
   output: "standalone",
 
-  // Fail the build on type or lint errors rather than shipping them. Both
-  // default to failing already, but stating it means a future `ignoreErrors`
-  // has to be a deliberate edit rather than a quiet default.
+  // Fail the build on type errors rather than shipping them. Lint runs as its
+  // own required command because Next 16 removed linting from `next build`.
   typescript: { ignoreBuildErrors: false },
-  eslint: { ignoreDuringBuilds: false },
 
   poweredByHeader: false,
   reactStrictMode: true,

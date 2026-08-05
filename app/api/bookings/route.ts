@@ -42,6 +42,7 @@ const bookingSchema = z.object({
   testCentre: z.string().trim().max(120).optional().or(z.literal("")),
   transmission: z.enum(["manual", "automatic"]).optional(),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
+  paymentOption: z.enum(["deposit", "full"]).default("deposit"),
   /**
    * Honeypot. Must accept ANY value: validating it to empty makes the field
    * fail schema validation, which both names the honeypot in the 400 response
@@ -104,9 +105,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid start time" }, { status: 400 });
   }
 
-  if (lesson.needsPickup && !input.pickupAddress) {
+  if (lesson.needsPickup && (!input.pickupAddress || input.pickupAddress.length < 8)) {
     return NextResponse.json(
-      { error: "Please check the form", fields: { pickupAddress: "We need a pick-up address" } },
+      {
+        error: "Please check the form",
+        fields: { pickupAddress: "Please enter the full pick-up address" },
+      },
       { status: 400 }
     );
   }
@@ -170,8 +174,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not hold that slot" }, { status: 500 });
     }
 
-    // No Stripe configured: confirm immediately and treat it as pay-on-the-day.
+    // No Stripe configured: confirm immediately and treat the whole price as
+    // pay-on-the-day. This path is useful in local development and must not
+    // make the dashboard claim that an unpaid deposit was received.
     if (!isStripeConfigured() || booking.deposit_cents === 0) {
+      await supabaseAdmin().from("bookings").update({ deposit_cents: 0 }).eq("id", booking.id);
       const { data: confirmData } = await supabaseAdmin().rpc("confirm_booking", {
         p_booking_id: booking.id,
         p_paid: false,
@@ -190,11 +197,27 @@ export async function POST(request: Request) {
       });
     }
 
+    const paymentCents =
+      input.paymentOption === "full" ? booking.price_cents : booking.deposit_cents;
+
+    if (paymentCents !== booking.deposit_cents) {
+      const { error: paymentUpdateError } = await supabaseAdmin()
+        .from("bookings")
+        .update({ deposit_cents: paymentCents })
+        .eq("id", booking.id);
+
+      if (paymentUpdateError) {
+        console.error("[bookings] could not store payment choice:", paymentUpdateError);
+        return NextResponse.json({ error: "Could not prepare payment" }, { status: 500 });
+      }
+    }
+
     const checkout = await createCheckoutSession({
       bookingId: booking.id,
       reference: booking.reference,
       serviceName: lesson.name,
-      depositCents: booking.deposit_cents,
+      paymentCents,
+      paymentOption: input.paymentOption,
       totalCents: booking.price_cents,
       customerEmail: input.email,
       startsAtISO: startsAt.toISOString(),

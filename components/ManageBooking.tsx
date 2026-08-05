@@ -15,16 +15,19 @@ import { BOOKING_POLICY, CONTACT, contactLinks, formatPrice } from "@/lib/config
 export default function ManageBooking({
   token,
   canCancelFree,
-  depositCents,
+  paidCents,
+  paidInFull,
 }: {
   token: string;
   canCancelFree: boolean;
-  depositCents: number;
+  paidCents: number;
+  paidInFull: boolean;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const paymentName = paidInFull ? "payment" : "deposit";
 
   async function cancel() {
     setBusy(true);
@@ -79,8 +82,8 @@ export default function ManageBooking({
 
         <p className="mt-4 text-xs leading-relaxed text-ink-faint">
           {canCancelFree
-            ? `You are outside the ${BOOKING_POLICY.freeCancellationHours}-hour window, so cancelling refunds your ${formatPrice(depositCents)} deposit in full.`
-            : `You are inside the ${BOOKING_POLICY.freeCancellationHours}-hour window, so the ${formatPrice(depositCents)} deposit is not refundable.`}
+            ? `You are outside the ${BOOKING_POLICY.freeCancellationHours}-hour window, so cancelling refunds your ${formatPrice(paidCents)} ${paymentName} in full.`
+            : `You are inside the ${BOOKING_POLICY.freeCancellationHours}-hour window, so the ${formatPrice(paidCents)} ${paymentName} is not refundable.`}
         </p>
       </div>
     );
@@ -92,13 +95,13 @@ export default function ManageBooking({
       <p className="mt-1.5 text-sm leading-relaxed">
         {canCancelFree ? (
           <>
-            Your {formatPrice(depositCents)} deposit will be refunded to the card you paid
+            Your {formatPrice(paidCents)} {paymentName} will be refunded to the card you paid
             with. It usually lands within five to ten days.
           </>
         ) : (
           <>
             This is inside the {BOOKING_POLICY.freeCancellationHours}-hour window, so the{" "}
-            {formatPrice(depositCents)} deposit will <strong>not</strong> be refunded. If
+            {formatPrice(paidCents)} {paymentName} will <strong>not</strong> be refunded. If
             something has genuinely gone wrong, ring Conor instead, he is reasonable.
           </>
         )}

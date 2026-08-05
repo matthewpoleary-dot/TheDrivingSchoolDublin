@@ -80,7 +80,7 @@ export default function PricesPage() {
                     href={`/book?service=${lesson.slug}`}
                     className="btn btn-ink w-full text-sm"
                   >
-                    Book for {formatPrice(BOOKING_POLICY.depositCents)}
+                    Choose a time
                     <ArrowRight />
                   </Link>
                 ) : (
@@ -150,7 +150,7 @@ export default function PricesPage() {
           <ul className="mt-3 space-y-2 text-[0.9375rem] leading-relaxed text-ink-soft">
             <li>
               <strong className="text-ink">
-                {formatPrice(BOOKING_POLICY.depositCents)} deposit
+                Choose a {formatPrice(BOOKING_POLICY.depositCents)} deposit or pay in full
               </strong>{" "}
               online to hold your slot, by card through Stripe.
             </li>
@@ -162,7 +162,7 @@ export default function PricesPage() {
               <strong className="text-ink">
                 Free cancellation up to {BOOKING_POLICY.freeCancellationHours} hours before
               </strong>
-              , with the deposit refunded automatically.
+              , with the amount paid refunded automatically.
             </li>
           </ul>
         </div>

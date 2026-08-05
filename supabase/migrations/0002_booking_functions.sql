@@ -143,7 +143,7 @@ begin
       nullif(trim(coalesce(p_notes, '')), ''),
       p_starts_at,
       v_ends_at,
-      p_starts_at - make_interval(mins => v_service.buffer_minutes),
+      p_starts_at,
       v_ends_at   + make_interval(mins => v_service.buffer_minutes),
       now() + make_interval(mins => p_hold_minutes),
       v_service.price_cents,

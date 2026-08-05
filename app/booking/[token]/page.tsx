@@ -37,6 +37,7 @@ export default async function BookingPage({
   const isCancelled = booking.status === "cancelled";
   const isPast = startsAt.getTime() < Date.now();
   const balance = booking.price_cents - booking.deposit_cents;
+  const paidInFull = balance === 0;
   const hoursUntil = (startsAt.getTime() - Date.now()) / 3_600_000;
   const canCancelFree = hoursUntil >= BOOKING_POLICY.freeCancellationHours;
 
@@ -107,7 +108,7 @@ export default async function BookingPage({
               <dd className="tabular font-bold">{formatPrice(booking.price_cents)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-ink-soft">Deposit paid</dt>
+              <dt className="text-ink-soft">{paidInFull ? "Paid in full" : "Deposit paid"}</dt>
               <dd className="tabular font-bold text-pass">
                 {formatPrice(booking.deposit_cents)}
               </dd>
@@ -127,7 +128,8 @@ export default async function BookingPage({
           <ManageBooking
             token={token}
             canCancelFree={canCancelFree}
-            depositCents={booking.deposit_cents}
+            paidCents={booking.deposit_cents}
+            paidInFull={paidInFull}
           />
         </div>
       )}

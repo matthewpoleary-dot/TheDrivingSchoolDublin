@@ -6,11 +6,10 @@
  * consent screen, and break silently months later on a personal Google
  * account. Sharing a calendar is two clicks and never expires.
  *
- * The one rule that governs everything in this file: **calendar sync must
- * never break a booking**. Google being slow, rate-limited or down is not a
- * reason to refuse a customer's money. Every function here either returns a
- * typed failure or degrades to "no calendar data", and the caller carries on.
- * Failed syncs are recorded on the booking and retried by the reconcile cron.
+ * Calendar writes never erase a confirmed booking: failures are recorded and
+ * retried. Calendar reads are deliberately stricter. If live busy-time cannot
+ * be read, the site must stop offering slots rather than risk taking payment
+ * for a time the instructor has already blocked.
  */
 
 import { google, type calendar_v3 } from "googleapis";
@@ -23,6 +22,13 @@ const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 export type CalendarResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: string; retryable: boolean };
+
+export class CalendarUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CalendarUnavailableError";
+  }
+}
 
 export function isCalendarConfigured(): boolean {
   return Boolean(
@@ -103,13 +109,14 @@ async function withRetry<T>(
 /**
  * Busy intervals from the instructor's calendar.
  *
- * Returns an empty array when the calendar is unreachable. That is the safe
- * failure direction for availability: worst case the site offers a slot the
- * instructor has to decline, rather than showing an empty calendar and losing
- * every booking for the day.
+ * Throws when the calendar is not configured or cannot be reached. That is the
+ * safe failure direction for a paid booking system: temporarily showing no
+ * online slots is better than double-booking the instructor.
  */
 export async function getCalendarBusy(from: Date, to: Date): Promise<BusyInterval[]> {
-  if (!isCalendarConfigured()) return [];
+  if (!isCalendarConfigured()) {
+    throw new CalendarUnavailableError("Google Calendar is not configured");
+  }
 
   const result = await withRetry("freebusy", async () => {
     const response = await client().freebusy.query({
@@ -123,7 +130,9 @@ export async function getCalendarBusy(from: Date, to: Date): Promise<BusyInterva
     return response.data.calendars?.[calendarId()]?.busy ?? [];
   });
 
-  if (!result.ok) return [];
+  if (!result.ok) {
+    throw new CalendarUnavailableError(`Google Calendar is unavailable: ${result.error}`);
+  }
 
   return result.value
     .filter((b): b is { start: string; end: string } => Boolean(b.start && b.end))

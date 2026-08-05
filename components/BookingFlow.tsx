@@ -23,7 +23,7 @@ import { Plate, Check, ArrowRight } from "@/components/brand";
  *
  * Deliberate decisions:
  *   - Availability is fetched per lesson type, because durations differ, so a
- *     90-minute pre-test shows fewer starts than a 60-minute lesson. Showing
+ *     120-minute pre-test shows fewer starts than a 60-minute lesson. Showing
  *     one grid for all of them would be a lie.
  *   - A slot that vanishes between load and submit returns a 409, and the flow
  *     recovers in place: refresh the grid, keep the typed details, say so.
@@ -60,6 +60,7 @@ export default function BookingFlow() {
   );
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [paymentOption, setPaymentOption] = useState<"deposit" | "full">("deposit");
 
   const [form, setForm] = useState({
     name: "",
@@ -161,6 +162,7 @@ export default function BookingFlow() {
           testCentre: form.testCentre,
           transmission: form.transmission || undefined,
           notes: form.notes,
+          paymentOption,
           website: form.website,
         }),
       });
@@ -390,7 +392,7 @@ export default function BookingFlow() {
                     onChange={(v) => setForm({ ...form, pickupAddress: v })}
                     error={fieldErrors.pickupAddress}
                     autoComplete="street-address"
-                    hint="Where should Conor collect you?"
+                    hint="Full address, including the Eircode if you know it"
                   />
                 )}
 
@@ -436,6 +438,58 @@ export default function BookingFlow() {
                   </div>
                 </div>
 
+                <fieldset>
+                  <legend className="field-label">How would you like to pay?</legend>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentOption("deposit")}
+                      aria-pressed={paymentOption === "deposit"}
+                      className={`border-2 p-4 text-left transition-colors ${
+                        paymentOption === "deposit"
+                          ? "border-ink bg-ink text-white"
+                          : "border-rule bg-white hover:border-ink"
+                      }`}
+                    >
+                      <span className="flex items-start justify-between gap-3 font-bold">
+                        Pay {formatPrice(BOOKING_POLICY.depositCents)} deposit
+                        {paymentOption === "deposit" && <Check className="mt-0.5 text-plate" />}
+                      </span>
+                      <span
+                        className={`mt-1 block text-sm ${
+                          paymentOption === "deposit" ? "text-white/70" : "text-ink-soft"
+                        }`}
+                      >
+                        Pay {formatPrice(lesson.priceCents - BOOKING_POLICY.depositCents)} to
+                        Conor on the day
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentOption("full")}
+                      aria-pressed={paymentOption === "full"}
+                      className={`border-2 p-4 text-left transition-colors ${
+                        paymentOption === "full"
+                          ? "border-ink bg-ink text-white"
+                          : "border-rule bg-white hover:border-ink"
+                      }`}
+                    >
+                      <span className="flex items-start justify-between gap-3 font-bold">
+                        Pay {formatPrice(lesson.priceCents)} in full
+                        {paymentOption === "full" && <Check className="mt-0.5 text-plate" />}
+                      </span>
+                      <span
+                        className={`mt-1 block text-sm ${
+                          paymentOption === "full" ? "text-white/70" : "text-ink-soft"
+                        }`}
+                      >
+                        Nothing left to pay on the day
+                      </span>
+                    </button>
+                  </div>
+                </fieldset>
+
                 <div>
                   <label htmlFor="notes" className="field-label">
                     Anything Conor should know?
@@ -480,18 +534,29 @@ export default function BookingFlow() {
                     "Holding your slot..."
                   ) : (
                     <>
-                      Pay {formatPrice(BOOKING_POLICY.depositCents)} deposit and confirm
+                      Pay {formatPrice(
+                        paymentOption === "full"
+                          ? lesson.priceCents
+                          : BOOKING_POLICY.depositCents
+                      )} and confirm
                       <ArrowRight />
                     </>
                   )}
                 </button>
 
                 <p className="text-center text-sm text-ink-soft">
-                  Card handled by Stripe. Balance of{" "}
-                  <span className="tabular font-bold text-ink">
-                    {formatPrice(lesson.priceCents - BOOKING_POLICY.depositCents)}
-                  </span>{" "}
-                  paid to Conor on the day. Free cancellation up to{" "}
+                  Card handled securely by Stripe. {paymentOption === "deposit" ? (
+                    <>
+                      Balance of{" "}
+                      <span className="tabular font-bold text-ink">
+                        {formatPrice(lesson.priceCents - BOOKING_POLICY.depositCents)}
+                      </span>{" "}
+                      paid to Conor on the day. {" "}
+                    </>
+                  ) : (
+                    <>Nothing left to pay on the day. </>
+                  )}
+                  Free cancellation up to{" "}
                   {BOOKING_POLICY.freeCancellationHours} hours before.
                 </p>
               </div>
@@ -504,6 +569,7 @@ export default function BookingFlow() {
         lesson={lesson}
         selectedSlot={selectedSlot}
         pickup={form.pickupAddress}
+        paymentOption={paymentOption}
       />
     </div>
   );
@@ -587,12 +653,16 @@ function SummaryRail({
   lesson,
   selectedSlot,
   pickup,
+  paymentOption,
 }: {
   lesson: NonNullable<ReturnType<typeof lessonTypeBySlug>>;
   selectedSlot: string | null;
   pickup: string;
+  paymentOption: "deposit" | "full";
 }) {
-  const balance = lesson.priceCents - BOOKING_POLICY.depositCents;
+  const paidToday =
+    paymentOption === "full" ? lesson.priceCents : BOOKING_POLICY.depositCents;
+  const balance = lesson.priceCents - paidToday;
 
   return (
     <aside className="lg:sticky lg:top-24">
@@ -619,9 +689,11 @@ function SummaryRail({
               <dd className="tabular font-bold">{formatPrice(lesson.priceCents)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-ink-soft">Deposit today</dt>
+              <dt className="text-ink-soft">
+                {paymentOption === "full" ? "Pay today" : "Deposit today"}
+              </dt>
               <dd className="tabular font-bold text-plate">
-                {formatPrice(BOOKING_POLICY.depositCents)}
+                {formatPrice(paidToday)}
               </dd>
             </div>
             <div className="flex justify-between">
