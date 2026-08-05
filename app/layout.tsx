@@ -1,106 +1,151 @@
-// app/layout.tsx
 import "./globals.css";
+import type { Metadata, Viewport } from "next";
+import { Archivo } from "next/font/google";
 import Link from "next/link";
+import { SITE, CONTACT, OPENING_HOURS, contactLinks, AREAS } from "@/lib/config";
+import { LogoLink, Container, Chevrons } from "@/components/brand";
+import SiteNav from "@/components/SiteNav";
+import BrandIntro from "@/components/BrandIntro";
 
-export const metadata = {
-  title: "The Driving School Dublin",
-  description: "Professional driving lessons in Dublin. RSA-approved ADI, manual & automatic, EDT packages, pre-test sessions. Flexible scheduling. Book your lesson today.",
+/**
+ * One typeface doing all the work, the way a signage system does. Archivo is a
+ * grotesque with real weight at 800, which matches the logo's letterforms.
+ * `display: swap` so text is never invisible while it loads.
+ */
+const archivo = Archivo({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-archivo",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE.url),
+  title: {
+    default: `Driving Lessons Dublin | ${SITE.name}`,
+    template: `%s | ${SITE.name}`,
+  },
+  description: SITE.description,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "The Driving School Dublin | Professional Driving Lessons",
-    description: "RSA-approved ADI providing professional driving lessons across Dublin. Manual & automatic, EDT packages, pre-test sessions.",
-    url: "https://thedrivingschooldublin.com",
-    siteName: "The Driving School Dublin",
-    locale: "en_IE",
+    title: "Driving lessons in Dublin, taught by a former RSA tester",
+    description: SITE.description,
+    url: SITE.url,
+    siteName: SITE.name,
+    locale: SITE.locale,
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: `Driving lessons in Dublin | ${SITE.name}`,
+    description: SITE.description,
+  },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#141414",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-white text-gray-900">
-        <header className="border-b bg-white">
-          <nav className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-            <Link
-              href="/"
-              className="text-xl font-extrabold tracking-tight"
-              aria-label="Home"
-            >
-              <span className="text-gray-900">The</span>{" "}
-              <span className="text-red-600">Driving</span>{" "}
-              <span className="text-gray-900">School</span>{" "}
-              <span className="text-gray-900">Dublin</span>
-            </Link>
+    <html lang="en-IE" className={archivo.variable}>
+      <body className="flex min-h-dvh flex-col bg-paper text-ink antialiased">
+        <BrandIntro />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-4 focus:py-3 focus:font-bold focus:text-white"
+        >
+          Skip to content
+        </a>
 
-            <div className="flex items-center gap-5">
-              <div className="space-x-5 text-sm font-medium hidden md:flex">
-                <Link href="/prices" className="nav-link">Prices</Link>
-                <Link href="/reviews" className="nav-link">Reviews</Link>
-                <Link href="/about" className="nav-link">About</Link>
-              </div>
-              <Link href="/contact" className="btn-primary text-sm">
-                Contact us
-              </Link>
-            </div>
-          </nav>
-        </header>
+        <SiteNav />
 
-        <main className="mx-auto max-w-5xl px-4 py-10">{children}</main>
+        <main id="main" className="flex-1">
+          {children}
+        </main>
 
-        <footer className="mt-16 border-t bg-gray-50">
-          <div className="mx-auto max-w-5xl px-4 py-10">
-            <div className="grid gap-8 md:grid-cols-3 mb-8">
-              <div>
-                <h3 className="font-extrabold text-gray-900 mb-3">The Driving School Dublin</h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  RSA-approved ADI providing professional driving lessons across Dublin.
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Hours:</strong> Mon–Sat, 8am–6pm
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
-                <ul className="space-y-2 text-sm">
-                  <li><Link href="/prices" className="text-gray-600 hover:text-red-600">Prices</Link></li>
-                  <li><Link href="/reviews" className="text-gray-600 hover:text-red-600">Reviews</Link></li>
-                  <li><Link href="/about" className="text-gray-600 hover:text-red-600">About</Link></li>
-                  <li><Link href="/contact" className="text-gray-600 hover:text-red-600">Contact</Link></li> */
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>
-                    <a href="tel:+353860235666" className="hover:text-red-600">+353 86 0235 666</a>
-                  </li>
-                  <li>
-                    <a href="mailto:thedrivingschooldublin@gmail.com" className="hover:text-red-600">
-                      thedrivingschooldublin@gmail.com
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://wa.me/353860235666?text=Hi!%20I'd%20like%20to%20arrange%20a%20driving%20lesson."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-red-600"
-                    >
-                      WhatsApp us
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="border-t pt-6 text-sm text-gray-600 flex flex-col md:flex-row items-center justify-between gap-4">
-              <p>© {new Date().getFullYear()} The Driving School Dublin. All rights reserved.</p>
-              <p>
-                Made with <span className="text-red-600">♥</span> in Ireland
-              </p>
-            </div>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="mt-auto bg-ink text-white">
+      <Chevrons />
+      <Container className="py-14">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+          <div>
+            <LogoLink />
+            <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/70">
+              Driving lessons across Dublin with{" "}
+              <span className="text-white">a former RSA driving tester</span>. EDT, pre-test
+              preparation and car hire for your test.
+            </p>
+            <p className="mt-5 text-sm text-white/70">{OPENING_HOURS.display}</p>
+          </div>
+
+          <nav aria-label="Footer">
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-white/50">Pages</h2>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {[
+                ["/book", "Book a lesson"],
+                ["/prices", "Prices"],
+                ["/reviews", "Reviews"],
+                ["/about", "About Conor"],
+                ["/contact", "Contact"],
+              ].map(([href, label]) => (
+                <li key={href}>
+                  <Link href={href} className="text-white/75 transition-colors hover:text-white">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-white/50">
+              Get in touch
+            </h2>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <a href={contactLinks.tel} className="tabular text-white/75 hover:text-white">
+                  {CONTACT.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={contactLinks.whatsapp()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/75 hover:text-white"
+                >
+                  WhatsApp
+                </a>
+              </li>
+              <li>
+                <a href={contactLinks.email} className="break-all text-white/75 hover:text-white">
+                  {CONTACT.email}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-11 border-t border-white/15 pt-6">
+          <p className="text-xs leading-relaxed text-white/45">
+            Pick-up across {AREAS.slice(0, 4).join(", ")} and the rest of south Dublin.
+          </p>
+          <p className="mt-3 text-xs text-white/45">
+            &copy; {new Date().getFullYear()} {SITE.name}. RSA-approved driving instruction.
+          </p>
+        </div>
+      </Container>
+    </footer>
   );
 }

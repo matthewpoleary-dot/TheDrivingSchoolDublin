@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Driving School Dublin
 
-## Getting Started
+Website and booking system for a Dublin driving instructor. Next.js 16, React
+19, Tailwind 4, Supabase, Stripe, Resend and Google Calendar.
 
-First, run the development server:
+**Setup and handover: [`docs/SETUP.md`](docs/SETUP.md).** Read that before
+deploying or changing anything.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## What it does
+
+- **Books lessons online** against the instructor's real Google Calendar, with
+  a choice of deposit or full payment through Stripe and confirmation emails
+  carrying a calendar invite.
+- **Cannot double-book.** A Postgres exclusion constraint makes overlapping
+  bookings impossible at the database level, including the instructor's travel
+  buffer between lessons. Launch policy uses a simple 30-minute buffer.
+- **Heals itself.** A scheduled job releases abandoned holds, retries failed
+  calendar syncs and sends reminders.
+- **Simple for the instructor.** The admin screen has weekday presets, custom
+  time blocks, evening hours and one-off exceptions; ordinary appointments are
+  still blocked in Google Calendar.
+- **Fails closed on calendar reads.** If Google Calendar is unavailable, the
+  site pauses online slots rather than risk a paid double-booking.
+- **Degrades instead of breaking.** With no services configured it still runs
+  as a brochure site pointing at the phone. Each key you add switches on the
+  next capability.
+
+## Layout
+
+```
+app/
+  api/
+    availability/          Open slots for the calendar UI
+    bookings/              Create a booking; cancel via manage token
+    stripe/webhook/        The only thing that confirms a paid booking
+    admin/                 Session, bookings, working hours
+    cron/maintenance/      Scheduled self-healing job
+  book/                    The booking flow
+  booking/[token]/         The pupil's own booking page
+  admin/                   Instructor dashboard
+components/
+  BookingFlow.tsx          Three-step picker, slot recovery on conflict
+  NextAvailable.tsx        Live slots in the homepage hero
+  brand.tsx                Plate, containers, sections, primitives
+lib/
+  time.ts                  Timezone conversion. Read the notes before editing.
+  availability.ts          Pure slot computation, plus the database wrapper
+  config.ts                Single source of truth for the business
+  booking-service.ts       Calendar and email side effects
+supabase/migrations/       Schema, atomic functions, seed
+test/                      87 tests, no services required
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+npm test
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Do not run `npm run build` while `npm run dev` is running; they share `.next/`.
 
-## Learn More
+## Design
 
-To learn more about Next.js, take a look at the following resources:
+The design language comes from the logo, which already encodes the Irish
+learner journey: a red **L** on a white plate, then a red **N**. That plate is
+the repeating device across the site. Corners are sharp, there is one typeface
+(Archivo) at several weights, and red is structural rather than decorative: it
+marks the plate and the single primary action on a screen, nothing else.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Component CSS lives in `@layer components` so Tailwind utilities reliably
+override it. Putting it outside a layer means it wins on source order instead,
+which silently breaks things like `hidden sm:grid`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testing
 
-## Deploy on Vercel
+```bash
+npm test                 # 87 tests
+npm run test:coverage
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The suite concentrates on the places where a bug is expensive and invisible:
+timezone conversion across both Irish clock changes, slot generation against
+bookings, holds, calendar busy time and travel buffers, and admin session
+signing and expiry.

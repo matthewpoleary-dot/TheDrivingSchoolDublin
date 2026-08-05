@@ -1,114 +1,100 @@
-// app/api/contact/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
-import { z } from "zod/v4";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { sendEnquiryEmail } from "@/lib/email";
+import { clientIp, rateLimit } from "@/lib/auth";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
-const fromEmail = process.env.FROM_EMAIL!;
-const toEmail = process.env.ADI_EMAIL!;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const contactSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.email("Invalid email address"),
-  phone: z.string().optional(),
-  subject: z.string().optional(),
-  message: z.string().min(10, "Message must be at least 10 characters"),
-  company: z.string().optional(), // honeypot
+/**
+ * Contact enquiries.
+ *
+ * Stored first, emailed second. An enquiry that reaches the database is never
+ * lost, even if Resend is down, so nothing depends on an email being
+ * delivered for the instructor to eventually see it.
+ */
+
+const schema = z.object({
+  name: z.string().trim().min(2, "Please give your name").max(120),
+  email: z.string().trim().toLowerCase().email("That email does not look right").max(200),
+  phone: z.string().trim().max(30).optional().or(z.literal("")),
+  subject: z.string().trim().max(200).optional().or(z.literal("")),
+  message: z.string().trim().min(10, "Tell us a little more").max(4000),
+  // Honeypot: accept any value, then drop it silently below. Validating it
+  // to empty would reject the request and name the field in the response.
+  company: z.string().optional(),
 });
 
-// Simple in-memory rate limiting (per IP, 5 requests per minute)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT = 5;
-const RATE_WINDOW_MS = 60 * 1000; // 1 minute
+export async function POST(request: Request) {
+  const ip = clientIp(request);
 
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-
-  if (!entry || now > entry.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_WINDOW_MS });
-    return false;
-  }
-
-  if (entry.count >= RATE_LIMIT) {
-    return true;
-  }
-
-  entry.count++;
-  return false;
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    // Get IP for rate limiting
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-
-    if (isRateLimited(ip)) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        { status: 429 }
-      );
-    }
-
-    const body = await req.json();
-
-    // Validate with Zod
-    const result = contactSchema.safeParse(body);
-    if (!result.success) {
-      const firstError = result.error.issues[0]?.message || "Invalid form data";
-      return NextResponse.json({ error: firstError }, { status: 400 });
-    }
-
-    const { name, email, phone, subject, message, company } = result.data;
-
-    // Honeypot check - if filled, silently succeed (don't alert spammer)
-    if (company && company.trim().length > 0) {
-      return NextResponse.json({ success: true });
-    }
-
-    // Build email content
-    const timestamp = new Date().toLocaleString("en-IE", {
-      timeZone: "Europe/Dublin",
-      dateStyle: "full",
-      timeStyle: "short",
-    });
-
-    const emailSubject = subject?.trim()
-      ? `Contact Form: ${subject}`
-      : "New contact form submission";
-
-    const emailBody = [
-      `New message from ${name}`,
-      ``,
-      `From: ${name}`,
-      `Email: ${email}`,
-      phone ? `Phone: ${phone}` : null,
-      subject ? `Subject: ${subject}` : null,
-      ``,
-      `Message:`,
-      message,
-      ``,
-      `---`,
-      `Submitted: ${timestamp}`,
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    // Send email via Resend
-    await resend.emails.send({
-      from: `The Driving School Dublin <${fromEmail}>`,
-      to: toEmail,
-      replyTo: email,
-      subject: emailSubject,
-      text: emailBody,
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Contact form error:", error);
+  if (rateLimit(`contact:${ip}`, { limit: 5 })) {
     return NextResponse.json(
-      { error: "Failed to send message. Please try again." },
-      { status: 500 }
+      { error: "Too many messages. Please wait a minute." },
+      { status: 429 }
     );
   }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        error: "Please check the form",
+        fields: Object.fromEntries(
+          parsed.error.issues.map((i) => [i.path.join("."), i.message])
+        ),
+      },
+      { status: 400 }
+    );
+  }
+
+  const enquiry = parsed.data;
+
+  // Accept the honeypot silently so a bot cannot tell it was caught.
+  if (enquiry.company) {
+    return NextResponse.json({ ok: true });
+  }
+
+  let stored = false;
+  if (isSupabaseConfigured()) {
+    const { error } = await supabaseAdmin().from("enquiries").insert({
+      name: enquiry.name,
+      email: enquiry.email,
+      phone: enquiry.phone || null,
+      subject: enquiry.subject || null,
+      message: enquiry.message,
+    });
+
+    if (error) {
+      console.error("[contact] could not store enquiry:", error.message);
+    } else {
+      stored = true;
+    }
+  }
+
+  const emailResult = await sendEnquiryEmail({
+    name: enquiry.name,
+    email: enquiry.email,
+    phone: enquiry.phone,
+    subject: enquiry.subject,
+    message: enquiry.message,
+  });
+
+  // Only a total failure of both paths is worth telling the visitor about.
+  if (!stored && !emailResult.ok) {
+    return NextResponse.json(
+      { error: "We could not send that. Please ring or WhatsApp us instead." },
+      { status: 503 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
 }
