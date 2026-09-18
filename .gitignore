@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# redesign screenshot sweeps (regenerate with redesign/sweep.mjs)
+/redesign/shots/
