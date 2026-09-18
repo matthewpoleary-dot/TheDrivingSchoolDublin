@@ -1,7 +1,8 @@
 "use client";
-// components/MorphingNav.tsx — flat full-width bar at top, morphs to floating pill on scroll
+// components/MorphingNav.tsx — flat full-width bar at top, morphs into a floating plate on scroll
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowRight } from "@/components/lton/Icons";
 
 const SCROLL_THRESHOLD = 8;
 
@@ -27,60 +28,25 @@ export default function MorphingNav() {
   }, []);
 
   return (
-    <header
-      className="sticky top-0 z-40 w-full"
-      style={{
-        padding: scrolled ? "12px 16px" : "0",
-        transition: "padding 0.28s ease",
-      }}
-    >
-      <div
-        className={`nav-shell mx-auto flex items-center justify-between ${
-          scrolled ? "nav-pill" : "nav-flat"
-        }`}
-      >
-        {/* Logo */}
-        <Link
-          href="/"
-          className="text-[14px] md:text-[15px] font-semibold shrink-0"
-          style={{
-            color: "var(--ink)",
-            textDecoration: "none",
-            letterSpacing: "-0.2px",
-            position: "relative",
-            zIndex: 1,
-          }}
-          aria-label="The Driving School Dublin, Home"
-        >
-          The <span style={{ color: "var(--red)" }}>Driving</span> School
-          <span className="hidden sm:inline"> Dublin</span>
+    <header className="l-nav" data-scrolled={scrolled}>
+      <nav className="l-nav__shell" aria-label="Main">
+        <Link href="/" className="l-wordmark" aria-label="The Driving School Dublin, Home">
+          The Driving Schoo<b>L</b>
+          <br />
+          Dubli<b>N</b>
         </Link>
 
-        {/* Centre links — hidden on mobile */}
-        <div
-          className="hidden md:flex items-center"
-          style={{ gap: 28, position: "relative", zIndex: 1 }}
-        >
-          <Link href="/prices" className="nav-link">Prices</Link>
-          <Link href="/#process" className="nav-link">Process</Link>
-          <Link href="/#reviews" className="nav-link">Reviews</Link>
-          <Link href="/about" className="nav-link">About</Link>
+        <div className="l-nav__links">
+          <Link href="/prices" className="l-nav__link">Prices</Link>
+          <Link href="/#process" className="l-nav__link">Process</Link>
+          <Link href="/#reviews" className="l-nav__link">Reviews</Link>
+          <Link href="/about" className="l-nav__link">About</Link>
         </div>
 
-        {/* Right CTA */}
-        <Link
-          href="/book"
-          className="btn-primary shrink-0"
-          style={{
-            padding: "9px 18px",
-            fontSize: 13,
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
-          Book a lesson →
+        <Link href="/book" className="l-btn l-btn--red">
+          Book a lesson <ArrowRight size={16} />
         </Link>
-      </div>
+      </nav>
     </header>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-// components/RotatingWord.tsx — cycles through a list of words with a fade transition
+// components/RotatingWord.tsx — cycles through a list of words with a lift-and-blur transition
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -23,6 +23,7 @@ export default function RotatingWord({
 
   useEffect(() => {
     if (words.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let ticks = 0;
     const id = setInterval(() => {
       setFading(true);
@@ -39,7 +40,8 @@ export default function RotatingWord({
 
   return (
     <span
-      className={`rotating-word ${fading ? "fading" : ""} ${className}`}
+      key={idx}
+      className={`rotating-word ${fading ? "fading" : "entering"} ${className}`}
       style={style}
       aria-live="polite"
     >

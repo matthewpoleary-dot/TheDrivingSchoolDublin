@@ -1,8 +1,16 @@
 // app/layout.tsx
 import "./globals.css";
+import "./lton.css";
 import Link from "next/link";
-import { Inter, Instrument_Serif } from "next/font/google";
+import { Archivo, Inter, Instrument_Serif } from "next/font/google";
 import MorphingNav from "@/components/MorphingNav";
+
+const archivo = Archivo({
+  subsets: ["latin"],
+  axes: ["wdth"],
+  variable: "--font-archivo",
+  display: "swap",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,9 +42,39 @@ export const metadata = {
   },
 };
 
+const FOOTER_COLUMNS = [
+  {
+    label: "Lessons",
+    links: [
+      { label: "Prices", href: "/prices" },
+      { label: "Book a lesson", href: "/book" },
+      { label: "Reviews", href: "/#reviews" },
+    ],
+  },
+  {
+    label: "Company",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    label: "Contact",
+    links: [
+      { label: "+353 86 0235 666", href: "tel:+353860235666" },
+      { label: "Email", href: "mailto:thedrivingschooldublin@gmail.com" },
+      { label: "WhatsApp", href: "https://wa.me/353860235666" },
+    ],
+  },
+  {
+    label: "Hours",
+    links: [{ label: "Mon to Sat, 8am to 6pm", href: "/contact" }],
+  },
+];
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" className={`${archivo.variable} ${inter.variable} ${instrumentSerif.variable}`}>
       <body className={`${inter.className} min-h-screen antialiased`}>
 
         {/* ── Morphing nav ─────────────────────────────────────────────────── */}
@@ -48,81 +86,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
 
         {/* ── Footer ───────────────────────────────────────────────────────── */}
-        <footer style={{ background: "#F6F3EE", color: "var(--ink)" }}>
-          <div className="mx-auto" style={{ maxWidth: 1200, padding: "72px 22px 0" }}>
+        <footer className="l-footer">
+          <div className="l-footer__inner">
+            <p className="l-footer__mark" aria-label="The Driving School Dublin">
+              The<br />Driving<br />Schoo<b>L</b><br />Dubli<b>N</b>
+            </p>
+            <p className="l-footer__tag">
+              RSA-approved ADI. Manual and automatic lessons across Dublin.
+              EDT programmes, pre-test sessions, and car hire.
+            </p>
 
-            {/* Brand + tagline */}
-            <div style={{ marginBottom: 56 }}>
-              <div className="text-[18px] font-semibold mb-3" style={{ letterSpacing: "-0.2px" }}>
-                The <span style={{ color: "var(--red)" }}>Driving</span> School Dublin
-              </div>
-              <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 460 }}>
-                RSA-approved ADI. Manual and automatic lessons across Dublin.
-                EDT programmes, pre-test sessions, and car hire.
-              </p>
-            </div>
-
-            {/* Link columns */}
-            <div
-              className="grid grid-cols-2 md:grid-cols-4"
-              style={{ gap: 32, paddingBottom: 48 }}
-            >
-              {[
-                {
-                  label: "Lessons",
-                  links: [
-                    { label: "Prices", href: "/prices" },
-                    { label: "Book a lesson", href: "/book" },
-                    { label: "Reviews", href: "/#reviews" },
-                  ],
-                },
-                {
-                  label: "Company",
-                  links: [
-                    { label: "About", href: "/about" },
-                    { label: "Contact", href: "/contact" },
-                  ],
-                },
-                {
-                  label: "Contact",
-                  links: [
-                    { label: "+353 86 0235 666", href: "tel:+353860235666" },
-                    { label: "Email", href: "mailto:thedrivingschooldublin@gmail.com" },
-                    { label: "WhatsApp", href: "https://wa.me/353860235666" },
-                  ],
-                },
-                {
-                  label: "Hours",
-                  links: [{ label: "Mon to Sat, 8am to 6pm", href: "/contact" }],
-                },
-              ].map((col) => (
+            <div className="l-footer__cols">
+              {FOOTER_COLUMNS.map((col) => (
                 <div key={col.label}>
-                  <p
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: "0.8px",
-                      textTransform: "uppercase",
-                      color: "var(--ink-3)",
-                      marginBottom: 16,
-                    }}
-                  >
-                    {col.label}
-                  </p>
-                  <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                  <p className="l-footer__label">{col.label}</p>
+                  <ul>
                     {col.links.map((l) => (
                       <li key={l.href + l.label}>
-                        <Link
-                          href={l.href}
-                          style={{
-                            fontSize: 13,
-                            color: "var(--ink-2)",
-                            textDecoration: "none",
-                            transition: "color 0.15s",
-                          }}
-                        >
-                          {l.label}
-                        </Link>
+                        <Link href={l.href}>{l.label}</Link>
                       </li>
                     ))}
                   </ul>
@@ -130,21 +111,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               ))}
             </div>
 
-            {/* Copyright bar */}
-            <div
-              className="flex flex-col md:flex-row md:items-center md:justify-between"
-              style={{
-                padding: "20px 0 28px",
-                gap: 8,
-                borderTop: "1px solid rgba(10,10,10,0.08)",
-              }}
-            >
-              <p style={{ fontSize: 12, color: "var(--ink-3)" }}>
-                © {new Date().getFullYear()} The Driving School Dublin. All rights reserved.
-              </p>
-              <p style={{ fontSize: 12, color: "var(--ink-3)" }}>
-                RSA-approved Approved Driving Instructor · Dublin, Ireland
-              </p>
+            <div className="l-footer__base">
+              <p>© {new Date().getFullYear()} The Driving School Dublin. All rights reserved.</p>
+              <p>RSA-approved Approved Driving Instructor · Dublin, Ireland</p>
             </div>
           </div>
         </footer>
