@@ -1,4 +1,6 @@
-// components/FAQ.tsx — hairline rows with +/× toggle, no cards
+// components/FAQ.tsx — ruled rows with a +/× plate toggle, no cards
+import { Plus } from "@/components/lton/Icons";
+
 type FAQItem = {
   question: string;
   answer: string;
@@ -39,96 +41,20 @@ const FAQ_ITEMS: FAQItem[] = [
 
 export default function FAQ() {
   return (
-    <section>
-      {/* Heading */}
-      <h2
-        style={{
-          fontFamily: "var(--font-instrument-serif), Georgia, serif",
-          fontWeight: 400,
-          fontSize: "clamp(40px, 5vw, 64px)",
-          lineHeight: 1.05,
-          letterSpacing: "-1px",
-          marginBottom: 14,
-          color: "var(--ink)",
-          textAlign: "center",
-        }}
-      >
-        Asked, <em style={{ fontStyle: "italic" }}>answered.</em>
-      </h2>
-      <p
-        style={{
-          fontSize: 16,
-          letterSpacing: "-0.1px",
-          color: "var(--ink-2)",
-          marginBottom: 44,
-          textAlign: "center",
-        }}
-      >
-        Everything you need to know about our lessons.
-      </p>
+    <section aria-labelledby="faq-title">
+      <div className="l-group__head">
+        <h2 id="faq-title" className="l-display l-h2">Asked, answered.</h2>
+        <p className="l-body">Everything you need to know about our lessons.</p>
+      </div>
 
-      {/* Hairline rows */}
-      <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        {FAQ_ITEMS.map((item, i, arr) => (
-          <details
-            key={i}
-            className="faq-row group"
-            style={{
-              padding: "24px 0",
-              borderTop: "1px solid var(--rule)",
-              borderBottom: i === arr.length - 1 ? "1px solid var(--rule)" : "none",
-            }}
-          >
-            <summary
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-                cursor: "pointer",
-                listStyle: "none",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 17,
-                  fontWeight: 500,
-                  color: "var(--ink)",
-                  letterSpacing: "-0.2px",
-                }}
-              >
-                {item.question}
-              </span>
-              <span
-                className="faq-toggle"
-                aria-hidden="true"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 28,
-                  height: 28,
-                  flexShrink: 0,
-                  color: "var(--ink-2)",
-                  transition: "transform 0.22s ease, color 0.22s ease",
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </span>
+      <div className="l-faq">
+        {FAQ_ITEMS.map((item) => (
+          <details key={item.question} className="faq-row">
+            <summary>
+              <span>{item.question}</span>
+              <span className="l-faq__icon" aria-hidden="true"><Plus /></span>
             </summary>
-            <p
-              style={{
-                marginTop: 16,
-                fontSize: 15,
-                lineHeight: 1.65,
-                color: "var(--ink-2)",
-                paddingRight: 40,
-              }}
-            >
-              {item.answer}
-            </p>
+            <p className="l-faq__answer">{item.answer}</p>
           </details>
         ))}
       </div>

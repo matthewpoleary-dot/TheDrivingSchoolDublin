@@ -34,7 +34,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: var(--font-archivo), -apple-system, BlinkMacSystemFont, sans-serif;
   --font-serif: var(--font-instrument-serif), Georgia, serif;
 }
 
@@ -155,35 +155,6 @@ html, body {
 }
 @media (prefers-reduced-motion: reduce) {
   .bar-enter, .rotating-word.entering { animation: none; }
-}
-
-/* ─── FAQ row toggle (+ rotates to ×) ─────────────────────────────────────── */
-.faq-row summary::-webkit-details-marker { display: none; }
-.faq-row[open] .faq-toggle {
-  transform: rotate(45deg);
-  color: var(--red);
-}
-
-/* ─── Service select row ──────────────────────────────────────────────────── */
-.service-row:hover .service-arrow {
-  background: var(--red);
-  border-color: var(--red);
-  color: white;
-}
-
-/* ─── Date cards (calendar) ───────────────────────────────────────────────── */
-.date-card-available:hover {
-  background: #D6EBDB !important;
-  border-color: #3E8E51 !important;
-}
-
-/* Time-slot pill hover */
-.time-pill:hover {
-  border-color: var(--red) !important;
-  color: var(--red) !important;
-}
-.time-pill:hover[style*="var(--red)"] {
-  color: white !important;
 }
 
 /* ─── Nav link ────────────────────────────────────────────────────────────── */

@@ -2,6 +2,12 @@
 import ContactForm from "@/components/ContactForm";
 import ContactOptions from "@/components/ContactOptions";
 
+const RESPONSE_TIMES = [
+  { label: "WhatsApp", text: "Usually within minutes" },
+  { label: "Call", text: "9am to 6pm, Mon to Sat" },
+  { label: "Email/Form", text: "Same day reply" },
+];
+
 export default function Contact() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -15,53 +21,35 @@ export default function Contact() {
   };
 
   return (
-    <>
-      <section className="space-y-12">
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <p className="text-sm font-semibold text-red-600 uppercase tracking-wider">Contact</p>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
-            Get in touch
-          </h1>
-          <p className="text-lg text-slate-600">
-            Quick reply — usually within a few hours during business hours.
-          </p>
-        </div>
+    <div className="l-page">
+      <header className="l-intro">
+        <h1 className="l-display l-h1">Get in touch.</h1>
+        <p className="l-lede">Quick reply, usually within a few hours during business hours.</p>
+      </header>
 
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
-          {/* Form */}
-          <div className="order-1">
-            <div className="rounded-2xl bg-white p-7 lg:p-10 shadow-md ring-1 ring-slate-100">
-              <h2 className="text-xl font-bold text-slate-900 mb-1">Send us a message</h2>
-              <p className="text-sm text-slate-500 mb-6">
-                Fill out the form and we&apos;ll be in touch shortly.
-              </p>
-              <ContactForm />
-            </div>
+      <section className="l-group" style={{ paddingTop: 0 }}>
+        <div className="l-split">
+          <div className="l-panel">
+            <h2 className="l-h3" style={{ fontSize: 30 }}>Send us a message.</h2>
+            <p className="l-hint" style={{ margin: "8px 0 22px" }}>
+              Fill out the form and we&apos;ll be in touch shortly.
+            </p>
+            <ContactForm />
           </div>
 
-          {/* Options */}
-          <div className="order-2 space-y-5">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 mb-1">Or reach out directly</h2>
-              <p className="text-sm text-slate-500 mb-5">Skip the form — message us live.</p>
-              <ContactOptions />
-            </div>
+          <div>
+            <h2 className="l-h3" style={{ fontSize: 30 }}>Or reach out directly.</h2>
+            <p className="l-hint" style={{ margin: "8px 0 18px" }}>Skip the form and message us live.</p>
+            <ContactOptions />
 
-            <div className="rounded-2xl bg-slate-50 p-6">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Response times</h3>
-              <ul className="space-y-2.5 text-sm text-slate-600">
-                <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 mt-1 w-1.5 h-1.5 rounded-full bg-red-600" />
-                  <span><strong className="text-slate-900">WhatsApp:</strong> Usually within minutes</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 mt-1 w-1.5 h-1.5 rounded-full bg-red-600" />
-                  <span><strong className="text-slate-900">Call:</strong> 9am–6pm Mon–Sat</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 mt-1 w-1.5 h-1.5 rounded-full bg-red-600" />
-                  <span><strong className="text-slate-900">Email/Form:</strong> Same day reply</span>
-                </li>
+            <div style={{ marginTop: 28 }}>
+              <h3 className="l-label" style={{ fontSize: 17, marginBottom: 10 }}>Response times</h3>
+              <ul className="l-list">
+                {RESPONSE_TIMES.map((r) => (
+                  <li key={r.label}>
+                    <span><strong>{r.label}:</strong> <span style={{ fontWeight: 500 }}>{r.text}</span></span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -72,6 +60,6 @@ export default function Contact() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </>
+    </div>
   );
 }

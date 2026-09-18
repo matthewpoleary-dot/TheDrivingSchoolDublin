@@ -16,8 +16,6 @@ type FormErrors = Partial<Record<keyof FormData, string>>;
 
 const initialData: FormData = { name: "", email: "", phone: "", subject: "", message: "", company: "" };
 
-const inputBase =
-  "w-full rounded-xl bg-slate-50 px-4 py-3 text-slate-900 placeholder:text-slate-400 ring-0 border-0 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 transition";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState<FormData>(initialData);
@@ -70,15 +68,15 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="l-form">
       {status === "success" && (
-        <div className="rounded-xl bg-green-50 ring-1 ring-green-200 p-4 text-sm text-green-800">
-          <strong>Message sent!</strong> We&apos;ll get back to you soon.
+        <div className="l-notice l-notice--ok" role="status">
+          <span><strong>Message sent!</strong> We&apos;ll get back to you soon.</span>
         </div>
       )}
       {status === "error" && (
-        <div className="rounded-xl bg-red-50 ring-1 ring-red-200 p-4 text-sm text-red-800">
-          <strong>Error:</strong> {errorMessage}
+        <div className="l-notice l-notice--error" role="alert">
+          <span><strong>Error:</strong> {errorMessage}</span>
         </div>
       )}
 
@@ -89,80 +87,83 @@ export default function ContactForm() {
           onChange={(e) => handleChange("company", e.target.value)} tabIndex={-1} autoComplete="off" />
       </div>
 
-      <div>
-        <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-1.5">
-          Full Name <span className="text-red-500">*</span>
+      <div className="l-field">
+        <label htmlFor="name" className="l-label">
+          Full Name <i aria-hidden="true">*</i>
         </label>
         <input
-          type="text" id="name" value={formData.name}
+          type="text" id="name" value={formData.name} autoComplete="name"
           onChange={(e) => handleChange("name", e.target.value)}
-          className={`${inputBase} ${errors.name ? "ring-2 ring-red-400" : ""}`}
+          className="l-input" aria-invalid={!!errors.name}
+          aria-describedby={errors.name ? "name-error" : undefined}
           placeholder="John Smith"
         />
-        {errors.name && <p className="mt-1.5 text-sm text-red-600">{errors.name}</p>}
+        {errors.name && <p id="name-error" className="l-error">{errors.name}</p>}
       </div>
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-1.5">
-          Email <span className="text-red-500">*</span>
+      <div className="l-field">
+        <label htmlFor="email" className="l-label">
+          Email <i aria-hidden="true">*</i>
         </label>
         <input
-          type="email" id="email" value={formData.email}
+          type="email" id="email" value={formData.email} autoComplete="email" inputMode="email"
           onChange={(e) => handleChange("email", e.target.value)}
-          className={`${inputBase} ${errors.email ? "ring-2 ring-red-400" : ""}`}
+          className="l-input" aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "email-error" : undefined}
           placeholder="john@example.com"
         />
-        {errors.email && <p className="mt-1.5 text-sm text-red-600">{errors.email}</p>}
+        {errors.email && <p id="email-error" className="l-error">{errors.email}</p>}
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-5">
-        <div>
-          <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 mb-1.5">
-            Phone <span className="text-slate-400 font-normal">(optional)</span>
+      <div className="grid sm:grid-cols-2 gap-[18px]">
+        <div className="l-field">
+          <label htmlFor="phone" className="l-label">
+            Phone <em>(optional)</em>
           </label>
           <input
-            type="tel" id="phone" value={formData.phone}
+            type="tel" id="phone" value={formData.phone} autoComplete="tel"
             onChange={(e) => handleChange("phone", e.target.value)}
-            className={inputBase}
+            className="l-input"
             placeholder="+353 86 123 4567"
           />
         </div>
-        <div>
-          <label htmlFor="subject" className="block text-sm font-semibold text-slate-700 mb-1.5">
-            Subject <span className="text-slate-400 font-normal">(optional)</span>
+        <div className="l-field">
+          <label htmlFor="subject" className="l-label">
+            Subject <em>(optional)</em>
           </label>
           <input
             type="text" id="subject" value={formData.subject}
             onChange={(e) => handleChange("subject", e.target.value)}
-            className={inputBase}
+            className="l-input"
             placeholder="e.g. EDT lessons, Pre-test"
           />
         </div>
       </div>
 
-      <div>
-        <label htmlFor="message" className="block text-sm font-semibold text-slate-700 mb-1.5">
-          Message <span className="text-red-500">*</span>
+      <div className="l-field">
+        <label htmlFor="message" className="l-label">
+          Message <i aria-hidden="true">*</i>
         </label>
         <textarea
           id="message" value={formData.message}
           onChange={(e) => handleChange("message", e.target.value)}
           rows={5}
-          className={`${inputBase} resize-none ${errors.message ? "ring-2 ring-red-400" : ""}`}
+          className="l-input" aria-invalid={!!errors.message}
+          aria-describedby={errors.message ? "message-error" : undefined}
           placeholder="Tell us about your requirements..."
         />
-        {errors.message && <p className="mt-1.5 text-sm text-red-600">{errors.message}</p>}
+        {errors.message && <p id="message-error" className="l-error">{errors.message}</p>}
       </div>
 
       <button
         type="submit"
         disabled={status === "sending"}
-        className="btn-primary w-full text-base disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
+        className="l-btn l-btn--red l-btn--lg l-btn--block"
       >
         {status === "sending" ? "Sending…" : "Send message"}
       </button>
 
-      <p className="text-xs text-slate-500 text-center">
+      <p className="l-hint" style={{ textAlign: "center" }}>
         We typically respond within a few hours during business hours.
       </p>
     </form>

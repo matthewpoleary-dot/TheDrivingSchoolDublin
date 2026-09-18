@@ -1,5 +1,6 @@
 // app/reviews/page.tsx
 import Link from "next/link";
+import { ArrowRight, Star } from "@/components/lton/Icons";
 
 type Review = {
   name: string;
@@ -18,7 +19,7 @@ const REVIEWS: Review[] = [
     date: "2026-01-05",
     rating: 5,
     text:
-      "Conor is a fantastic driving instructor who made the whole process of learning and passing my test so much easier. He knows the test inside out and gives you clear, practical guidance on exactly what examiners are looking for, while also making sure you're learning the skills you'll actually need to be a safe, confident driver in everyday life. His patience and calm approach mean you never feel pressured — mistakes are just opportunities to learn, and he explains everything in a way that sticks. Each lesson was well-structured, packed with useful tips, and his mock tests were so accurate they made the real exam feel familiar. Thanks to his expert teaching I passed first time. If you're looking for someone who'll not only get you through the test but also teach you how to drive properly for the long run, Conor is the instructor you want.",
+      "Conor is a fantastic driving instructor who made the whole process of learning and passing my test so much easier. He knows the test inside out and gives you clear, practical guidance on exactly what examiners are looking for, while also making sure you're learning the skills you'll actually need to be a safe, confident driver in everyday life. His patience and calm approach mean you never feel pressured: mistakes are just opportunities to learn, and he explains everything in a way that sticks. Each lesson was well-structured, packed with useful tips, and his mock tests were so accurate they made the real exam feel familiar. Thanks to his expert teaching I passed first time. If you're looking for someone who'll not only get you through the test but also teach you how to drive properly for the long run, Conor is the instructor you want.",
   },
   {
     name: "David Downes",
@@ -36,26 +37,16 @@ const REVIEWS: Review[] = [
   },
 ];
 
-const SECTION_STYLE: React.CSSProperties = {
-  padding: "64px 22px",
-  borderTop: "1px solid var(--rule)",
-};
-
 export const metadata = {
   title: "Reviews | The Driving School Dublin",
   description:
     "Real Google reviews from Dublin learners who passed their test with Conor at The Driving School Dublin.",
 };
 
-// Star row using SVG, brand red
-function Stars({ count }: { count: number }) {
+function Stars({ count, size = 16 }: { count: number; size?: number }) {
   return (
-    <span style={{ display: "inline-flex", gap: 3 }} aria-label={`${count} out of 5 stars`}>
-      {Array.from({ length: count }).map((_, i) => (
-        <svg key={i} width="14" height="14" viewBox="0 0 20 20" fill="var(--red)" aria-hidden="true">
-          <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L10 14.77l-5.2 2.74.99-5.79L1.58 7.62l5.82-.85L10 1.5z" />
-        </svg>
-      ))}
+    <span className="l-rating__stars" role="img" aria-label={`${count} out of 5 stars`}>
+      {Array.from({ length: count }).map((_, i) => <Star key={i} size={size} />)}
     </span>
   );
 }
@@ -82,180 +73,52 @@ export default function ReviewsPage() {
   };
 
   return (
-    <>
-      {/* Header */}
-      <div style={{ padding: "64px 22px 48px" }}>
-        <div className="section-label">
-          <span className="num">—</span> Reviews
-        </div>
-        <h1
-          style={{
-            fontFamily: "var(--font-instrument-serif), Georgia, serif",
-            fontWeight: 400,
-            fontSize: "clamp(48px, 7vw, 88px)",
-            lineHeight: 1.02,
-            letterSpacing: "-2px",
-            marginBottom: 18,
-            color: "var(--ink)",
-          }}
-        >
-          From <em style={{ fontStyle: "italic" }}>real learners.</em>
-        </h1>
-        <p
-          style={{
-            fontSize: 17,
-            lineHeight: 1.55,
-            letterSpacing: "-0.1px",
-            color: "var(--ink-2)",
-            maxWidth: 480,
-            marginBottom: 12,
-          }}
-        >
-          Verified Google reviews from Dublin learners who passed with Conor.
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
-          <Stars count={5} />
-          <span style={{ fontSize: 14, color: "var(--ink-2)" }}>
-            5.0 average · sourced from{" "}
-            <a
-              href={GOOGLE_REVIEWS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "var(--red)", textDecoration: "underline", textUnderlineOffset: 3 }}
-            >
-              Google
-            </a>
+    <div className="l-page">
+      <header className="l-intro">
+        <h1 className="l-display l-h1">From real learners.</h1>
+        <p className="l-lede">Verified Google reviews from Dublin learners who passed with Conor.</p>
+        <a className="l-rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" style={{ maxWidth: 520, marginBottom: 0 }}>
+          <span className="l-rating__score l-num">5.0</span>
+          <Stars count={5} size={18} />
+          <span className="l-rating__count">
+            average <span>Sourced from Google</span>
           </span>
-        </div>
-      </div>
+        </a>
+      </header>
 
-      {/* Reviews */}
-      <section style={SECTION_STYLE}>
-        {REVIEWS.map((r, i) => (
-          <article
-            key={r.name}
-            style={{
-              padding: "40px 0",
-              borderTop: i === 0 ? "1px solid var(--rule)" : "none",
-              borderBottom: "1px solid var(--rule)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+      <section className="l-group" style={{ paddingTop: 8 }} aria-label="Reviews">
+        {REVIEWS.map((r) => (
+          <article key={r.name} className="l-review">
+            <div className="l-review__meta">
               <Stars count={r.rating} />
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: "0.8px",
-                  textTransform: "uppercase",
-                  color: "var(--ink-3)",
-                }}
-              >
+              <span>
                 {new Date(r.date).toLocaleDateString("en-IE", { month: "long", year: "numeric" })}
               </span>
             </div>
-
-            <p
-              style={{
-                fontSize: 18,
-                lineHeight: 1.55,
-                color: "var(--ink)",
-                marginBottom: 20,
-                maxWidth: 720,
-              }}
-            >
-              &ldquo;{r.text}&rdquo;
+            <p className="l-review__text">&ldquo;{r.text}&rdquo;</p>
+            <p className="l-review__who">
+              {r.name}
+              {r.badge && <span className="l-tag">{r.badge}</span>}
             </p>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                fontSize: 14,
-                color: "var(--ink-2)",
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-block",
-                  width: 24,
-                  height: 1,
-                  background: "var(--ink)",
-                  flexShrink: 0,
-                }}
-              />
-              <span style={{ fontWeight: 500, color: "var(--ink)" }}>{r.name}</span>
-              {r.badge && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.6px",
-                    textTransform: "uppercase",
-                    color: "var(--red)",
-                    border: "1px solid var(--red)",
-                    borderRadius: 100,
-                    padding: "3px 8px",
-                    lineHeight: 1,
-                  }}
-                >
-                  {r.badge}
-                </span>
-              )}
-            </div>
           </article>
         ))}
       </section>
 
-      {/* Closing CTA */}
-      <section
-        style={{
-          borderTop: "1px solid var(--rule)",
-          padding: "72px 22px 64px",
-          textAlign: "center",
-        }}
-      >
-        <h2
-          style={{
-            fontFamily: "var(--font-instrument-serif), Georgia, serif",
-            fontWeight: 400,
-            fontSize: "clamp(36px, 4vw, 56px)",
-            lineHeight: 1.05,
-            letterSpacing: "-1px",
-            marginBottom: 16,
-            color: "var(--ink)",
-          }}
-        >
-          Ready to <em style={{ fontStyle: "italic" }}>join them?</em>
-        </h2>
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            justifyContent: "center",
-            marginTop: 24,
-            flexWrap: "wrap",
-          }}
-        >
-          <Link href="/book" className="btn-primary">Book a lesson</Link>
-          <Link href="/prices" className="btn-ghost">View prices</Link>
+      <section className="l-close" aria-labelledby="close-title">
+        <h2 id="close-title" className="l-display l-h2" style={{ marginTop: 0 }}>Ready to join them?</h2>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 26 }}>
+          <Link href="/book" className="l-btn l-btn--red l-btn--lg">
+            Book a lesson <ArrowRight />
+          </Link>
+          <Link href="/prices" className="l-btn l-btn--line l-btn--lg">View prices</Link>
         </div>
-        <p style={{ marginTop: 28, fontSize: 13, color: "var(--ink-3)" }}>
+        <p className="l-body" style={{ marginTop: 24, marginBottom: 0, fontSize: 15 }}>
           See all reviews on{" "}
-          <a
-            href={GOOGLE_REVIEWS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--red)", textDecoration: "underline", textUnderlineOffset: 3 }}
-          >
-            Google
-          </a>
-          .
+          <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" className="l-link">Google</a>.
         </p>
       </section>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-    </>
+    </div>
   );
 }

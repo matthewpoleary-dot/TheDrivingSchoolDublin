@@ -1,8 +1,9 @@
 "use client";
-// app/book/[token]/page.tsx — EDT package holder session booking
+// app/book/[token]/page.tsx: EDT package holder session booking
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import BookingCalendar, { type Slot } from "@/components/BookingCalendar";
+import FlipPlate from "@/components/lton/FlipPlate";
 import { format } from "date-fns";
 
 type PackageData = {
@@ -70,50 +71,57 @@ export default function EdtBookingPage({ params }: Props) {
     }
   }
 
+
   if (loadingPkg) {
     return (
-      <div className="mx-auto max-w-xl py-16 text-center">
-        <p className="text-gray-500">Loading your package…</p>
+      <div className="l-page l-result" style={{ textAlign: "center" }} role="status">
+        <p className="l-body">Loading your package…</p>
       </div>
     );
   }
 
   if (pkgError || !pkg) {
     return (
-      <div className="mx-auto max-w-xl py-16 text-center space-y-4">
-        <p className="text-red-600 font-medium">{pkgError || "Package not found."}</p>
-        <Link href="/contact" className="text-sm text-red-600 underline">Contact us for help</Link>
+      <div className="l-page l-result">
+        <p className="l-notice l-notice--error" role="alert">{pkgError || "Package not found."}</p>
+        <p style={{ marginTop: 18 }}>
+          <Link href="/contact" className="l-link">Contact us for help</Link>
+        </p>
       </div>
     );
   }
 
   if (pkg.expired) {
     return (
-      <section className="mx-auto max-w-xl space-y-4">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center space-y-3">
-          <h1 className="text-xl font-extrabold text-amber-900">Package Expired</h1>
-          <p className="text-sm text-amber-800">
-            Hi {pkg.customer_name} — your {pkg.lessons_total}-lesson package expired on {pkg.expires_at}.
-          </p>
-          <p className="text-sm text-amber-800">
-            You used {pkg.lessons_used} of {pkg.lessons_total} lessons.
-            <Link href="/contact" className="ml-1 underline">Contact us</Link> to discuss an extension.
-          </p>
+      <section className="l-page l-result">
+        <div className="l-result__mark l-result__mark--warn" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="11" stroke="currentColor" strokeWidth="3.5" />
+            <path d="M16 10v7l4 3" stroke="currentColor" strokeWidth="3.5" />
+          </svg>
         </div>
+        <h1 className="l-display l-h2">Package Expired</h1>
+        <p className="l-lede">
+          Hi {pkg.customer_name}, your {pkg.lessons_total}-lesson package expired on {pkg.expires_at}.
+        </p>
+        <p className="l-body" style={{ marginTop: 12 }}>
+          You used {pkg.lessons_used} of {pkg.lessons_total} lessons.{" "}
+          <Link href="/contact" className="l-link">Contact us</Link> to discuss an extension.
+        </p>
       </section>
     );
   }
 
   if (pkg.remaining === 0) {
     return (
-      <section className="mx-auto max-w-xl space-y-4">
-        <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center space-y-3">
-          <div className="text-4xl">🎉</div>
-          <h1 className="text-xl font-extrabold text-green-900">Package Complete!</h1>
-          <p className="text-sm text-green-800">
-            Hi {pkg.customer_name} — you&apos;ve completed all {pkg.lessons_total} EDT lessons. Well done!
-          </p>
-          <Link href="/contact" className="text-sm text-red-600 underline">Book additional lessons</Link>
+      <section className="l-page l-result" style={{ textAlign: "center" }}>
+        <FlipPlate />
+        <h1 className="l-display l-h2" style={{ marginTop: 26 }}>Package Complete!</h1>
+        <p className="l-lede" style={{ margin: "0 auto" }}>
+          Hi {pkg.customer_name}, you&apos;ve completed all {pkg.lessons_total} EDT lessons. Well done!
+        </p>
+        <div className="l-result__actions" style={{ justifyContent: "center" }}>
+          <Link href="/contact" className="l-btn l-btn--red l-btn--lg">Book additional lessons</Link>
         </div>
       </section>
     );
@@ -121,19 +129,22 @@ export default function EdtBookingPage({ params }: Props) {
 
   if (booked && bookedSlot) {
     return (
-      <section className="mx-auto max-w-xl space-y-4">
-        <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center space-y-4">
-          <div className="text-4xl">✅</div>
-          <h1 className="text-xl font-extrabold text-green-900">Session booked!</h1>
-          <p className="text-sm text-green-800">
-            {bookedSlot.date} · {bookedSlot.start_time.slice(0, 5)}–{bookedSlot.end_time.slice(0, 5)}
-          </p>
-          <p className="text-sm text-green-800">
-            A confirmation has been sent to {pkg.customer_email}.
-          </p>
-          <p className="text-sm text-green-700 font-medium">
-            Lessons remaining: {pkg.remaining - 1} of {pkg.lessons_total}
-          </p>
+      <section className="l-page l-result">
+        <div className="l-result__mark l-result__mark--ok" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+            <path d="M6 18l7.5 7L28 9" stroke="currentColor" strokeWidth="4.5" />
+          </svg>
+        </div>
+        <h1 className="l-display l-h2">Session booked!</h1>
+        <dl className="l-facts">
+          <div>
+            <dt>When</dt>
+            <dd className="l-num">{bookedSlot.date} · {bookedSlot.start_time.slice(0, 5)}–{bookedSlot.end_time.slice(0, 5)}</dd>
+          </div>
+          <div><dt>Confirmation sent to</dt><dd>{pkg.customer_email}</dd></div>
+          <div><dt>Lessons remaining</dt><dd className="l-num">{pkg.remaining - 1} of {pkg.lessons_total}</dd></div>
+        </dl>
+        <div className="l-result__actions">
           <button
             onClick={() => {
               setBooked(false);
@@ -145,7 +156,7 @@ export default function EdtBookingPage({ params }: Props) {
                 .then((data: PackageData) => setPkg(data))
                 .finally(() => setLoadingPkg(false));
             }}
-            className="mt-2 rounded-lg border px-5 py-2.5 text-sm font-medium hover:bg-green-100 transition"
+            className="l-btn l-btn--line l-btn--lg"
           >
             Book another session
           </button>
@@ -155,57 +166,57 @@ export default function EdtBookingPage({ params }: Props) {
   }
 
   return (
-    <section className="mx-auto max-w-2xl space-y-6">
-      <div className="bg-slate-50 rounded-2xl px-6 py-6 space-y-1">
-        <h1 className="text-2xl font-extrabold tracking-tight">Book your next EDT session</h1>
-        <p className="text-slate-600">Hi {pkg.customer_name} — pick an available slot below.</p>
-      </div>
+    <section className="l-page l-flow">
+      <h1 className="l-display l-h2">Book your next EDT session.</h1>
+      <p className="l-lede">Hi {pkg.customer_name}, pick an available slot below.</p>
 
       {/* Package status */}
-      <div className="rounded-2xl border bg-white p-5 flex flex-wrap gap-6 text-sm">
-        <div className="text-center">
-          <p className="text-2xl font-extrabold text-[#d90429]">{pkg.remaining}</p>
-          <p className="text-gray-500">lessons remaining</p>
+      <div className="l-counters" style={{ margin: "24px 0" }}>
+        <div className="is-key">
+          <strong>{pkg.remaining}</strong>
+          <span>lessons remaining</span>
         </div>
-        <div className="text-center">
-          <p className="text-2xl font-extrabold text-gray-800">{pkg.lessons_used}</p>
-          <p className="text-gray-500">completed</p>
+        <div>
+          <strong>{pkg.lessons_used}</strong>
+          <span>completed</span>
         </div>
-        <div className="text-center">
-          <p className="text-2xl font-extrabold text-gray-800">{pkg.lessons_total}</p>
-          <p className="text-gray-500">total</p>
+        <div>
+          <strong>{pkg.lessons_total}</strong>
+          <span>total</span>
         </div>
-        <div className="text-center">
-          <p className="text-sm font-semibold text-gray-700">{pkg.expires_at}</p>
-          <p className="text-gray-500">package expires</p>
+        <div className="l-counters__wide">
+          <span>package expires</span>
+          <strong className="l-num">{pkg.expires_at}</strong>
         </div>
       </div>
 
       {pkg.active_sessions >= 2 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          You already have {pkg.active_sessions} upcoming session{pkg.active_sessions > 1 ? "s" : ""} scheduled.
-          Please attend a session before booking more.
+        <div className="l-notice" role="status">
+          <span>
+            You already have {pkg.active_sessions} upcoming session{pkg.active_sessions > 1 ? "s" : ""} scheduled.
+            Please attend a session before booking more.
+          </span>
         </div>
       )}
 
       {pkg.active_sessions < 2 && (
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="l-panel">
           <BookingCalendar serviceType="standard" onSlotSelected={setSelectedSlot} />
         </div>
       )}
 
       {selectedSlot && pkg.active_sessions < 2 && (
-        <div className="rounded-2xl border border-green-200 bg-green-50 p-4 flex items-center justify-between gap-4">
+        <div className="l-selected">
           <div>
-            <p className="text-sm font-semibold text-green-800">Selected</p>
-            <p className="text-sm text-green-700">
+            <p>Selected</p>
+            <p>
               {format(new Date(selectedSlot.date), "EEEE, d MMMM")} · {selectedSlot.start_time.slice(0, 5)}–{selectedSlot.end_time.slice(0, 5)}
             </p>
           </div>
           <button
             onClick={handleBook}
             disabled={booking}
-            className="rounded-lg bg-[#d90429] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#b00322] transition disabled:opacity-50"
+            className="l-btn l-btn--red"
           >
             {booking ? "Booking…" : "Confirm session"}
           </button>
@@ -213,7 +224,7 @@ export default function EdtBookingPage({ params }: Props) {
       )}
 
       {bookError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="l-notice l-notice--error" role="alert" style={{ marginTop: 16 }}>
           {bookError}
         </div>
       )}

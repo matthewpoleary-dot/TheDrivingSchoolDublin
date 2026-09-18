@@ -1,5 +1,5 @@
 "use client";
-// components/BookingCalendar.tsx — nomad-style date cards + green/red availability
+// components/BookingCalendar.tsx: plate date cards with muted open/full states
 import { useState, useEffect, useMemo } from "react";
 import { format, addDays, addMonths, endOfMonth, startOfDay } from "date-fns";
 
@@ -19,14 +19,6 @@ type Props = {
 const INITIAL_DAYS = 15;
 const DAY_INCREMENT = 15;
 
-// Availability colours — clearly distinct, still professional.
-const AVAILABLE_BORDER = "#5DAB6F";   // forest green
-const AVAILABLE_BG = "#E8F5EC";
-const AVAILABLE_TEXT = "#2E6B3B";
-
-const UNAVAILABLE_BORDER = "#D5867F";  // brick red
-const UNAVAILABLE_BG = "#FBE7E4";
-const UNAVAILABLE_TEXT = "#8A3D33";
 
 export default function BookingCalendar({ serviceType, onSlotSelected }: Props) {
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -105,35 +97,15 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
   return (
     <div>
       {loading && slots.length === 0 && (
-        <p style={{ fontSize: 13, color: "var(--ink-2)", textAlign: "center", padding: "24px 0" }}>
+        <p className="l-hint" role="status" style={{ textAlign: "center", padding: "24px 0" }}>
           Loading availability…
         </p>
       )}
 
       {/* Date cards */}
-      <div className="grid grid-cols-3 sm:grid-cols-5" style={{ gap: 10 }}>
+      <div className="l-cal-grid">
         {dateCards.map(({ date, dateStr, available }) => {
           const isSelected = selectedDate === dateStr;
-
-          let bg = "white";
-          let border = `1px solid ${available ? AVAILABLE_BORDER : UNAVAILABLE_BORDER}`;
-          let textMain = "var(--ink)";
-          let textMuted = available ? AVAILABLE_TEXT : UNAVAILABLE_TEXT;
-          let opacity = 1;
-          const cursor: React.CSSProperties["cursor"] = available ? "pointer" : "not-allowed";
-
-          if (isSelected) {
-            bg = "var(--red)";
-            border = "1px solid var(--red)";
-            textMain = "white";
-            textMuted = "rgba(255,255,255,0.85)";
-          } else if (!available) {
-            bg = UNAVAILABLE_BG;
-            opacity = 0.7;
-          } else {
-            bg = AVAILABLE_BG;
-          }
-
           return (
             <button
               key={dateStr}
@@ -142,65 +114,20 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                 setSelectedDate(dateStr);
                 setSelectedSlot(null);
               }}
-              className={available && !isSelected ? "date-card-available" : ""}
-              style={{
-                background: bg,
-                color: textMain,
-                border,
-                borderWidth: 2,
-                borderRadius: 10,
-                padding: "18px 8px",
-                minHeight: 96,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 6,
-                cursor,
-                opacity,
-                transition: "background 0.15s, border-color 0.15s",
-              }}
+              aria-pressed={isSelected}
+              className={`l-day ${available ? "l-day--open" : "l-day--full"}`}
             >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  color: isSelected ? "rgba(255,255,255,0.9)" : textMuted,
-                }}
-              >
-                {format(date, "EEE")}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                  fontStyle: "italic",
-                  fontSize: 34,
-                  lineHeight: 1,
-                  letterSpacing: "-1px",
-                  color: textMain,
-                }}
-              >
-                {format(date, "d")}
-              </span>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  letterSpacing: "0.6px",
-                  textTransform: "uppercase",
-                  color: isSelected ? "rgba(255,255,255,0.9)" : textMuted,
-                }}
-              >
-                {format(date, "MMM")}
-              </span>
+              <span className="l-day__dot" aria-hidden="true" />
+              <span className="l-day__dow">{format(date, "EEE")}</span>
+              <span className="l-day__num">{format(date, "d")}</span>
+              <span className="l-day__mon">{format(date, "MMM")}</span>
             </button>
           );
         })}
       </div>
 
       {/* Show more dates */}
-      <div style={{ textAlign: "center", marginTop: 18 }}>
+      <div className="l-cal-more">
         <button
           onClick={() => {
             setDaysVisible((n) => n + DAY_INCREMENT);
@@ -211,106 +138,31 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
             if (lastVisible > fetchedThrough) setMonthsLoaded((m) => m + 1);
           }}
           disabled={loading}
-          style={{
-            fontSize: 13,
-            color: "var(--ink-2)",
-            background: "none",
-            border: "none",
-            cursor: loading ? "default" : "pointer",
-            textDecoration: "underline",
-            textUnderlineOffset: 3,
-            padding: 0,
-          }}
         >
           {loading ? "Loading…" : "Show more dates →"}
         </button>
       </div>
 
       {/* Legend */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 24,
-          marginTop: 16,
-          fontSize: 11,
-          fontWeight: 500,
-          letterSpacing: "0.5px",
-          textTransform: "uppercase",
-          color: "var(--ink-3)",
-        }}
-      >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: 2,
-              border: `1px solid ${AVAILABLE_BORDER}`,
-              background: AVAILABLE_BG,
-            }}
-          />
-          Available
-        </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: 2,
-              border: `1px solid ${UNAVAILABLE_BORDER}`,
-              background: UNAVAILABLE_BG,
-            }}
-          />
-          Full
-        </span>
+      <div className="l-legend">
+        <span><i aria-hidden="true" /> Available</span>
+        <span><i className="full" aria-hidden="true" /> Full</span>
       </div>
 
       {/* Time slots */}
       {selectedDate && (
-        <div style={{ marginTop: 36 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              marginBottom: 16,
-            }}
-          >
-            <h3
-              style={{
-                fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                fontSize: 22,
-                fontStyle: "italic",
-                color: "var(--ink)",
-                letterSpacing: "-0.5px",
-              }}
-            >
-              Pick a time
-            </h3>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "0.8px",
-                color: "var(--ink-3)",
-                textTransform: "uppercase",
-              }}
-            >
-              Dublin
-            </span>
+        <div className="l-times-wrap" key={selectedDate}>
+          <div className="l-times-head">
+            <h3>Pick a time</h3>
+            <span className="l-hint" style={{ fontWeight: 700 }}>Dublin time</span>
           </div>
 
           {slotsForSelected.length === 0 ? (
-            <p style={{ fontSize: 14, color: "var(--ink-2)" }}>
-              No slots available for this day.
-            </p>
+            <p className="l-hint">No slots available for this day.</p>
           ) : (
             <>
-              <p style={{ fontSize: 12, color: "var(--ink-3)", marginBottom: 10 }}>
-                Booked times don&apos;t appear. Pick any time below.
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 10 }}>
+              <p className="l-hint">Booked times don&apos;t appear. Pick any time below.</p>
+              <div className="l-times">
                 {slotsForSelected.map((slot) => {
                   const isSelected = selectedSlot?.id === slot.id;
                   return (
@@ -320,21 +172,8 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
                         setSelectedSlot(slot);
                         onSlotSelected(slot);
                       }}
-                      className="time-pill"
-                      style={{
-                        background: isSelected ? "var(--red)" : "white",
-                        color: isSelected ? "white" : "var(--ink)",
-                        border: isSelected
-                          ? "2px solid var(--red)"
-                          : "2px solid var(--rule-strong)",
-                        borderRadius: 100,
-                        padding: "16px 8px",
-                        fontSize: 16,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        minHeight: 56,
-                        transition: "background 0.15s, border-color 0.15s, color 0.15s",
-                      }}
+                      aria-pressed={isSelected}
+                      className="l-time"
                     >
                       {slot.start_time.slice(0, 5)}
                     </button>

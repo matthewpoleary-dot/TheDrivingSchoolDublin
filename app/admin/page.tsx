@@ -308,10 +308,10 @@ export default function AdminPage() {
 
   if (!isAuthed) {
     return (
-      <div className="max-w-md mx-auto mt-12">
+      <div className="l-admin max-w-md mx-auto mt-6">
         <div className="bg-white rounded-2xl shadow-lg ring-1 ring-slate-100 p-8 space-y-5">
           <div className="space-y-1">
-            <h1 className="text-2xl font-extrabold text-slate-900">Welcome back, Conor</h1>
+            <h1 className="text-3xl text-slate-900">Welcome back, Conor</h1>
             <p className="text-sm text-slate-500">Enter your admin password to manage bookings and your schedule.</p>
           </div>
           <input
@@ -324,7 +324,7 @@ export default function AdminPage() {
           />
           <button
             onClick={() => { if (inputToken.trim()) setToken(inputToken.trim()); }}
-            className="w-full rounded-xl bg-[#d90429] hover:bg-[#b00322] px-4 py-3 text-base font-semibold text-white transition shadow-sm"
+            className="w-full rounded-xl bg-[var(--red)] hover:bg-[var(--red-press)] px-4 py-3 text-base font-semibold text-white transition shadow-sm"
           >
             Sign in
           </button>
@@ -336,11 +336,11 @@ export default function AdminPage() {
   // ─── Tab bar ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6">
+    <div className="l-admin space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900">Your dashboard</h1>
+          <h1 className="text-4xl text-slate-900">Your dashboard</h1>
           <p className="text-sm text-slate-500 mt-1">Manage bookings, set your availability, and track EDT packages.</p>
         </div>
         <button
@@ -353,33 +353,40 @@ export default function AdminPage() {
 
       {/* Status messages */}
       {toast && (
-        <div className="rounded-xl bg-emerald-50 ring-1 ring-emerald-200 px-4 py-3 text-sm text-emerald-800 flex items-center gap-2">
-          <span className="text-lg">✓</span> {toast}
+        <div className="l-toast" role="status">
+          <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M2 7.5l3.2 3L12 3.5" stroke="currentColor" strokeWidth="2.4" />
+          </svg>
+          {toast}
         </div>
       )}
       {errorMsg && (
-        <div className="rounded-xl bg-red-50 ring-1 ring-red-200 px-4 py-3 text-sm text-red-800 flex items-center gap-2">
-          <span className="text-lg">!</span> {errorMsg}
+        <div className="l-toast l-toast--error" role="alert">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 3v6M8 11.5v1.5" stroke="currentColor" strokeWidth="2.4" />
+          </svg>
+          {errorMsg}
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 flex-wrap bg-slate-100 p-1.5 rounded-2xl w-fit">
+      <div className="l-tabs" role="tablist" aria-label="Dashboard sections">
         {([
-          { key: "calendar",         label: "📅 My calendar" },
-          { key: "add-availability", label: "➕ Add availability" },
-          { key: "bookings",         label: "📋 Bookings list" },
-          { key: "edt",              label: "🎓 EDT packages" },
-        ] as { key: Tab; label: string }[]).map((t) => (
+          { key: "calendar",         label: "My calendar",      icon: <path d="M2.5 4h13v11.5h-13zM2.5 7.5h13M6 2v3M12 2v3" /> },
+          { key: "add-availability", label: "Add availability", icon: <path d="M9 3v12M3 9h12" /> },
+          { key: "bookings",         label: "Bookings list",    icon: <path d="M3 4.5h12M3 9h12M3 13.5h12" /> },
+          { key: "edt",              label: "EDT packages",     icon: <path d="M3 3h12v12H3zM6.5 6.5v5h4" /> },
+        ] as { key: Tab; label: string; icon: React.ReactNode }[]).map((t) => (
           <button
             key={t.key}
+            role="tab"
+            aria-selected={tab === t.key}
             onClick={() => setTab(t.key)}
-            className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
-              tab === t.key
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
+            className="l-tab"
           >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              {t.icon}
+            </svg>
             {t.label}
           </button>
         ))}
@@ -394,7 +401,7 @@ export default function AdminPage() {
               <p className="text-xs text-slate-500">Everyone who has booked a lesson, newest first.</p>
             </div>
             <button onClick={loadBookings} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
-              ↻ Refresh
+              Refresh
             </button>
             <input
               type="date"
@@ -413,7 +420,6 @@ export default function AdminPage() {
 
           {!loadingBookings && !filteredBookings.length && (
             <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-10 text-center">
-              <p className="text-4xl mb-2">📭</p>
               <p className="text-base font-semibold text-slate-900">No bookings yet</p>
               <p className="text-sm text-slate-500 mt-1">When customers book lessons they&apos;ll show up here.</p>
             </div>
@@ -480,10 +486,10 @@ export default function AdminPage() {
       {tab === "calendar" && (
         <div className="space-y-6">
           {/* Quick-help banner */}
-          <div className="bg-gradient-to-br from-red-50 via-white to-emerald-50 ring-1 ring-slate-100 rounded-2xl p-5">
+          <div className="bg-slate-50 rounded-2xl p-5">
             <p className="font-bold text-slate-900">Your week at a glance</p>
             <p className="text-sm text-slate-600 mt-1">
-              <span className="font-semibold text-red-700">Red</span> slots are confirmed lessons — tap one to see the customer&apos;s details.
+              <span className="font-semibold text-red-700">Red</span> slots are confirmed lessons: tap one to see the customer&apos;s details.
               <span className="font-semibold text-emerald-700"> Green</span> slots are open for customers to book.
               To add more open slots, switch to the <span className="font-semibold">Add availability</span> tab.
             </p>
@@ -501,7 +507,7 @@ export default function AdminPage() {
                   ←
                 </button>
                 <span className="text-base font-bold text-slate-900 px-2 min-w-[180px] text-center">
-                  {format(weekStart, "d MMM")} – {format(weekEnd, "d MMM yyyy")}
+                  {format(weekStart, "d MMM")} to {format(weekEnd, "d MMM yyyy")}
                 </span>
                 <button
                   onClick={() => setWeekOffset((w) => w + 1)}
@@ -520,7 +526,7 @@ export default function AdminPage() {
                 )}
               </div>
               <button onClick={loadSlots} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
-                ↻ Refresh
+                Refresh
               </button>
             </div>
 
@@ -620,10 +626,10 @@ export default function AdminPage() {
       {tab === "add-availability" && (
         <div className="space-y-6">
           {/* Quick-help banner */}
-          <div className="bg-emerald-50 ring-1 ring-emerald-100 rounded-2xl p-5">
+          <div className="bg-slate-50 rounded-2xl p-5">
             <p className="font-bold text-slate-900">Add open slots for customers to book</p>
             <p className="text-sm text-slate-600 mt-1">
-              Use <span className="font-semibold">Fill my schedule automatically</span> for the easiest setup — pick a date range and your usual hours,
+              Use <span className="font-semibold">Fill my schedule automatically</span> for the easiest setup. Pick a date range and your usual hours,
               and we&apos;ll create every slot in one go. Use <span className="font-semibold">Add one slot manually</span> for one-off appointments.
             </p>
           </div>
@@ -631,7 +637,7 @@ export default function AdminPage() {
           {/* Add single slot */}
           <details className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-6">
             <summary className="font-bold text-slate-900 cursor-pointer text-base flex items-center gap-2">
-              <span className="text-xl">➕</span> Add one slot manually
+              Add one slot manually
               <span className="text-xs font-normal text-slate-500 ml-2">(for one-off appointments)</span>
             </summary>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -674,7 +680,7 @@ export default function AdminPage() {
             <button
               onClick={addSingleSlot}
               disabled={addingSlot}
-              className="mt-5 rounded-xl bg-[#d90429] hover:bg-[#b00322] px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50 shadow-sm"
+              className="mt-5 rounded-xl bg-[var(--red)] hover:bg-[var(--red-press)] px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50 shadow-sm"
             >
               {addingSlot ? "Adding…" : "Add this slot"}
             </button>
@@ -683,7 +689,7 @@ export default function AdminPage() {
           {/* Auto-fill schedule */}
           <details className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-6" open>
             <summary className="font-bold text-slate-900 cursor-pointer text-base flex items-center gap-2">
-              <span className="text-xl">✨</span> Fill my schedule automatically
+              Fill my schedule automatically
               <span className="text-xs font-normal text-slate-500 ml-2">(recommended)</span>
             </summary>
             <p className="text-sm text-slate-600 mt-3 mb-5">
@@ -793,9 +799,9 @@ export default function AdminPage() {
             <button
               onClick={addAutoFillSlots}
               disabled={addingAf}
-              className="rounded-xl bg-[#d90429] hover:bg-[#b00322] px-6 py-3 text-base font-semibold text-white transition disabled:opacity-50 shadow-sm inline-flex items-center gap-2"
+              className="rounded-xl bg-[var(--red)] hover:bg-[var(--red-press)] px-6 py-3 text-base font-semibold text-white transition disabled:opacity-50 shadow-sm inline-flex items-center gap-2"
             >
-              {addingAf ? "Generating slots…" : "✨ Generate slots"}
+              {addingAf ? "Generating slots…" : "Generate slots"}
             </button>
           </details>
         </div>
@@ -804,15 +810,15 @@ export default function AdminPage() {
       {/* ── BOOKING DETAIL MODAL ─────────────────────────────────────────── */}
       {selectedSlot && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="l-modal-back fixed inset-0 z-50 flex items-end sm:items-center justify-center"
           onClick={() => setSelectedSlot(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 space-y-4"
+            className="l-modal bg-white w-full max-w-sm mx-3 mb-3 sm:mb-0 p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
-              <h2 className="font-semibold text-lg">Booking details</h2>
+              <h2 className="font-black text-xl">Booking details</h2>
               <button
                 onClick={() => setSelectedSlot(null)}
                 className="text-gray-400 hover:text-gray-700 text-xl leading-none"
@@ -861,7 +867,7 @@ export default function AdminPage() {
                     <span className="font-medium capitalize">
                       {selectedSlot.booking.source === "edt"
                         ? `EDT lesson ${selectedSlot.booking.edt_session_number} of ${selectedSlot.booking.edt_package_total}`
-                        : selectedSlot.booking.service_type || "—"}
+                        : selectedSlot.booking.service_type || "n/a"}
                     </span>
                   </div>
                   {selectedSlot.booking.source !== "edt" && (
@@ -871,7 +877,7 @@ export default function AdminPage() {
                         <span className="font-medium">
                           {typeof selectedSlot.booking.amount_pence === "number"
                             ? `€${(selectedSlot.booking.amount_pence / 100).toFixed(2)}`
-                            : "—"}
+                            : "n/a"}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -925,7 +931,7 @@ export default function AdminPage() {
                   setSelectedSlot(null);
                 }}
                 disabled={deletingId === selectedSlot.id}
-                className="flex-1 rounded-xl bg-[#d90429] hover:bg-[#b00322] text-white px-3 py-2 text-sm font-semibold transition disabled:opacity-50"
+                className="flex-1 rounded-xl bg-[var(--red)] hover:bg-[var(--red-press)] text-white px-3 py-2 text-sm font-semibold transition disabled:opacity-50"
               >
                 {deletingId === selectedSlot.id
                   ? "Working…"
@@ -947,14 +953,13 @@ export default function AdminPage() {
               <p className="text-xs text-slate-500">Customers working through their 12-lesson programme.</p>
             </div>
             <button onClick={loadEdtPackages} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
-              ↻ Refresh
+              Refresh
             </button>
           </div>
 
           {loadingEdt && <p className="text-sm text-slate-500">Loading…</p>}
           {!loadingEdt && !edtPackages.length && (
             <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-10 text-center">
-              <p className="text-4xl mb-2">🎓</p>
               <p className="text-base font-semibold text-slate-900">No EDT packages yet</p>
               <p className="text-sm text-slate-500 mt-1">When someone buys the EDT bundle they&apos;ll show up here.</p>
             </div>
@@ -990,7 +995,7 @@ export default function AdminPage() {
                       </div>
                       <div className="hidden md:flex items-center gap-3">
                         <div className="h-2 w-28 rounded-full bg-slate-200 overflow-hidden">
-                          <div className="h-2 bg-[#d90429] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                          <div className="h-2 bg-[var(--red)] rounded-full transition-all" style={{ width: `${pct}%` }} />
                         </div>
                         <span className="text-slate-700 font-semibold tabular-nums text-sm">
                           {p.lessons_used} of {p.lessons_total}
@@ -1035,7 +1040,7 @@ export default function AdminPage() {
                                   }`}
                                 >
                                   <span className="font-semibold tabular-nums w-16 shrink-0">
-                                    {s.lesson_number != null ? `#${s.lesson_number}` : "—"}
+                                    {s.lesson_number != null ? `#${s.lesson_number}` : "n/a"}
                                   </span>
                                   {s.slot ? (
                                     <>

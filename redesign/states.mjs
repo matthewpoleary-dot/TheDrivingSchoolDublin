@@ -27,7 +27,7 @@ const adminLogin = async (page, h) => {
 };
 const adminTab = (label) => async (page, h) => {
   await adminLogin(page, h);
-  await page.getByRole("button", { name: label }).click();
+  await page.getByRole("tab", { name: label }).click();
   await h.settle();
 };
 
@@ -207,40 +207,40 @@ export const STATES = [
       await h.settle();
     },
   },
-  { id: "admin--add-availability", path: "/admin", act: adminTab("➕ Add availability") },
+  { id: "admin--add-availability", path: "/admin", act: adminTab("Add availability") },
   {
     id: "admin--add-availability-manual", path: "/admin",
     act: async (page, h) => {
-      await adminTab("➕ Add availability")(page, h);
+      await adminTab("Add availability")(page, h);
       await page.locator("summary", { hasText: "Add one slot manually" }).click();
     },
   },
   {
     id: "admin--add-availability-toast", path: "/admin",
     act: async (page, h) => {
-      await adminTab("➕ Add availability")(page, h);
+      await adminTab("Add availability")(page, h);
       await page.getByRole("button", { name: /Generate slots/ }).click();
       await h.settle();
     },
   },
-  { id: "admin--bookings", path: "/admin", act: adminTab("📋 Bookings list") },
+  { id: "admin--bookings", path: "/admin", act: adminTab("Bookings list") },
   {
     id: "admin--bookings-filtered", path: "/admin",
     act: async (page, h) => {
-      await adminTab("📋 Bookings list")(page, h);
+      await adminTab("Bookings list")(page, h);
       await page.locator('input[type="date"]').fill("2026-09-21");
     },
   },
   {
     id: "admin--bookings-empty", path: "/admin",
     api: { "GET /api/admin/bookings": () => [200, []] },
-    act: adminTab("📋 Bookings list"),
+    act: adminTab("Bookings list"),
   },
-  { id: "admin--edt", path: "/admin", act: adminTab("🎓 EDT packages") },
+  { id: "admin--edt", path: "/admin", act: adminTab("EDT packages") },
   {
     id: "admin--edt-expanded", path: "/admin",
     act: async (page, h) => {
-      await adminTab("🎓 EDT packages")(page, h);
+      await adminTab("EDT packages")(page, h);
       await page.getByRole("button", { name: /Ciarán Walsh/ }).click();
       await h.settle();
     },
@@ -248,7 +248,7 @@ export const STATES = [
   {
     id: "admin--edt-expanded-empty", path: "/admin",
     act: async (page, h) => {
-      await adminTab("🎓 EDT packages")(page, h);
+      await adminTab("EDT packages")(page, h);
       await page.getByRole("button", { name: /Niamh Ryan/ }).click();
       await h.settle();
     },
@@ -256,6 +256,6 @@ export const STATES = [
   {
     id: "admin--edt-empty", path: "/admin",
     api: { "GET /api/admin/edt-packages": () => [200, []] },
-    act: adminTab("🎓 EDT packages"),
+    act: adminTab("EDT packages"),
   },
 ];

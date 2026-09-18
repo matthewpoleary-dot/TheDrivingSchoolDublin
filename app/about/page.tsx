@@ -1,4 +1,25 @@
 // app/about/page.tsx
+import Link from "next/link";
+import { ArrowRight } from "@/components/lton/Icons";
+
+const CENTRES = [
+  {
+    name: "Dún Laoghaire",
+    text: "Years as an examiner. Every route, every junction, every common slip-up: he knows the lot.",
+  },
+  {
+    name: "Tallaght",
+    text: "Tested out of Tallaght too. He knows the routes, the traffic patterns, and what the examiners are watching for.",
+  },
+];
+
+const HIGHLIGHTS = [
+  "Patient, structured instruction",
+  "Manual lessons in dual-control instructor car",
+  "Specialist in EDT and pre-tests",
+  "Flexible scheduling across South Dublin",
+];
+
 export default function About() {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -17,205 +38,88 @@ export default function About() {
   };
 
   return (
-    <>
-      <div style={{ padding: "64px 22px" }}>
-
-        {/* Eyebrow + heading */}
-        <div className="section-label">
-          <span className="num">—</span> About
-        </div>
-        <h1
-          style={{
-            fontFamily: "var(--font-instrument-serif), Georgia, serif",
-            fontWeight: 400,
-            fontSize: "clamp(40px, 5vw, 64px)",
-            lineHeight: 1.05,
-            letterSpacing: "-1px",
-            marginBottom: 14,
-            color: "var(--ink)",
-          }}
-        >
-          Meet <em style={{ fontStyle: "italic" }}>Conor.</em>
-        </h1>
-        <p
-          style={{
-            fontSize: 17,
-            lineHeight: 1.55,
-            letterSpacing: "-0.1px",
-            color: "var(--ink-2)",
-            maxWidth: 480,
-            marginBottom: 56,
-          }}
-        >
-          Your RSA-approved ADI and former driving tester at both{" "}
-          <span style={{ color: "var(--ink)", fontWeight: 500 }}>Dún Laoghaire</span> and{" "}
-          <span style={{ color: "var(--ink)", fontWeight: 500 }}>Tallaght</span>.
-          He knows both routes inside out.
+    <div className="l-page">
+      <header className="l-intro">
+        <h1 className="l-display l-h1">Meet Conor.</h1>
+        <p className="l-lede">
+          Your RSA-approved ADI and former driving tester at both <strong>Dún Laoghaire</strong> and{" "}
+          <strong>Tallaght</strong>. He knows both routes inside out.
         </p>
+      </header>
 
-        {/* Test centre expertise — featured callout */}
-        <div
-          style={{
-            border: "1px solid var(--rule)",
-            borderRadius: 12,
-            padding: "24px 24px 20px",
-            background: "var(--tint)",
-            marginBottom: 48,
-            maxWidth: 680,
-          }}
-        >
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.8px",
-              textTransform: "uppercase",
-              color: "var(--red)",
-              marginBottom: 12,
-            }}
-          >
-            Test centre expertise
-          </p>
-          <div style={{ display: "grid", gap: 14, gridTemplateColumns: "1fr 1fr" }}>
-            <div>
-              <h3
-                style={{
-                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                  fontSize: 24,
-                  fontWeight: 400,
-                  letterSpacing: "-0.5px",
-                  color: "var(--ink)",
-                  marginBottom: 4,
-                }}
-              >
-                Dún Laoghaire
-              </h3>
-              <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.55 }}>
-                Years as an examiner. Every route, every junction, every common slip-up — he knows the lot.
-              </p>
-            </div>
-            <div>
-              <h3
-                style={{
-                  fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                  fontSize: 24,
-                  fontWeight: 400,
-                  letterSpacing: "-0.5px",
-                  color: "var(--ink)",
-                  marginBottom: 4,
-                }}
-              >
-                Tallaght
-              </h3>
-              <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.55 }}>
-                Tested out of Tallaght too — knows the routes, the traffic patterns, and what the examiners are watching for.
-              </p>
-            </div>
-          </div>
+      {/* ── Test centre expertise: the one black field ─────────────────── */}
+      <section className="l-band" aria-labelledby="centres-title">
+        <div>
+          <h2 id="centres-title" className="l-display l-h2">Test centre expertise.</h2>
+          <p>He used to conduct the driving test at these centres.</p>
         </div>
+        <ul className="l-centres" style={{ marginTop: 28 }}>
+          {CENTRES.map((c) => (
+            <li key={c.name} style={{ display: "block" }}>
+              {c.name}
+              <p style={{ marginTop: 10, fontSize: 16, fontWeight: 500, fontStretch: "100%", letterSpacing: 0, lineHeight: 1.5, color: "#D9D9D9" }}>
+                {c.text}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        {/* Hairline rule */}
-        <div style={{ borderTop: "1px solid var(--rule)", marginBottom: 48 }} />
-
-        {/* Bio + image */}
-        <div
-          className="md:grid md:gap-14"
-          style={{ gridTemplateColumns: "1.1fr 1fr" } as React.CSSProperties}
-        >
-          <div style={{ marginBottom: 40 }}>
-            <h2
-              style={{
-                fontFamily: "var(--font-instrument-serif), Georgia, serif",
-                fontWeight: 400,
-                fontSize: 28,
-                lineHeight: 1.15,
-                letterSpacing: "-0.5px",
-                marginBottom: 20,
-                color: "var(--ink)",
-              }}
-            >
-              An ex-tester in the driver&apos;s seat with you
+      {/* ── Bio ─────────────────────────────────────────────────────────── */}
+      <section className="l-group" aria-labelledby="bio-title" style={{ paddingTop: 56 }}>
+        <div className="l-split">
+          <div>
+            <h2 id="bio-title" className="l-h3" style={{ marginBottom: 22 }}>
+              An ex-tester in the driver&apos;s seat with you.
             </h2>
+            <div className="l-prose">
+              <p>
+                Conor is a highly experienced Approved Driving Instructor (ADI) and former RSA
+                driving tester. Having worked in test centres across <strong>Tallaght</strong>,{" "}
+                <strong>Dún Laoghaire</strong>, and the old <strong>Churchtown</strong> centre,
+                he brings deep insight into what examiners look for on the day.
+              </p>
+              <p>
+                With years in the industry, Conor combines professional standards with a calm,
+                supportive teaching style. His background as an ex-tester means every lesson is
+                focused not just on safe driving, but on preparing you to succeed under exam
+                conditions.
+              </p>
+              <p>
+                Whether you&apos;re completing your <strong>EDT programme</strong>, booking{" "}
+                <strong>pre-test lessons</strong>, or looking for refresher sessions, every lesson
+                is tailored to your goals and confidence level.
+              </p>
+            </div>
 
-            <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--ink-2)", marginBottom: 16 }}>
-              Conor is a highly experienced Approved Driving Instructor (ADI) and former RSA
-              driving tester. Having worked in test centres across{" "}
-              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Tallaght</strong>,{" "}
-              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Dún Laoghaire</strong>, and
-              the old{" "}
-              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Churchtown</strong> centre,
-              he brings deep insight into what examiners look for on the day.
-            </p>
-            <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--ink-2)", marginBottom: 16 }}>
-              With years in the industry, Conor combines professional standards with a calm,
-              supportive teaching style. His background as an ex-tester means every lesson is
-              focused not just on safe driving, but on preparing you to succeed under exam
-              conditions.
-            </p>
-            <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--ink-2)", marginBottom: 32 }}>
-              Whether you&apos;re completing your{" "}
-              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>EDT programme</strong>,
-              booking{" "}
-              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>pre-test lessons</strong>,
-              or looking for refresher sessions, every lesson is tailored to your goals and
-              confidence level.
-            </p>
+            <ul className="l-list" style={{ marginTop: 32 }}>
+              {HIGHLIGHTS.map((h) => <li key={h}>{h}</li>)}
+            </ul>
 
-            {/* Highlights — hairline-separated list */}
-            <div style={{ borderTop: "1px solid var(--rule)" }}>
-              {[
-                "Patient, structured instruction",
-                "Manual lessons in dual-control instructor car",
-                "Specialist in EDT and pre-tests",
-                "Flexible scheduling across South Dublin",
-              ].map((h) => (
-                <div
-                  key={h}
-                  style={{
-                    padding: "14px 0",
-                    borderBottom: "1px solid var(--rule)",
-                    fontSize: 15,
-                    color: "var(--ink)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <span style={{ color: "var(--red)", fontSize: 13, flexShrink: 0 }}>—</span>
-                  {h}
-                </div>
-              ))}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 32 }}>
+              <Link href="/book" className="l-btn l-btn--red l-btn--lg">
+                Book a lesson <ArrowRight />
+              </Link>
+              <Link href="/prices" className="l-btn l-btn--line l-btn--lg">View prices</Link>
             </div>
           </div>
 
-          {/* Image — drop a professional headshot at /public/conor.jpg */}
-          <div
-            style={{
-              borderRadius: 8,
-              overflow: "hidden",
-              aspectRatio: "4 / 5",
-              background: "var(--tint)",
-              border: "1px solid var(--rule)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 40,
-            }}
-          >
+          {/* Image slot: swap in a headshot at /public/conor.jpg when one exists */}
+          <figure className="l-panel" style={{ margin: 0, aspectRatio: "4 / 5", display: "grid", placeItems: "center", padding: 40 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/Logo.jpg"
               alt="The Driving School Dublin"
-              style={{ width: "100%", height: "100%", objectFit: "contain", opacity: 0.85 }}
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
-          </div>
+          </figure>
         </div>
-      </div>
+      </section>
 
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </>
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 import "./globals.css";
 import "./lton.css";
 import Link from "next/link";
-import { Archivo, Inter, Instrument_Serif } from "next/font/google";
+import { Archivo } from "next/font/google";
 import MorphingNav from "@/components/MorphingNav";
 
 const archivo = Archivo({
@@ -12,20 +12,6 @@ const archivo = Archivo({
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const instrumentSerif = Instrument_Serif({
-  weight: "400",
-  style: ["normal", "italic"],
-  subsets: ["latin"],
-  variable: "--font-instrument-serif",
-  display: "swap",
-});
 
 export const metadata = {
   title: "The Driving School Dublin",
@@ -74,8 +60,8 @@ const FOOTER_COLUMNS = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${archivo.variable} ${inter.variable} ${instrumentSerif.variable}`}>
-      <body className={`${inter.className} min-h-screen antialiased`}>
+    <html lang="en" className={archivo.variable}>
+      <body className={`${archivo.className} min-h-screen antialiased`}>
 
         {/* ── Morphing nav ─────────────────────────────────────────────────── */}
         <MorphingNav />

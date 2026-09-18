@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight } from "@/components/lton/Icons";
 
 type SessionData = {
   customer_email?: string;
@@ -40,8 +41,8 @@ function ConfirmationInner() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-xl text-center py-16">
-        <p className="text-gray-500">Verifying your booking…</p>
+      <div className="l-page l-result" style={{ textAlign: "center" }} role="status">
+        <p className="l-body">Verifying your booking…</p>
       </div>
     );
   }
@@ -51,50 +52,49 @@ function ConfirmationInner() {
   const serviceLabel = serviceType ? SERVICE_LABELS[serviceType] ?? serviceType : "Lesson";
 
   return (
-    <section className="mx-auto max-w-xl space-y-6">
-      <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center space-y-4">
-        <div className="text-5xl">✅</div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-green-900">Payment confirmed!</h1>
+    <section className="l-page l-result">
+      <div className="l-result__mark l-result__mark--ok" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+          <path d="M6 18l7.5 7L28 9" stroke="currentColor" strokeWidth="4.5" />
+        </svg>
+      </div>
+      <h1 className="l-display l-h2">Payment confirmed!</h1>
 
-        <div className="space-y-1 text-sm text-green-800">
-          <p><span className="font-semibold">Service:</span> {serviceLabel}</p>
-          {session?.customer_email && (
-            <p><span className="font-semibold">Confirmation sent to:</span> {session.customer_email}</p>
-          )}
-          {session?.amount_total != null && (
-            <p><span className="font-semibold">Amount paid:</span> €{(session.amount_total / 100).toFixed(2)}</p>
-          )}
-        </div>
-
-        {isEdtBundle ? (
-          <div className="rounded-xl bg-white border border-green-200 p-4 text-sm text-left text-green-900 space-y-2">
-            <p className="font-semibold">What happens next:</p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Check your email — you&apos;ll receive a personal booking link.</li>
-              <li>Use that link to book your first session at any time.</li>
-              <li>You can book up to 2 sessions in advance.</li>
-              <li>Your package is valid for 12 months from today.</li>
-            </ol>
-          </div>
-        ) : (
-          <div className="rounded-xl bg-white border border-green-200 p-4 text-sm text-left text-green-900 space-y-2">
-            <p className="font-semibold">What happens next:</p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>You&apos;ll receive a confirmation email with your lesson details.</li>
-              <li>The instructor will contact you if anything needs confirming.</li>
-              <li>Please arrive 5 minutes early on the day.</li>
-            </ol>
-          </div>
+      <dl className="l-facts">
+        <div><dt>Service</dt><dd>{serviceLabel}</dd></div>
+        {session?.customer_email && (
+          <div><dt>Confirmation sent to</dt><dd>{session.customer_email}</dd></div>
         )}
+        {session?.amount_total != null && (
+          <div><dt>Amount paid</dt><dd className="l-num">€{(session.amount_total / 100).toFixed(2)}</dd></div>
+        )}
+      </dl>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+      <div className="l-next">
+        <h2>What happens next:</h2>
+        {isEdtBundle ? (
+          <ol>
+            <li>Check your email. You&apos;ll receive a personal booking link.</li>
+            <li>Use that link to book your first session at any time.</li>
+            <li>You can book up to 2 sessions in advance.</li>
+            <li>Your package is valid for 12 months from today.</li>
+          </ol>
+        ) : (
+          <ol>
+            <li>You&apos;ll receive a confirmation email with your lesson details.</li>
+            <li>The instructor will contact you if anything needs confirming.</li>
+            <li>Please arrive 5 minutes early on the day.</li>
+          </ol>
+        )}
       </div>
 
-      <div className="flex flex-wrap gap-3 justify-center">
-        <Link href="/" className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition">
-          Back to home
+      {error && <p className="l-notice l-notice--error" role="alert" style={{ marginTop: 20 }}>{error}</p>}
+
+      <div className="l-result__actions">
+        <Link href="/" className="l-btn l-btn--red l-btn--lg">
+          Back to home <ArrowRight />
         </Link>
-        <Link href="/prices" className="rounded-lg border px-5 py-2.5 text-sm font-medium hover:bg-gray-50 transition">
+        <Link href="/prices" className="l-btn l-btn--line l-btn--lg">
           View all prices
         </Link>
       </div>
@@ -105,8 +105,8 @@ function ConfirmationInner() {
 export default function ConfirmationPage() {
   return (
     <Suspense fallback={
-      <div className="mx-auto max-w-xl py-16 text-center">
-        <p className="text-gray-500">Loading…</p>
+      <div className="l-page l-result" style={{ textAlign: "center" }}>
+        <p className="l-body">Loading…</p>
       </div>
     }>
       <ConfirmationInner />
