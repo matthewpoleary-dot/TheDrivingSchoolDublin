@@ -42,3 +42,8 @@ next-env.d.ts
 
 # redesign screenshot sweeps (regenerate with redesign/sweep.mjs)
 /redesign/shots/
+
+# local tool output
+/.playwright-mcp/
+/.impeccable/mocks/
+/.impeccable/review/
