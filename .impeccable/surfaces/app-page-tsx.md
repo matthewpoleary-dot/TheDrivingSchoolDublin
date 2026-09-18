@@ -19,7 +19,7 @@ OWN-WORLD: White ground, #0A0A0A ink, #C8102E red. Archivo at 800 to 900, slight
 
 STORY: The visitor reads that Conor was an RSA tester, sees 5.0 from 54, sees what a lesson costs, and books. By the close, the L has become an N.
 
-FIRST VIEWPORT: At 390: logo wordmark left, red Book right. A four-line heavy headline naming the former tester, with a tilted L plate top right. One line naming the three centres. A rating line with drawn stars, 5.0 and 54 Google reviews. A full-width red Book a lesson button and an outlined See prices button. The primary action sits above 700px. At 1440, the headline on the left, the credential, rating and actions in the right column.
+FIRST VIEWPORT: At 390: logo wordmark left, ink Book button right. A four-line heavy headline naming the former tester, with a tilted L plate top right. A static line naming all three centres (Dún Laoghaire, Tallaght, old Churchtown), then the rotating line "Pass your test confidently / calmly / stress-free". A rating line with drawn stars, 5.0 and 54 Google reviews. A full-width red Book a lesson button and an outlined View prices button, above 700px. At 1440: the headline runs full width on two lines with the plate at the right edge; under a 2px rule, the credential sits left and rating plus actions right. Changed from headline-left/credential-right after the first 1440 capture showed a cramped four-line headline in a narrow column with dead space beside it.
 
 FORM: L to N, the logo and the Irish L and N plates, candidate 3 of 7, seed key 8dc44c7e. Signature interaction: the plate turns from L to N as the page scrolls toward booking. Raises: black reserved for one decisive beat; numbers as the interface; each service tile leads with its promise and flips to its details.
 

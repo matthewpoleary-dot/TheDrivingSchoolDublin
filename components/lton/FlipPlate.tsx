@@ -20,7 +20,7 @@ export default function FlipPlate() {
           io.disconnect();
         }
       },
-      { threshold: 0.9 }
+      { threshold: 0.5 }
     );
     io.observe(el);
     return () => io.disconnect();

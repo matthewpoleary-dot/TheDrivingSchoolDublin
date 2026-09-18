@@ -1,5 +1,5 @@
 "use client";
-// components/RotatingWord.tsx — cycles through a list of words with a lift-and-blur transition
+// components/RotatingWord.tsx — cycles through a list of words; each new word lifts in over the last, so the slot is never empty
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -19,21 +19,16 @@ export default function RotatingWord({
   loopOnce = true,
 }: Props) {
   const [idx, setIdx] = useState(0);
-  const [fading, setFading] = useState(false);
 
   useEffect(() => {
     if (words.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let ticks = 0;
     const id = setInterval(() => {
-      setFading(true);
-      setTimeout(() => {
-        ticks += 1;
-        setIdx((i) => (i + 1) % words.length);
-        setFading(false);
-        // After cycling through every word once we land back on index 0 — stop.
-        if (loopOnce && ticks >= words.length) clearInterval(id);
-      }, 280);
+      ticks += 1;
+      setIdx((i) => (i + 1) % words.length);
+      // After cycling through every word once we land back on index 0, then stop.
+      if (loopOnce && ticks >= words.length) clearInterval(id);
     }, intervalMs);
     return () => clearInterval(id);
   }, [words.length, intervalMs, loopOnce]);
@@ -41,7 +36,7 @@ export default function RotatingWord({
   return (
     <span
       key={idx}
-      className={`rotating-word ${fading ? "fading" : "entering"} ${className}`}
+      className={`rotating-word entering ${className}`}
       style={style}
       aria-live="polite"
     >

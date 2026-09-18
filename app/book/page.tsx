@@ -180,7 +180,7 @@ function BookPageInner() {
                   <div>
                     <div className="l-svc__name">
                       {opt.label}
-                      {opt.tag && <span className="l-tag l-tag--solid">{opt.tag}</span>}
+                      {opt.tag && <span className="l-tag">{opt.tag}</span>}
                     </div>
                     <div className="l-svc__sub">{opt.subtitle ?? SERVICES[opt.slug].description}</div>
                   </div>

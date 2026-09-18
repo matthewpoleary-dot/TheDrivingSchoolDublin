@@ -75,14 +75,14 @@ export default function Home() {
 
         <div className="l-hero__side">
           <p className="l-lede l-hero__cred">
-            <span className="sr-only">
-              Conor worked as an RSA driving tester at Dún Laoghaire, Tallaght and the old
-              Churchtown centre. Now he&apos;s your instructor.
-            </span>
-            <span aria-hidden="true">
-              <strong>Conor worked as an RSA driving tester</strong> at{" "}
-              <RotatingWord words={CENTRES} className="l-rotator" intervalMs={2600} />.
-              {" "}Now he&apos;s your instructor.
+            <strong>Conor worked as an RSA driving tester</strong> at Dún Laoghaire, Tallaght
+            and the old Churchtown centre. Now he&apos;s your instructor.
+            <span className="l-hero__rotate">
+              <span className="sr-only">Pass your test confidently, calmly, stress-free.</span>
+              <span aria-hidden="true">
+                Pass your test{" "}
+                <RotatingWord words={["confidently.", "calmly.", "stress-free."]} className="l-rotator" intervalMs={2600} />
+              </span>
             </span>
           </p>
 

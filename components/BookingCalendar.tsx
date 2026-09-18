@@ -2,6 +2,7 @@
 // components/BookingCalendar.tsx: plate date cards with muted open/full states
 import { useState, useEffect, useMemo } from "react";
 import { format, addDays, addMonths, endOfMonth, startOfDay } from "date-fns";
+import { ArrowRight } from "@/components/lton/Icons";
 
 export type Slot = {
   id: string;
@@ -139,7 +140,7 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
           }}
           disabled={loading}
         >
-          {loading ? "Loading…" : "Show more dates →"}
+          {loading ? "Loading…" : <>Show more dates <ArrowRight size={14} /></>}
         </button>
       </div>
 

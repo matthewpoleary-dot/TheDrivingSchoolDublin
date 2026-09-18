@@ -99,7 +99,7 @@ function Rows({ rows }: { rows: PriceRow[] }) {
           <div>
             <h3 className="l-row__name">
               {row.title}
-              {row.tag && <span className="l-tag l-tag--solid">{row.tag}</span>}
+              {row.tag && <span className="l-tag">{row.tag}</span>}
             </h3>
             <p className="l-row__desc">{row.description}</p>
             {row.note && <p className="l-row__note">{row.note}</p>}
@@ -109,7 +109,7 @@ function Rows({ rows }: { rows: PriceRow[] }) {
             <span>{row.unit}</span>
           </div>
           <div className="l-row__cta">
-            <Link href={`/book?service=${row.service}`} className="l-btn l-btn--red">
+            <Link href={`/book?service=${row.service}`} className="l-btn l-btn--line l-row__book">
               Book this <ArrowRight size={16} />
             </Link>
           </div>

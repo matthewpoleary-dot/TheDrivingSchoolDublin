@@ -1,6 +1,7 @@
 "use client";
 // app/admin/page.tsx
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { ArrowRight } from "@/components/lton/Icons";
 import { format, addWeeks, startOfWeek, endOfWeek, eachDayOfInterval, addDays } from "date-fns";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -345,7 +346,7 @@ export default function AdminPage() {
         </div>
         <button
           onClick={() => { setToken(""); setInputToken(""); }}
-          className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition"
+          className="l-btn l-btn--line l-btn--sm"
         >
           Sign out
         </button>
@@ -400,7 +401,7 @@ export default function AdminPage() {
               <p className="text-sm font-semibold text-slate-900">Customer bookings</p>
               <p className="text-xs text-slate-500">Everyone who has booked a lesson, newest first.</p>
             </div>
-            <button onClick={loadBookings} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
+            <button onClick={loadBookings} className="l-btn l-btn--line l-btn--sm">
               Refresh
             </button>
             <input
@@ -490,7 +491,7 @@ export default function AdminPage() {
             <p className="font-bold text-slate-900">Your week at a glance</p>
             <p className="text-sm text-slate-600 mt-1">
               <span className="font-semibold text-red-700">Red</span> slots are confirmed lessons: tap one to see the customer&apos;s details.
-              <span className="font-semibold text-emerald-700"> Green</span> slots are open for customers to book.
+               Times without a box are open for customers to book.
               To add more open slots, switch to the <span className="font-semibold">Add availability</span> tab.
             </p>
           </div>
@@ -501,20 +502,20 @@ export default function AdminPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setWeekOffset((w) => w - 1)}
-                  className="rounded-xl bg-slate-100 hover:bg-slate-200 w-9 h-9 text-slate-700 font-bold transition"
+                  className="l-btn l-btn--line l-btn--icon"
                   title="Previous week"
                 >
-                  ←
+                  <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><ArrowRight size={16} /></span>
                 </button>
                 <span className="text-base font-bold text-slate-900 px-2 min-w-[180px] text-center">
                   {format(weekStart, "d MMM")} to {format(weekEnd, "d MMM yyyy")}
                 </span>
                 <button
                   onClick={() => setWeekOffset((w) => w + 1)}
-                  className="rounded-xl bg-slate-100 hover:bg-slate-200 w-9 h-9 text-slate-700 font-bold transition"
+                  className="l-btn l-btn--line l-btn--icon"
                   title="Next week"
                 >
-                  →
+                  <ArrowRight size={16} />
                 </button>
                 {weekOffset !== 0 && (
                   <button
@@ -525,7 +526,7 @@ export default function AdminPage() {
                   </button>
                 )}
               </div>
-              <button onClick={loadSlots} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
+              <button onClick={loadSlots} className="l-btn l-btn--line l-btn--sm">
                 Refresh
               </button>
             </div>
@@ -588,8 +589,9 @@ export default function AdminPage() {
                               disabled={deletingId === s.id}
                               className="absolute top-0.5 right-0.5 hidden group-hover:flex items-center justify-center w-4 h-4 rounded-full bg-white text-slate-400 hover:text-red-600 text-xs font-bold leading-none border border-slate-200"
                               title={s.is_booked ? "Cancel booking & delete slot" : "Delete slot"}
+                              aria-label={`Delete ${s.start_time.slice(0, 5)} slot`}
                             >
-                              ×
+                              <svg width="8" height="8" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="3" /></svg>
                             </button>
                           </div>
                         );
@@ -821,9 +823,9 @@ export default function AdminPage() {
               <h2 className="font-black text-xl">Booking details</h2>
               <button
                 onClick={() => setSelectedSlot(null)}
-                className="text-gray-400 hover:text-gray-700 text-xl leading-none"
+                className="l-btn l-btn--line l-btn--icon" aria-label="Close"
               >
-                ×
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="2.4" /></svg>
               </button>
             </div>
 
@@ -921,7 +923,7 @@ export default function AdminPage() {
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setSelectedSlot(null)}
-                className="flex-1 rounded-xl bg-slate-100 hover:bg-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition"
+                className="flex-1 l-btn l-btn--line l-btn--sm"
               >
                 Close
               </button>
@@ -931,7 +933,7 @@ export default function AdminPage() {
                   setSelectedSlot(null);
                 }}
                 disabled={deletingId === selectedSlot.id}
-                className="flex-1 rounded-xl bg-[var(--red)] hover:bg-[var(--red-press)] text-white px-3 py-2 text-sm font-semibold transition disabled:opacity-50"
+                className="flex-1 l-btn l-btn--red l-btn--sm"
               >
                 {deletingId === selectedSlot.id
                   ? "Working…"
@@ -952,7 +954,7 @@ export default function AdminPage() {
               <p className="text-sm font-semibold text-slate-900">EDT package learners</p>
               <p className="text-xs text-slate-500">Customers working through their 12-lesson programme.</p>
             </div>
-            <button onClick={loadEdtPackages} className="rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition">
+            <button onClick={loadEdtPackages} className="l-btn l-btn--line l-btn--sm">
               Refresh
             </button>
           </div>
@@ -1006,7 +1008,7 @@ export default function AdminPage() {
                         className={`text-slate-400 transition-transform ${isOpen ? "rotate-90" : ""}`}
                         aria-hidden="true"
                       >
-                        ›
+                        <ArrowRight size={14} />
                       </div>
                     </button>
 

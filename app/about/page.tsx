@@ -11,6 +11,10 @@ const CENTRES = [
     name: "Tallaght",
     text: "Tested out of Tallaght too. He knows the routes, the traffic patterns, and what the examiners are watching for.",
   },
+  {
+    name: "Churchtown",
+    text: "He also worked at the old Churchtown test centre.",
+  },
 ];
 
 const HIGHLIGHTS = [
