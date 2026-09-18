@@ -37,8 +37,14 @@ working, nothing about data, payments or scheduling moves.
 
 - **Mobile first.** Design at 390px, then 768px, then 1440px. Most visitors are on a
   phone, and the sticky booking bar is mobile-only.
-- **Brand red is `#C8102E`.** Unify on it. The Tailwind-styled screens currently use
-  `#d90429` and Tailwind's `red-600`; those are accidents, not brand colours.
+- **The palette is red, black and white. This is the company's scheme and it does not
+  change.** Brand red is `#C8102E`, ink is `#0A0A0A`, surfaces are white. Greys are
+  allowed as neutrals only. Do not introduce a new accent colour, a second brand colour
+  or a gradient palette. Unify every red on `#C8102E`: the Tailwind-styled screens
+  currently use `#d90429` and Tailwind's `red-600`, which are accidents, not brand
+  colours. The only exceptions are functional status colours that carry meaning, such as
+  the green and red availability states in the booking calendar and the paid, pending
+  and refunded badges in admin. Keep those muted and subordinate to the brand palette.
 - **Motion is welcome.** Scroll-driven effects, richer transitions and considered hover
   states are in scope, as long as they stay smooth on a mid-range phone and respect
   `prefers-reduced-motion`.
