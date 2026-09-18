@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T12:00:00Z",
+  "title": "Design System: The Driving School Dublin",
+  "extensions": {
+    "colorMeta": {
+      "plate-red": { "role": "primary", "displayName": "Plate Red", "canonical": "#C8102E", "tonalRamp": ["#3D0510", "#7A0A1C", "#A50D26", "#C8102E", "#D9566B", "#EDB9C1", "#F6DCE0", "#FBEFF1"] },
+      "plate-red-press": { "role": "primary", "displayName": "Plate Red Press", "canonical": "#A50D26" },
+      "plate-red-mist": { "role": "primary", "displayName": "Plate Red Mist", "canonical": "#FFE3E7" },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#0A0A0A", "tonalRamp": ["#0A0A0A", "#1C1C1C", "#333333", "#4A4A4A", "#5C5C5C", "#8A8A8A", "#BDBDBD", "#E9E9E9"] },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#FFFFFF" },
+      "grey-50": { "role": "neutral", "displayName": "Grey 50", "canonical": "#F4F4F4", "tonalRamp": ["#0A0A0A", "#1C1C1C", "#333333", "#4A4A4A", "#5C5C5C", "#8A8A8A", "#BDBDBD", "#F4F4F4"] },
+      "grey-100": { "role": "neutral", "displayName": "Grey 100", "canonical": "#E9E9E9" },
+      "grey-300": { "role": "neutral", "displayName": "Grey 300", "canonical": "#BDBDBD" },
+      "grey-placeholder": { "role": "neutral", "displayName": "Grey Placeholder", "canonical": "#8A8A8A" },
+      "grey-600": { "role": "neutral", "displayName": "Grey 600", "canonical": "#5C5C5C" },
+      "grey-on-ink": { "role": "neutral", "displayName": "Grey on Ink", "canonical": "#A3A3A3" },
+      "open-green": { "role": "tertiary", "displayName": "Open Green", "canonical": "#3F7A52", "tonalRamp": ["#1F4A2F", "#336645", "#3F7A52", "#6E9A7B", "#BFD8C7", "#DCEBE1", "#EDF4EF", "#F6FAF7"] },
+      "open-green-soft": { "role": "tertiary", "displayName": "Open Green Soft", "canonical": "#EDF4EF" },
+      "ok-deep": { "role": "tertiary", "displayName": "OK Deep", "canonical": "#1F4A2F" },
+      "error-soft": { "role": "tertiary", "displayName": "Error Soft", "canonical": "#FBEFF1" },
+      "error-deep": { "role": "tertiary", "displayName": "Error Deep", "canonical": "#7A0A1C" },
+      "pending-soft": { "role": "tertiary", "displayName": "Pending Soft", "canonical": "#F8F4EA" },
+      "pending-deep": { "role": "tertiary", "displayName": "Pending Deep", "canonical": "#7A5A12", "tonalRamp": ["#3A2B08", "#634910", "#7A5A12", "#A48A4E", "#C9B687", "#E3D4AE", "#F0E8D3", "#F8F4EA"] },
+      "refunded-soft": { "role": "tertiary", "displayName": "Refunded Soft", "canonical": "#EEF2F7" },
+      "refunded-deep": { "role": "tertiary", "displayName": "Refunded Deep", "canonical": "#3A5378", "tonalRamp": ["#1B273A", "#2B3E5A", "#3A5378", "#6B7F9D", "#9DABC0", "#C8D2E0", "#DEE4EC", "#EEF2F7"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The page headline, one per page. Page intros use clamp(48px, 13vw, 96px)." },
+      "headline": { "displayName": "Headline", "purpose": "Section and result-screen headings." },
+      "title": { "displayName": "Title", "purpose": "Group headings inside a page." },
+      "numeral": { "displayName": "Numeral", "purpose": "Prices on tiles; the same heavy tabular treatment scales down for row prices, dates, counters and the rating score." },
+      "quote": { "displayName": "Quote", "purpose": "Review carousel; key phrase underlined in red." },
+      "item": { "displayName": "Item", "purpose": "Names in ruled rows, FAQ questions, step titles." },
+      "lede": { "displayName": "Lede", "purpose": "Line under a page headline, 19px from 768px, max 36ch." },
+      "body": { "displayName": "Body", "purpose": "Descriptions in grey 600; long prose at 17px / 1.65, 62ch." },
+      "label": { "displayName": "Label", "purpose": "Buttons, form labels, nav links, tabs." },
+      "meta": { "displayName": "Meta", "purpose": "Units, dates, hints, footer base." }
+    },
+    "shadows": [
+      { "name": "plate", "value": "0 14px 30px -12px rgba(10,10,10,0.4), 0 2px 4px rgba(10,10,10,0.12)", "purpose": "The L and N plates, lifted off the page." },
+      { "name": "result-mark", "value": "0 14px 30px -14px rgba(10,10,10,0.4)", "purpose": "Result mark plate on confirmation and EDT screens." },
+      { "name": "floating-nav", "value": "0 12px 28px -14px rgba(10,10,10,0.35)", "purpose": "Nav once it becomes a floating plate." },
+      { "name": "action-bar", "value": "0 -10px 24px -16px rgba(10,10,10,0.35)", "purpose": "Mobile action bar, cast upward." },
+      { "name": "sticky-bar", "value": "0 16px 32px -18px rgba(10,10,10,0.45)", "purpose": "Selected-slot bar in booking." },
+      { "name": "toast", "value": "0 16px 32px -14px rgba(10,10,10,0.5)", "purpose": "Admin toasts." },
+      { "name": "focus-halo", "value": "0 0 0 3px rgba(200,16,46,0.25)", "purpose": "Input focus, with an ink border." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "State changes: buttons, nav morph, tile flip, FAQ, carousel." },
+      { "name": "ease-land", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Objects landing: plate on, plate turn, action bar slide-up, carousel dot." },
+      { "name": "state", "value": "160ms", "purpose": "Colour and press transitions." },
+      { "name": "nav-morph", "value": "300ms", "purpose": "Flat bar to floating plate." },
+      { "name": "tile-flip", "value": "620ms", "purpose": "Price tile 3D flip." },
+      { "name": "plate-on", "value": "820ms, 180ms delay", "purpose": "Hero plate lands; result mark uses 700ms." },
+      { "name": "plate-turn", "value": "1100ms, or scroll-linked on view() entry 10% to contain 35%", "purpose": "L turns to N at the close." },
+      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce", "purpose": "Removes transforms and blur, shows final states, keeps only short opacity fades." }
+    ],
+    "breakpoints": [
+      { "name": "phone", "value": "390px" },
+      { "name": "slots", "value": "640px" },
+      { "name": "tablet", "value": "768px" },
+      { "name": "split", "value": "1000px" },
+      { "name": "wide", "value": "1100px" },
+      { "name": "desktop", "value": "1200px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one red action per view.",
+      "html": "<a class=\"ds-btn ds-btn-red\" href=\"#\">Book a lesson <svg width=\"18\" height=\"18\" viewBox=\"0 0 20 20\" fill=\"none\" aria-hidden=\"true\"><path d=\"M3 10h13M11 4.5 16.5 10 11 15.5\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"square\"/></svg></a>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; font-family: var(--display, Archivo, 'Helvetica Neue', Arial, sans-serif); font-weight: 800; font-size: 16px; letter-spacing: -0.005em; border: 2px solid #0A0A0A; border-radius: 8px; text-decoration: none; cursor: pointer; white-space: nowrap; transition: transform 160ms cubic-bezier(0.16,1,0.3,1), background-color 160ms, border-color 160ms, color 160ms; } .ds-btn svg { transition: transform 220ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-red { background: #C8102E; border-color: #C8102E; color: #fff; } .ds-btn-red:hover { background: #A50D26; border-color: #A50D26; } .ds-btn:hover svg { transform: translateX(3px); } .ds-btn:active { transform: scale(0.97); } .ds-btn:focus-visible { outline: 3px solid #C8102E; outline-offset: 3px; }"
+    },
+    {
+      "name": "Line Button",
+      "kind": "button",
+      "refersTo": "button-line",
+      "description": "Secondary action: outlined in ink, fills ink on hover.",
+      "html": "<a class=\"ds-btn-line\" href=\"#\">View prices</a>",
+      "css": ".ds-btn-line { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; font-weight: 800; font-size: 16px; background: #fff; color: #0A0A0A; border: 2px solid #0A0A0A; border-radius: 8px; text-decoration: none; transition: background-color 160ms, color 160ms, transform 160ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-line:hover { background: #0A0A0A; color: #fff; } .ds-btn-line:active { transform: scale(0.97); } .ds-btn-line:focus-visible { outline: 3px solid #C8102E; outline-offset: 3px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label above, 2px grey border, ink border and red halo on focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-label\">Your name <i>*</i></span><input class=\"ds-input\" placeholder=\"First and last name\"></label>",
+      "css": ".ds-field { display: grid; gap: 6px; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; } .ds-label { font-size: 15px; font-weight: 800; color: #0A0A0A; } .ds-label i { font-style: normal; color: #C8102E; } .ds-input { width: 100%; min-height: 50px; padding: 12px 14px; font: 500 16px/1.4 Archivo, 'Helvetica Neue', Arial, sans-serif; color: #0A0A0A; background: #fff; border: 2px solid #BDBDBD; border-radius: 8px; transition: border-color 160ms, box-shadow 160ms; } .ds-input::placeholder { color: #8A8A8A; } .ds-input:hover { border-color: #5C5C5C; } .ds-input:focus { outline: none; border-color: #0A0A0A; box-shadow: 0 0 0 3px rgba(200,16,46,0.25); }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "button-ink",
+      "description": "Scrolled state: the bar floats as a plate; Book is ink, red on hover.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-wordmark\" href=\"#\">The Driving<br>Schoo<b>L</b> Dubli<b>N</b></a><div class=\"ds-nav-links\"><a href=\"#\">Prices</a><a href=\"#\">Process</a><a href=\"#\">About</a></div><a class=\"ds-nav-book\" href=\"#\">Book a lesson</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 1160px; padding: 6px 6px 6px 16px; background: #fff; border: 2px solid #0A0A0A; border-radius: 12px; box-shadow: 0 12px 28px -14px rgba(10,10,10,0.35); font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; } .ds-wordmark { font-weight: 900; font-stretch: 92%; font-size: 16px; line-height: 0.98; letter-spacing: -0.02em; color: #0A0A0A; text-decoration: none; } .ds-wordmark b { color: #C8102E; } .ds-nav-links { display: flex; gap: 4px; } .ds-nav-links a { position: relative; padding: 10px 12px; font-weight: 700; font-size: 15px; color: #0A0A0A; text-decoration: none; } .ds-nav-links a::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; background: #C8102E; transform: scaleX(0); transform-origin: left; transition: transform 220ms cubic-bezier(0.16,1,0.3,1); } .ds-nav-links a:hover::after { transform: scaleX(1); } .ds-nav-book { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; font-weight: 800; font-size: 15px; background: #0A0A0A; color: #fff; border: 2px solid #0A0A0A; border-radius: 8px; text-decoration: none; transition: background-color 160ms, border-color 160ms; } .ds-nav-book:hover { background: #C8102E; border-color: #C8102E; } .ds-nav a:focus-visible { outline: 3px solid #C8102E; outline-offset: 3px; }"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Square label chip on rows and reviews; never a pill.",
+      "html": "<span class=\"ds-tag\">Most popular</span> <span class=\"ds-tag ds-tag-solid\">Best value</span>",
+      "css": ".ds-tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 4px; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.01em; line-height: 1.1; border: 2px solid currentColor; color: #C8102E; white-space: nowrap; } .ds-tag-solid { background: #C8102E; border-color: #C8102E; color: #fff; }"
+    },
+    {
+      "name": "Learner Plate",
+      "kind": "custom",
+      "refersTo": "plate",
+      "description": "The signature object: tilted L plate that turns to N.",
+      "html": "<div class=\"ds-plate\"><span>L</span></div>",
+      "css": ".ds-plate { width: 84px; height: 84px; display: grid; place-items: center; background: #fff; border: 2px solid #0A0A0A; border-radius: 10px; box-shadow: 0 14px 30px -12px rgba(10,10,10,0.4), 0 2px 4px rgba(10,10,10,0.12); font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; font-weight: 900; font-size: 67px; line-height: 1; color: #C8102E; rotate: 7deg; transition: rotate 300ms cubic-bezier(0.22,1,0.36,1); } .ds-plate:hover { rotate: -5deg; }"
+    },
+    {
+      "name": "Price Tiles",
+      "kind": "card",
+      "refersTo": "price-tile",
+      "description": "Plate tiles in an ink-ruled grid; exactly one is red.",
+      "html": "<div class=\"ds-tiles\"><div class=\"ds-tile\"><p class=\"ds-tile-name\">Standard lesson</p><p class=\"ds-tile-price\">€80<small>60 minutes</small></p></div><div class=\"ds-tile ds-tile-red\"><p class=\"ds-tile-name\">EDT, all 12 lessons</p><p class=\"ds-tile-price\">€905<small>Or split, €475 × 2</small></p></div></div>",
+      "css": ".ds-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #0A0A0A; border: 2px solid #0A0A0A; border-radius: 10px; overflow: hidden; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; } .ds-tile { background: #fff; color: #0A0A0A; min-height: 188px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; transition: background-color 160ms; } .ds-tile-red { background: #C8102E; color: #fff; } .ds-tile-name { font-weight: 800; font-size: 16px; line-height: 1.12; } .ds-tile-price { font-weight: 900; font-stretch: 90%; font-size: 52px; line-height: 0.88; letter-spacing: -0.04em; font-variant-numeric: tabular-nums lining-nums; } .ds-tile-price small { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0; color: #5C5C5C; } .ds-tile-red .ds-tile-price small { color: #FFE3E7; }"
+    },
+    {
+      "name": "Ruled Price Row",
+      "kind": "custom",
+      "refersTo": "button-line",
+      "description": "Name, description and heavy price between 2px ink rules.",
+      "html": "<ul class=\"ds-rows\"><li class=\"ds-row\"><div><p class=\"ds-row-name\">Refresher lesson</p><p class=\"ds-row-desc\">For licensed drivers returning after a break.</p></div><div class=\"ds-row-price\"><strong>€80</strong><span>per lesson</span></div></li></ul>",
+      "css": ".ds-rows { list-style: none; margin: 0; padding: 0; border-top: 2px solid #0A0A0A; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; } .ds-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 20px; padding: 22px 0; border-bottom: 2px solid #0A0A0A; } .ds-row-name { font-weight: 800; font-size: 19px; letter-spacing: -0.01em; } .ds-row-desc { margin-top: 8px; font-size: 15px; line-height: 1.5; color: #5C5C5C; } .ds-row-price { text-align: right; } .ds-row-price strong { display: block; font-weight: 900; font-stretch: 90%; font-size: 36px; line-height: 0.95; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; } .ds-row-price span { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: #5C5C5C; }"
+    },
+    {
+      "name": "Calendar Day",
+      "kind": "button",
+      "refersTo": "day-open",
+      "description": "Open days in muted green, full days quiet grey, the learner's pick in red.",
+      "html": "<div class=\"ds-days\"><button class=\"ds-day\"><span class=\"ds-dow\">Tue</span><span class=\"ds-num\">22</span><span class=\"ds-dow\">Sep</span></button><button class=\"ds-day\" aria-pressed=\"true\"><span class=\"ds-dow\">Wed</span><span class=\"ds-num\">23</span><span class=\"ds-dow\">Sep</span></button><button class=\"ds-day ds-day-full\" disabled><span class=\"ds-dow\">Thu</span><span class=\"ds-num\">24</span><span class=\"ds-dow\">Sep</span></button></div>",
+      "css": ".ds-days { display: grid; grid-template-columns: repeat(3, 96px); gap: 8px; } .ds-day { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 92px; padding: 14px 6px 16px; border-radius: 8px; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #0A0A0A; border: 2px solid #3F7A52; cursor: pointer; transition: background-color 160ms, transform 160ms cubic-bezier(0.16,1,0.3,1); } .ds-day:hover { background: #EDF4EF; } .ds-day:active { transform: scale(0.96); } .ds-day:focus-visible { outline: 3px solid #C8102E; outline-offset: 3px; } .ds-dow { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #3F7A52; } .ds-num { font-weight: 900; font-size: 30px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; } .ds-day[aria-pressed='true'] { background: #C8102E; border-color: #C8102E; color: #fff; } .ds-day[aria-pressed='true'] .ds-dow { color: #FFE3E7; } .ds-day-full { background: #F4F4F4; border-color: #E9E9E9; color: #5C5C5C; cursor: not-allowed; } .ds-day-full:hover { background: #F4F4F4; } .ds-day-full .ds-dow { color: #5C5C5C; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "L to N",
+    "overview": "The site speaks the logo's language: a heavy, slightly condensed black grotesque on white, and the red learner plate. The plate is the recurring object. It sits tilted beside the hero headline as an L, and at the close of the homepage it turns into an N as the page scrolls toward booking. Every screen, from the marketing pages to the booking flow, the EDT package link and the admin dashboard, is built from the same few materials: white paper, 2px ink rules, square plate tiles, and a single red that is spent sparingly.\n\nDensity is plain and confident. Structure comes from horizontal 2px black rules rather than cards: price rows, steps, FAQ, reviews, contact options and booking services are all ruled lists. Numbers are the interface; prices, ratings, counters and dates are set huge, heavy and tabular. One full-black band per page carries the credential, and nothing else is allowed that weight.\n\nMotion is physical and short: things land, flip and slide as if they were plates being handled. Every animation has a `prefers-reduced-motion` path that either removes it or ends it in its final state.",
+    "keyCharacteristics": [
+      "Red, black, white and neutral greys only; muted functional status tones are the single exception.",
+      "Archivo variable, 800 to 900 and condensed on the width axis for display; 400 to 600 for text.",
+      "2px ink rules as the structural line; ruled lists over boxed cards.",
+      "The learner plate (white square, 2px ink border, red letter, soft drop shadow) as the signature object.",
+      "One red fill per view; one black field per page.",
+      "Tabular, heavy numerals for every price, rating and count."
+    ],
+    "rules": [
+      { "name": "The One Red Rule", "body": "Red fills exactly one button, tile or selection per view. Where two would meet, the second steps down to ink: the nav's Book button is ink (red only on hover), and on phones the closing Book button is ink because the mobile action bar already carries the red. Red text accents (plate letters, stars, underlines) do not count against the fill.", "section": "colors" },
+      { "name": "The Black Field Rule", "body": "One full-bleed black band per page, reserved for the credential. Ink may fill small controls and markers, never a second section.", "section": "colors" },
+      { "name": "The Muted Status Rule", "body": "Status colours are desaturated and never used decoratively. Brand red is never a status colour for \"available\"; it means \"yours\".", "section": "colors" },
+      { "name": "The Numbers Are the Interface Rule", "body": "Every price, rating, count, date and time uses tabular lining numerals and is set heavier and larger than the words around it.", "section": "typography" },
+      { "name": "The Sentence Case Rule", "body": "Headings, labels and buttons are sentence case. Uppercase is used only for three-letter day and month abbreviations inside calendar cells.", "section": "typography" },
+      { "name": "The Lifted Object Rule", "body": "A shadow means the thing is an object in hand (a plate, a floating bar). Panels, tiles, rows and cards never carry one.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** build structure from 2px ink rules (`2px solid #0A0A0A`) and ruled lists before reaching for a boxed card.",
+      "**Do** spend plate red (#C8102E) on one fill per view and step any second primary down to ink.",
+      "**Do** set every price, rating, count, date and time in 900 Archivo with tabular lining numerals.",
+      "**Do** keep radii to the 4 / 6 / 8 / 10 / 12px ladder and borders at 2px.",
+      "**Do** give every animation a `prefers-reduced-motion` path and keep hover effects inside `(hover: hover)`.",
+      "**Do** use the stock Tailwind names on Tailwind-styled screens so the root remap brings them onto the brand.",
+      "**Do** keep touch targets at 44px minimum."
+    ],
+    "donts": [
+      "**Don't** introduce a new accent, a second brand colour or a gradient colour field; red, black, white and greys only, plus muted status tones.",
+      "**Don't** add a second full-black section to a page; the band belongs to the credential.",
+      "**Don't** use pill-shaped buttons or chips; tags are 4px squares and buttons 8px.",
+      "**Don't** put shadows on tiles, panels, rows or cards, and never use hard offset shadows.",
+      "**Don't** set small uppercase tracked labels above headings; headings stand on their own.",
+      "**Don't** use text glyphs as icons; icons are inline SVG in one 2px stroke family with square caps.",
+      "**Don't** use a serif or system display face; Archivo carries every role."
+    ]
+  }
+}

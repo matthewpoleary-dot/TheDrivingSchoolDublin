@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/l-to-n.html"
+        ],
+        "createdAt": "2026-09-18T13:35:56.196Z",
+        "reason": "Claude: throwaway gitignored direction mock; tight leading is only on display headlines"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "app/lton.css"
+        ],
+        "createdAt": "2026-09-18T13:35:56.495Z",
+        "reason": "Claude: CLAUDE.md requires keeping the nav flat-bar-to-floating-pill morph; header height held constant at 76px so no page reflow"
+      }
+    ]
+  }
+}
