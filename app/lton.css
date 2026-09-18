@@ -855,3 +855,7 @@ select.l-input {
 .l-btn--icon { width: 44px; padding: 0; }
 .l-btn--sm { min-height: 44px; padding: 0 14px; font-size: 15px; }
 @media (hover: hover) { .l-row__book:hover { background: var(--red); border-color: var(--red); color: #fff; } }
+/* Phones: the action bar carries the red; the closing button steps down to ink */
+@media (max-width: 767px) {
+  .l-close .l-btn--red { background: var(--ink); border-color: var(--ink); }
+}
