@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Driving School Dublin
 
-## Getting Started
+Website and lesson-request system for [The Driving School Dublin](https://thedrivingschooldublin.com), an RSA-approved driving instructor (ADI) serving learners across Dublin. Built and maintained by me for the business.
 
-First, run the development server:
+**Live:** https://thedrivingschooldublin.com
+
+## What it does
+
+- **Marketing site:** home, about, prices, reviews, FAQ, areas covered and contact pages, with a sticky call-to-action on mobile.
+- **Lesson requests:** learners submit name, contact details, area, car type (manual or automatic), lesson type and preferred availability, with explicit consent.
+- **Availability engine:** slots are computed from a weekly template (working hours, slot interval, buffer between lessons), then adjusted for existing bookings, overrides and blackout dates. See `lib/availability.ts`.
+- **Admin view:** a token-protected page for reviewing and managing bookings.
+- **Email:** contact-form and booking notifications sent through Resend.
+
+## Stack
+
+Next.js (App Router), React, TypeScript, Tailwind CSS, Supabase (Postgres), Resend, Zod for validation, SWR, date-fns. Deployed on Vercel.
+
+## Running it locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `.env.local` with:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project |
+| `RESEND_API_KEY`, `FROM_EMAIL`, `ADI_EMAIL` | Email sending and the instructor's inbox |
+| `ADMIN_TOKEN` | Bearer token for the admin API |
+| `TIMEZONE` | Timezone used for slot calculation |
+| `NEXT_PUBLIC_FORMSPREE_ENDPOINT` | Optional contact fallback |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The Supabase tables the app reads are `services`, `weekly_template`, `overrides` and `bookings`.
