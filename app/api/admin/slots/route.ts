@@ -45,7 +45,10 @@ export async function GET(req: Request) {
     if (end) query = query.lte("date", end);
 
     const { data, error } = await query;
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[admin/slots] supabase error:", error.code, error.message, error.hint);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
     const rows = (data ?? []) as AdminSlotRow[];
 

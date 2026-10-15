@@ -200,7 +200,10 @@ export default function AdminPage() {
       const start = format(addDays(weekStart, -7), "yyyy-MM-dd");
       const end = format(addDays(weekEnd, 7), "yyyy-MM-dd");
       const res = await fetch(`/api/admin/slots?start=${start}&end=${end}`, { headers: authHeader() });
-      if (!res.ok) throw new Error("Failed to load slots");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? `Failed to load slots (${res.status})`);
+      }
       const data = await res.json() as AvailabilitySlot[];
       setSlots(Array.isArray(data) ? data : []);
     } catch (e) {
