@@ -4,6 +4,7 @@ import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import BookingCalendar, { type Slot } from "@/components/BookingCalendar";
 import FlipPlate from "@/components/lton/FlipPlate";
+import { EDT_SLOT_SERVICE_TYPE } from "@/lib/services";
 import { format } from "date-fns";
 
 type PackageData = {
@@ -16,6 +17,8 @@ type PackageData = {
   expires_at: string;
   expired: boolean;
   active_sessions: number;
+  package_type?: string;
+  second_instalment_paid?: boolean;
 };
 
 type Props = { params: Promise<{ token: string }> };
@@ -32,6 +35,8 @@ export default function EdtBookingPage({ params }: Props) {
   const [bookError, setBookError] = useState("");
   const [booked, setBooked] = useState(false);
   const [bookedSlot, setBookedSlot] = useState<Slot | null>(null);
+  const [payingSecond, setPayingSecond] = useState(false);
+  const [secondError, setSecondError] = useState("");
 
   useEffect(() => {
     fetch(`/api/edt/${token}`)
@@ -112,7 +117,26 @@ export default function EdtBookingPage({ params }: Props) {
     );
   }
 
-  if (pkg.remaining === 0) {
+  const needsSecondInstalment =
+    pkg.package_type === "split" &&
+    pkg.lessons_used >= pkg.lessons_total &&
+    !pkg.second_instalment_paid;
+
+  async function handlePaySecondInstalment() {
+    setPayingSecond(true);
+    setSecondError("");
+    try {
+      const res = await fetch(`/api/edt/${token}/second-instalment`, { method: "POST" });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Failed to start payment");
+      window.location.href = data.url;
+    } catch (e: unknown) {
+      setSecondError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setPayingSecond(false);
+    }
+  }
+
+  if (pkg.remaining === 0 && !needsSecondInstalment) {
     return (
       <section className="l-page l-result" style={{ textAlign: "center" }}>
         <FlipPlate />
@@ -123,6 +147,30 @@ export default function EdtBookingPage({ params }: Props) {
         <div className="l-result__actions" style={{ justifyContent: "center" }}>
           <Link href="/contact" className="l-btn l-btn--red l-btn--lg">Book additional lessons</Link>
         </div>
+      </section>
+    );
+  }
+
+  if (needsSecondInstalment) {
+    return (
+      <section className="l-page l-result" style={{ textAlign: "center" }}>
+        <h1 className="l-display l-h2">Ready for lessons 7 to 12?</h1>
+        <p className="l-lede" style={{ margin: "0 auto" }}>
+          Hi {pkg.customer_name}, you&apos;ve completed your first 6 EDT lessons.
+          Pay the second instalment to unlock lessons 7 to 12.
+        </p>
+        <div className="l-result__actions" style={{ justifyContent: "center", marginTop: 28 }}>
+          <button
+            onClick={handlePaySecondInstalment}
+            disabled={payingSecond}
+            className="l-btn l-btn--red l-btn--lg"
+          >
+            {payingSecond ? "Redirecting to payment…" : "Pay for lessons 7–12"}
+          </button>
+        </div>
+        {secondError && (
+          <p className="l-notice l-notice--error" role="alert" style={{ marginTop: 16 }}>{secondError}</p>
+        )}
       </section>
     );
   }
@@ -201,7 +249,7 @@ export default function EdtBookingPage({ params }: Props) {
 
       {pkg.active_sessions < 2 && (
         <div className="l-panel">
-          <BookingCalendar serviceType="standard" onSlotSelected={setSelectedSlot} />
+          <BookingCalendar serviceType={EDT_SLOT_SERVICE_TYPE} onSlotSelected={setSelectedSlot} />
         </div>
       )}
 

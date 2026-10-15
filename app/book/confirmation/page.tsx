@@ -4,21 +4,13 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "@/components/lton/Icons";
+import { getServiceLabel } from "@/lib/services";
 
 type SessionData = {
   customer_email?: string;
   amount_total?: number;
   metadata?: { service_type?: string; booking_id?: string };
   payment_status?: string;
-};
-
-const SERVICE_LABELS: Record<string, string> = {
-  standard: "Standard Lesson",
-  "pre-test": "Pre-Test Lesson",
-  refresher: "Refresher Lesson",
-  "edt-6": "6 Reduced EDT Lessons",
-  "edt-bundle": "EDT Bundle (12 lessons)",
-  "car-hire": "Car Hire for Test",
 };
 
 function ConfirmationInner() {
@@ -49,7 +41,7 @@ function ConfirmationInner() {
 
   const serviceType = session?.metadata?.service_type;
   const isEdtBundle = serviceType === "edt-bundle" || serviceType === "edt-6";
-  const serviceLabel = serviceType ? SERVICE_LABELS[serviceType] ?? serviceType : "Lesson";
+  const serviceLabel = serviceType ? getServiceLabel(serviceType) : "Lesson";
 
   return (
     <section className="l-page l-result">

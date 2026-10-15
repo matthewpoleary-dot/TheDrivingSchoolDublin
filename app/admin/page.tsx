@@ -66,7 +66,8 @@ type EdtSession = {
 
 type Tab = "calendar" | "add-availability" | "bookings" | "edt";
 
-const ALL_SERVICE_TYPES = ["standard", "pre-test", "refresher", "edt-6", "edt-bundle", "car-hire"];
+// Slugs used when creating availability slots — sourced from lib/services.ts
+const ALL_SERVICE_TYPES = ["standard", "pre-test", "refresher", "edt-6", "edt-bundle", "edt-split", "car-hire-centre", "car-hire-local", "car-hire-lesson"];
 
 function getErrMsg(e: unknown): string {
   return e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error";
@@ -105,9 +106,11 @@ export default function AdminPage() {
   const loadBookings = useCallback(async () => {
     setLoadingBookings(true);
     try {
-      const res = await fetch("/api/admin/bookings", { headers: authHeader() });
-      const data = await res.json() as Booking[];
-      setBookings(Array.isArray(data) ? data : []);
+      const res = await fetch("/api/admin/bookings?pageSize=200", { headers: authHeader() });
+      const json = await res.json() as { data?: Booking[] } | Booking[];
+      // Handle both paginated ({data: []}) and legacy flat array responses
+      const rows = Array.isArray(json) ? json : (json as { data?: Booking[] }).data ?? [];
+      setBookings(rows);
     } catch (e) {
       showError(getErrMsg(e));
     } finally {

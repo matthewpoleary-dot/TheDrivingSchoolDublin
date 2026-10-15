@@ -1,13 +1,16 @@
 // app/api/availability/[id]/route.ts
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { supabaseServer } from "@/lib/supabase-server";
 import { requireAdmin } from "@/lib/auth";
 import { deleteCalendarEvent, findAndDeleteEventsAt } from "@/lib/google-calendar";
 import { dublinLocalToUtcISO } from "@/lib/time";
+import { emailOnStatusChange } from "@/lib/email";
 
 // DELETE /api/availability/[id] — admin only
-// Removes any slot. If the slot was booked, cancel the linked booking/EDT
-// session AND remove the matching Google Calendar event.
+// Removes any slot. If the slot was booked, cancels the linked booking/EDT
+// session, removes the matching Google Calendar event, emails the customer,
+// and auto-refunds paid regular bookings.
 //
 // Three paths for finding the GCAL event ID:
 //   1. The bookings row (regular bookings)
@@ -40,12 +43,59 @@ export async function DELETE(
           .from("bookings")
           .update({ payment_status: "cancelled" })
           .eq("id", slot.booking_id)
-          .select("google_calendar_event_id")
+          .select("id, customer_name, customer_email, customer_phone, service_type, google_calendar_event_id, stripe_payment_intent, amount_pence")
           .single();
 
         if (booking?.google_calendar_event_id) {
           await deleteCalendarEvent(booking.google_calendar_event_id);
           calendarEventCleared = true;
+        }
+
+        if (booking) {
+          const emailStartISO = slot.date && slot.start_time
+            ? dublinLocalToUtcISO(slot.date, slot.start_time)
+            : new Date().toISOString();
+
+          // Email customer — fire and forget (don't block the delete)
+          emailOnStatusChange({
+            bookingId: booking.id,
+            status: "cancelled",
+            serviceName: booking.service_type,
+            startsAtISO: emailStartISO,
+            client: {
+              name: booking.customer_name,
+              email: booking.customer_email,
+              phone: booking.customer_phone ?? null,
+            },
+          }).catch((err: unknown) => {
+            console.error("[availability/delete] email failed:", err instanceof Error ? err.message : err);
+          });
+
+          // Auto-refund paid regular bookings when instructor cancels
+          if (booking.stripe_payment_intent && booking.amount_pence > 0 && process.env.STRIPE_SECRET_KEY) {
+            try {
+              const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-07-30.basil" });
+              await stripe.refunds.create(
+                { payment_intent: booking.stripe_payment_intent },
+                { idempotencyKey: `refund-slot-del-${booking.id}` }
+              );
+              await supabaseServer
+                .from("bookings")
+                .update({ payment_status: "refunded" })
+                .eq("id", booking.id);
+            } catch (e: unknown) {
+              const msg = e instanceof Error ? e.message : String(e);
+              if (!msg.includes("charge_already_refunded")) {
+                console.error("[availability/delete] auto-refund failed:", msg);
+              } else {
+                // Already refunded in Stripe — just mark DB
+                await supabaseServer
+                  .from("bookings")
+                  .update({ payment_status: "refunded" })
+                  .eq("id", booking.id);
+              }
+            }
+          }
         }
       }
 
@@ -53,7 +103,7 @@ export async function DELETE(
       if (!calendarEventCleared) {
         const { data: edtSession } = await supabaseServer
           .from("edt_sessions")
-          .select("id, google_calendar_event_id")
+          .select("id, google_calendar_event_id, package_id")
           .eq("slot_id", id)
           .in("status", ["scheduled", "completed"])
           .maybeSingle();
@@ -63,12 +113,40 @@ export async function DELETE(
             await deleteCalendarEvent(edtSession.google_calendar_event_id);
             calendarEventCleared = true;
           }
-          // Mark the session as cancelled so it stops counting against the
-          // package's active-session limit.
+
+          // Mark session cancelled
           await supabaseServer
             .from("edt_sessions")
             .update({ status: "cancelled" })
             .eq("id", edtSession.id);
+
+          // Return the lesson credit to the package (never below 0)
+          const { data: pkg } = await supabaseServer
+            .from("edt_packages")
+            .select("lessons_used, customer_name, customer_email")
+            .eq("id", edtSession.package_id)
+            .single();
+
+          if (pkg) {
+            await supabaseServer
+              .from("edt_packages")
+              .update({ lessons_used: Math.max(0, pkg.lessons_used - 1) })
+              .eq("id", edtSession.package_id);
+
+            const emailStartISO = slot.date && slot.start_time
+              ? dublinLocalToUtcISO(slot.date, slot.start_time)
+              : new Date().toISOString();
+
+            emailOnStatusChange({
+              bookingId: edtSession.id,
+              status: "cancelled",
+              serviceName: "EDT Session",
+              startsAtISO: emailStartISO,
+              client: { name: pkg.customer_name, email: pkg.customer_email, phone: null },
+            }).catch((err: unknown) => {
+              console.error("[availability/delete] EDT email failed:", err instanceof Error ? err.message : err);
+            });
+          }
         }
       }
 

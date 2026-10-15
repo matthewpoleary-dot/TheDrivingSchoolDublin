@@ -34,9 +34,20 @@ export async function POST(req: Request) {
     );
   }
 
+  // Idempotency: skip already-processed events
+  const { error: insertErr } = await supabaseServer
+    .from("stripe_events")
+    .insert({ id: event.id, type: event.type });
+  if (insertErr?.code === "23505") {
+    console.log("[stripe-webhook] duplicate event, skipping:", event.id);
+    return NextResponse.json({ received: true });
+  }
+
   try {
     if (event.type === "checkout.session.completed") {
       await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+    } else if (event.type === "checkout.session.expired") {
+      await handleCheckoutExpired(event.data.object as Stripe.Checkout.Session);
     } else if (event.type === "payment_intent.payment_failed") {
       await handlePaymentFailed(event.data.object as Stripe.PaymentIntent);
     } else if (event.type === "charge.refunded") {
@@ -76,7 +87,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  // Lock the slot (single-lesson bookings). All EDT variants are package-based, no slot.
+  // Lock the slot and release the hold (single-lesson bookings only)
   const isEdtPackage =
     serviceType === "edt-bundle" ||
     serviceType === "edt-6" ||
@@ -85,16 +96,40 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (slotId && !isEdtPackage) {
     await supabaseServer
       .from("availability_slots")
-      .update({ is_booked: true, booking_id: bookingId })
+      .update({
+        is_booked: true,
+        booking_id: bookingId,
+        held_until: null,
+        held_by_booking: null,
+      })
       .eq("id", slotId);
+  }
+
+  // Handle EDT split-payment second instalment
+  if (serviceType === "edt-split-2") {
+    const packageId = session.metadata?.edt_package_id;
+    if (packageId) {
+      const { error: splitErr } = await supabaseServer
+        .from("edt_packages")
+        .update({
+          lessons_total: 12,
+          second_instalment_paid: true,
+          second_instalment_booking_id: bookingId,
+        })
+        .eq("id", packageId)
+        .eq("second_instalment_paid", false); // idempotency guard
+      if (splitErr) {
+        console.error("[stripe-webhook] failed to update edt_package for split-2:", splitErr);
+      }
+    }
+    return;
   }
 
   // For EDT packages: create the package record
   if (isEdtPackage) {
-    // edt-bundle = 12, edt-6 / edt-split = 6 lessons in this package
-    // (edt-split charges a second €475 later for lessons 7-12, handled manually for now)
     const lessonsTotal = serviceType === "edt-bundle" ? 12 : 6;
     const expiresAt = format(addYears(new Date(), 1), "yyyy-MM-dd");
+    const packageType = serviceType === "edt-split" ? "split" : "standard";
 
     const { data: pkg, error: pkgErr } = await supabaseServer
       .from("edt_packages")
@@ -105,6 +140,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         lessons_total: lessonsTotal,
         lessons_used: 0,
         expires_at: expiresAt,
+        package_type: packageType,
       })
       .select()
       .single();
@@ -114,24 +150,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       return;
     }
 
-    // Link package back to booking
     await supabaseServer
       .from("bookings")
       .update({ edt_package_id: pkg.id })
       .eq("id", bookingId);
 
-    // Send EDT package email with booking link
-    await emailOnEdtPackageCreated({
-      packageId: pkg.id,
-      accessToken: pkg.access_token,
-      lessonsTotal,
-      expiresAt,
-      customer: { name: booking.customer_name, email: booking.customer_email },
-    });
+    try {
+      await emailOnEdtPackageCreated({
+        packageId: pkg.id,
+        accessToken: pkg.access_token,
+        lessonsTotal,
+        expiresAt,
+        customer: { name: booking.customer_name, email: booking.customer_email },
+      });
+    } catch (e) {
+      console.error("[stripe-webhook] email failed for EDT package:", e);
+    }
     return;
   }
 
-  // Fetch slot details for the confirmation email and Google Calendar
+  // Fetch slot details for confirmation email and Google Calendar
   let slotInfo: { date: string; start_time: string; end_time: string } | null = null;
   if (slotId) {
     const { data: slot } = await supabaseServer
@@ -142,8 +180,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     slotInfo = slot;
   }
 
-  // Local-time strings (no UTC offset) for Google Calendar. Google's
-  // timeZone: "Europe/Dublin" interprets them correctly across DST.
   const startsLocal = slotInfo
     ? `${slotInfo.date}T${slotInfo.start_time}`
     : new Date().toISOString().slice(0, 19);
@@ -151,16 +187,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ? `${slotInfo.date}T${slotInfo.end_time}`
     : startsLocal;
 
-  // True UTC ISO for the confirmation email. We can't use `new Date(string)`
-  // here because on a UTC runtime (Vercel) it interprets the no-offset string
-  // as UTC instead of Dublin local — which made the email read an hour ahead.
-  // dublinLocalToUtcISO reads the actual Dublin offset for this specific date.
   const startsAtISO = slotInfo
     ? dublinLocalToUtcISO(slotInfo.date, slotInfo.start_time)
     : new Date().toISOString();
 
-  // Idempotency guard: Stripe can replay the webhook. If we've already
-  // attached a calendar event ID, skip the second create.
+  // Idempotency guard: skip if calendar event already created
   if (!booking.google_calendar_event_id) {
     const serviceLabel: Record<string, string> = {
       standard: "Standard Lesson",
@@ -173,8 +204,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       "car-hire-lesson": "Car Hire + Pre-Test Lesson",
     };
 
-    // Pickup area is prepended to the notes field by the booking form
-    // ("Pickup area: D6. <user notes>"). Extract it for the event location.
     let pickupArea: string | undefined;
     let cleanedNotes: string | undefined;
     if (booking.notes) {
@@ -211,23 +240,52 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           .eq("id", bookingId);
       }
     } catch (e) {
-      // Failure isolation: calendar problems must not fail the webhook. The
-      // booking is still valid even if the event doesn't land.
       console.error("[stripe-webhook] calendar create failed for booking", bookingId, e);
     }
   }
 
-  await emailOnBooking({
-    bookingId,
-    serviceName: serviceType ?? "Lesson",
-    priceCents: booking.amount_pence,
-    startsAtISO,
-    client: {
-      name: booking.customer_name,
-      email: booking.customer_email,
-      phone: booking.customer_phone,
-    },
-  });
+  try {
+    await emailOnBooking({
+      bookingId,
+      serviceName: serviceType ?? "Lesson",
+      priceCents: booking.amount_pence,
+      startsAtISO,
+      client: {
+        name: booking.customer_name,
+        email: booking.customer_email,
+        phone: booking.customer_phone,
+      },
+    });
+  } catch (e) {
+    console.error("[stripe-webhook] email failed for booking", bookingId, e);
+  }
+}
+
+async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
+  // Find pending booking by stripe_session_id
+  const { data: booking } = await supabaseServer
+    .from("bookings")
+    .select("id, slot_id, payment_status")
+    .eq("stripe_session_id", session.id)
+    .maybeSingle();
+
+  if (!booking || booking.payment_status !== "pending") return;
+
+  // Cancel the booking
+  await supabaseServer
+    .from("bookings")
+    .update({ payment_status: "cancelled" })
+    .eq("id", booking.id)
+    .eq("payment_status", "pending"); // guard against concurrent updates
+
+  // Release the slot hold
+  if (booking.slot_id) {
+    await supabaseServer
+      .from("availability_slots")
+      .update({ held_until: null, held_by_booking: null })
+      .eq("id", booking.slot_id)
+      .eq("is_booked", false); // never un-hold a slot that completed payment
+  }
 }
 
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
@@ -236,8 +294,8 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     console.warn("[stripe-webhook] payment_failed: no booking_id in metadata, skipping");
     return;
   }
-  // Don't release the slot — customer may retry payment in same session.
-  // Cleanup happens in checkout.session.expired.
+  // Don't release the slot — customer may retry payment in same Stripe session.
+  // Slot cleanup happens in checkout.session.expired.
   await supabaseServer
     .from("bookings")
     .update({ payment_status: "failed" })
@@ -246,7 +304,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 }
 
 async function handleChargeRefunded(charge: Stripe.Charge) {
-  // Sync DB when a refund is issued via the Stripe Dashboard
+  // Sync DB when a refund is issued directly via the Stripe Dashboard
   const paymentIntentId = typeof charge.payment_intent === "string"
     ? charge.payment_intent
     : charge.payment_intent?.id;
@@ -265,7 +323,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     .update({ payment_status: "refunded" })
     .eq("id", booking.id);
 
-  // Free the slot if it was held
+  // Free the slot
   if (booking.slot_id) {
     await supabaseServer
       .from("availability_slots")

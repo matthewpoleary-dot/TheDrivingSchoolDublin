@@ -17,10 +17,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "start_date and end_date are required" }, { status: 400 });
     }
 
+    const now = new Date().toISOString();
     let query = supabaseServer
       .from("availability_slots")
       .select("*")
       .eq("is_booked", false)
+      .or(`held_until.is.null,held_until.lt.${now}`)
       .gte("date", start)
       .lte("date", end)
       .order("date", { ascending: true })
@@ -111,11 +113,13 @@ export async function POST(req: Request) {
       // Insert in batches of 100
       let created = 0;
       for (let i = 0; i < slots.length; i += 100) {
-        const { error } = await supabaseServer
+        // Upsert (like auto-fill) to silently skip duplicate date+start_time slots
+        const { data, error } = await supabaseServer
           .from("availability_slots")
-          .insert(slots.slice(i, i + 100));
+          .upsert(slots.slice(i, i + 100), { onConflict: "date,start_time", ignoreDuplicates: true })
+          .select("id");
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-        created += Math.min(100, slots.length - i);
+        created += data?.length ?? 0;
       }
 
       return NextResponse.json({ created }, { status: 201 });
