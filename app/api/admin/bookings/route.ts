@@ -18,7 +18,7 @@ export async function GET(req: Request) {
       .select(
         `
         id, slot_id, service_type, customer_name, customer_email, customer_phone,
-        payment_status, amount_pence, notes, created_at,
+        payment_status, stripe_payment_intent, amount_pence, notes, created_at,
         slot:availability_slots(date, start_time, end_time)
       `,
         { count: "exact" }

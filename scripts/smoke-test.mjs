@@ -61,8 +61,27 @@ const checkoutBody = (slot_id) => ({
   customer_email: TEST_EMAIL, customer_phone: "+353 86 000 0000", notes: "Automated smoke test, ignore",
 });
 
+// Stripe localises Checkout by the browser's IP. From a non-Irish runner it
+// defaults to that country (US: ZIP field, USD offered) and ticks "save with
+// Link", which then demands a phone number. Pin it to an Irish EUR buyer.
+async function payOnStripe(page, cardNumber) {
+  const eur = page.getByRole("button", { name: /€/ }).first();
+  if (await eur.waitFor({ timeout: 5_000 }).then(() => true, () => false)) await eur.click();
+  await page.fill("#cardNumber", cardNumber);
+  await page.fill("#cardExpiry", "12 / 34");
+  await page.fill("#cardCvc", "123");
+  await page.fill("#billingName", "Smoke Test");
+  const country = page.locator("#billingCountry");
+  if (await country.isVisible().catch(() => false)) await country.selectOption("IE");
+  const postal = page.locator("#billingPostalCode");
+  if (await postal.isVisible().catch(() => false)) await postal.fill("D02 XY45");
+  const link = page.locator("#enableStripePass");
+  if (await link.isChecked().catch(() => false)) await link.uncheck({ force: true });
+  await page.locator("[data-testid=hosted-payment-submit-button]").click();
+}
+
 const slots = [];
-let browser;
+let browser, page;
 
 try {
   // ── 0. Admin auth ──────────────────────────────────────────────────────────
@@ -85,7 +104,7 @@ try {
 
   // ── 3. Full booking in a real browser ──────────────────────────────────────
   browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   if (BYPASS) await page.goto(`${SITE}/?x-vercel-protection-bypass=${BYPASS}&x-vercel-set-bypass-cookie=samesitenone`);
 
   await page.goto(`${SITE}/book?service=standard`);
@@ -104,17 +123,14 @@ try {
 
   await page.waitForURL(/checkout\.stripe\.com/, { timeout: 30_000 });
   check("booking form redirects to Stripe Checkout", true);
-  const isTestMode = await page.getByText(/test mode|sandbox/i).first().isVisible().catch(() => false);
+  // A cs_test_ session id is only ever issued in test mode. Otherwise wait for
+  // Checkout to render its test-mode badge (isVisible() alone doesn't wait).
+  const isTestMode = /\/pay\/cs_test_/.test(page.url())
+    || await page.getByText(/test mode|sandbox/i).first().waitFor({ timeout: 15_000 }).then(() => true, () => false);
   check("Stripe Checkout is in test mode", isTestMode);
   if (!isTestMode) throw new Error("Stripe is not in test mode, stopping before entering a card");
 
-  await page.fill("#cardNumber", "4242424242424242");
-  await page.fill("#cardExpiry", "12 / 34");
-  await page.fill("#cardCvc", "123");
-  await page.fill("#billingName", "Smoke Test");
-  const postal = page.locator("#billingPostalCode");
-  if (await postal.isVisible().catch(() => false)) await postal.fill("D02 XY45");
-  await page.locator("[data-testid=hosted-payment-submit-button]").click();
+  await payOnStripe(page, "4242424242424242");
 
   await page.waitForURL(/\/book\/confirmation/, { timeout: 60_000 });
   check("payment lands on /book/confirmation", true);
@@ -150,13 +166,7 @@ try {
   const dec = await api.post("/api/checkout", { data: checkoutBody(slotC) });
   if (dec.ok()) {
     await page.goto((await dec.json()).url);
-    await page.fill("#cardNumber", "4000000000000002");
-    await page.fill("#cardExpiry", "12 / 34");
-    await page.fill("#cardCvc", "123");
-    await page.fill("#billingName", "Smoke Test");
-    const postal2 = page.locator("#billingPostalCode");
-    if (await postal2.isVisible().catch(() => false)) await postal2.fill("D02 XY45");
-    await page.locator("[data-testid=hosted-payment-submit-button]").click();
+    await payOnStripe(page, "4000000000000002");
     const declinedShown = await page.getByText(/declined/i).first().waitFor({ timeout: 30_000 }).then(() => true, () => false);
     check("Stripe shows the decline", declinedShown);
     const failed = await waitForStatus(TEST_EMAIL, slotC, "failed", 45);
@@ -168,6 +178,11 @@ try {
   }
 } catch (e) {
   check("script finished without crashing", false, e.message.split("\n")[0]);
+  if (page) {
+    const shot = `${process.env.SMOKE_SHOT_DIR ?? "."}/smoke-failure.png`;
+    console.log(`failure url: ${page.url()}`);
+    await page.screenshot({ path: shot, fullPage: true }).then(() => console.log(`failure screenshot: ${shot}`), () => {});
+  }
 } finally {
   await browser?.close();
   for (const id of slots) {

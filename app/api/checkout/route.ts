@@ -100,6 +100,13 @@ export async function POST(req: Request) {
       .single();
 
     if (bookingErr || !booking) {
+      // 23505: uq_booking_slot_active, another checkout already holds this slot
+      if (bookingErr?.code === "23505") {
+        return NextResponse.json(
+          { error: "This slot has just been taken. Please choose another." },
+          { status: 409 }
+        );
+      }
       return NextResponse.json({ error: bookingErr?.message ?? "Failed to create booking" }, { status: 500 });
     }
 
