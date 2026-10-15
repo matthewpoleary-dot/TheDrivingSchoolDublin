@@ -139,7 +139,8 @@ export default function AdminPage() {
     setLoadingBookings(true);
     try {
       const res = await fetch("/api/admin/bookings?pageSize=200", { headers: authHeader() });
-      const json = await res.json() as { data?: Booking[] } | Booking[];
+      const json = await res.json() as { data?: Booking[]; error?: string } | Booking[];
+      if (!res.ok) throw new Error((json as { error?: string }).error ?? `Failed to load bookings (${res.status})`);
       // Handle both paginated ({data: []}) and legacy flat array responses
       const rows = Array.isArray(json) ? json : (json as { data?: Booking[] }).data ?? [];
       setBookings(rows);

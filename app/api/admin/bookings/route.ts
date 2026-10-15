@@ -26,7 +26,10 @@ export async function GET(req: Request) {
       .order("created_at", { ascending: false })
       .range(from, to);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("[admin/bookings] supabase error:", error.code, error.message, error.hint);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json({ data: data ?? [], total: count ?? 0, page, pageSize });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Server error";
