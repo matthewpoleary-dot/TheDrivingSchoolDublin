@@ -78,6 +78,8 @@ function getErrMsg(e: unknown): string {
 export default function AdminPage() {
   const [token, setToken] = useState("");
   const [inputToken, setInputToken] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
   const [tab, setTab] = useState<Tab>("calendar");
   const [toast, setToast] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -91,6 +93,36 @@ export default function AdminPage() {
   function showError(msg: string) {
     setErrorMsg(msg);
     setTimeout(() => setErrorMsg(""), 4000);
+  }
+
+  async function handleLogin() {
+    const t = inputToken.trim();
+    if (!t) return;
+    setLoggingIn(true);
+    setLoginError("");
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: t }),
+      });
+      if (!res.ok) {
+        setLoginError("Incorrect password.");
+        return;
+      }
+      // Cookie is now set by the server. Keep token in state for API Bearer headers.
+      setToken(t);
+    } catch {
+      setLoginError("Network error. Please try again.");
+    } finally {
+      setLoggingIn(false);
+    }
+  }
+
+  async function handleLogout() {
+    await fetch("/api/admin/logout", { method: "POST" }).catch(() => null);
+    setToken("");
+    setInputToken("");
   }
 
   function authHeader() {
@@ -324,13 +356,17 @@ export default function AdminPage() {
             type="password"
             value={inputToken}
             onChange={(e) => setInputToken(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && inputToken.trim()) setToken(inputToken.trim()); }}
+            onKeyDown={(e) => { if (e.key === "Enter") void handleLogin(); }}
           />
+          {loginError && (
+            <p className="text-sm text-red-600">{loginError}</p>
+          )}
           <button
-            onClick={() => { if (inputToken.trim()) setToken(inputToken.trim()); }}
-            className="w-full rounded-xl bg-[var(--red)] hover:bg-[var(--red-press)] px-4 py-3 text-base font-semibold text-white transition shadow-sm"
+            onClick={() => void handleLogin()}
+            disabled={loggingIn || !inputToken.trim()}
+            className="w-full rounded-xl bg-[var(--red)] hover:bg-[var(--red-press)] px-4 py-3 text-base font-semibold text-white transition shadow-sm disabled:opacity-50"
           >
-            Sign in
+            {loggingIn ? "Signing in…" : "Sign in"}
           </button>
         </div>
       </div>
@@ -348,7 +384,7 @@ export default function AdminPage() {
           <p className="text-sm text-slate-500 mt-1">Manage bookings, set your availability, and track EDT packages.</p>
         </div>
         <button
-          onClick={() => { setToken(""); setInputToken(""); }}
+          onClick={() => void handleLogout()}
           className="l-btn l-btn--line l-btn--sm"
         >
           Sign out
