@@ -39,6 +39,8 @@ export async function POST(req: Request) {
       await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
     } else if (event.type === "payment_intent.payment_failed") {
       await handlePaymentFailed(event.data.object as Stripe.PaymentIntent);
+    } else if (event.type === "charge.refunded") {
+      await handleChargeRefunded(event.data.object as Stripe.Charge);
     }
   } catch (e: unknown) {
     console.error("[stripe-webhook] handler error:", e);
@@ -229,10 +231,45 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 }
 
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
-  // Find the booking via the Stripe session that references this payment intent
-  // The payment_intent id is stored after completion; on failure we find via session
+  const bookingId = paymentIntent.metadata?.booking_id;
+  if (!bookingId) {
+    console.warn("[stripe-webhook] payment_failed: no booking_id in metadata, skipping");
+    return;
+  }
+  // Don't release the slot — customer may retry payment in same session.
+  // Cleanup happens in checkout.session.expired.
   await supabaseServer
     .from("bookings")
     .update({ payment_status: "failed" })
-    .eq("stripe_payment_intent", paymentIntent.id);
+    .eq("id", bookingId)
+    .eq("payment_status", "pending"); // only update if still pending
+}
+
+async function handleChargeRefunded(charge: Stripe.Charge) {
+  // Sync DB when a refund is issued via the Stripe Dashboard
+  const paymentIntentId = typeof charge.payment_intent === "string"
+    ? charge.payment_intent
+    : charge.payment_intent?.id;
+  if (!paymentIntentId) return;
+
+  const { data: booking } = await supabaseServer
+    .from("bookings")
+    .select("id, slot_id, payment_status")
+    .eq("stripe_payment_intent", paymentIntentId)
+    .maybeSingle();
+
+  if (!booking || booking.payment_status === "refunded") return;
+
+  await supabaseServer
+    .from("bookings")
+    .update({ payment_status: "refunded" })
+    .eq("id", booking.id);
+
+  // Free the slot if it was held
+  if (booking.slot_id) {
+    await supabaseServer
+      .from("availability_slots")
+      .update({ is_booked: false, booking_id: null })
+      .eq("id", booking.slot_id);
+  }
 }
