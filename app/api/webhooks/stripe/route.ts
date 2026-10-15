@@ -55,6 +55,8 @@ export async function POST(req: Request) {
     }
   } catch (e: unknown) {
     console.error("[stripe-webhook] handler error:", e);
+    // Forget the event so Stripe's retry is processed instead of skipped as a duplicate
+    await supabaseServer.from("stripe_events").delete().eq("id", event.id);
     return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }
 
