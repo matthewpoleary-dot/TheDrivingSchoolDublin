@@ -62,7 +62,7 @@ const checkoutBody = (slot_id) => ({
 });
 
 const slots = [];
-let browser;
+let browser, page;
 
 try {
   // ── 0. Admin auth ──────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ try {
 
   // ── 3. Full booking in a real browser ──────────────────────────────────────
   browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   if (BYPASS) await page.goto(`${SITE}/?x-vercel-protection-bypass=${BYPASS}&x-vercel-set-bypass-cookie=samesitenone`);
 
   await page.goto(`${SITE}/book?service=standard`);
@@ -168,6 +168,11 @@ try {
   }
 } catch (e) {
   check("script finished without crashing", false, e.message.split("\n")[0]);
+  if (page) {
+    const shot = `${process.env.SMOKE_SHOT_DIR ?? "."}/smoke-failure.png`;
+    console.log(`failure url: ${page.url()}`);
+    await page.screenshot({ path: shot, fullPage: true }).then(() => console.log(`failure screenshot: ${shot}`), () => {});
+  }
 } finally {
   await browser?.close();
   for (const id of slots) {
