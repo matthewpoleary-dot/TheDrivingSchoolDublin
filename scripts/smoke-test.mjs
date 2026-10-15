@@ -104,7 +104,10 @@ try {
 
   await page.waitForURL(/checkout\.stripe\.com/, { timeout: 30_000 });
   check("booking form redirects to Stripe Checkout", true);
-  const isTestMode = await page.getByText(/test mode|sandbox/i).first().isVisible().catch(() => false);
+  // A cs_test_ session id is only ever issued in test mode. Otherwise wait for
+  // Checkout to render its test-mode badge (isVisible() alone doesn't wait).
+  const isTestMode = /\/pay\/cs_test_/.test(page.url())
+    || await page.getByText(/test mode|sandbox/i).first().waitFor({ timeout: 15_000 }).then(() => true, () => false);
   check("Stripe Checkout is in test mode", isTestMode);
   if (!isTestMode) throw new Error("Stripe is not in test mode, stopping before entering a card");
 
