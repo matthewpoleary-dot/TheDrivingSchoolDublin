@@ -1,6 +1,7 @@
 // app/prices/page.tsx
 import Link from "next/link";
 import FAQ from "@/components/FAQ";
+import FlipPlate from "@/components/lton/FlipPlate";
 import { ArrowRight } from "@/components/lton/Icons";
 import { SERVICES, formatPrice, type ServiceSlug } from "@/lib/pricing";
 
@@ -109,7 +110,7 @@ function Rows({ rows }: { rows: PriceRow[] }) {
             <span>{row.unit}</span>
           </div>
           <div className="l-row__cta">
-            <Link href={`/book?service=${row.service}`} className="l-btn l-btn--line l-row__book">
+            <Link href={`/book?service=${row.service}`} className="l-row__book">
               Book this <ArrowRight size={16} />
             </Link>
           </div>
@@ -173,6 +174,7 @@ export default function PricesPage() {
       </div>
 
       <section className="l-close" aria-labelledby="close-title">
+        <FlipPlate />
         <h2 id="close-title" className="l-h2">Ready to book?</h2>
         <p className="l-body">Pick your lesson, choose a slot, pay securely online.</p>
         <Link href="/book" className="l-btn l-btn--red l-btn--lg">

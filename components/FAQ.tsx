@@ -43,7 +43,6 @@ export default function FAQ() {
   return (
     <section aria-labelledby="faq-title">
       <div className="l-group__head">
-        <p className="l-eyebrow">FAQ</p>
         <h2 id="faq-title" className="l-h2">Asked, answered.</h2>
         <p className="l-body">The questions learners ask most before booking.</p>
       </div>

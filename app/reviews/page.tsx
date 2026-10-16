@@ -1,6 +1,7 @@
 // app/reviews/page.tsx
 import Link from "next/link";
 import { ArrowRight, Star } from "@/components/lton/Icons";
+import FlipPlate from "@/components/lton/FlipPlate";
 
 type Review = {
   name: string;
@@ -106,12 +107,13 @@ export default function ReviewsPage() {
       </section>
 
       <section className="l-close" aria-labelledby="close-title">
+        <FlipPlate />
         <h2 id="close-title" className="l-h2">Ready to join them?</h2>
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 10 }}>
+        <div className="l-close__ctas">
           <Link href="/book" className="l-btn l-btn--red l-btn--lg">
             Book a lesson <ArrowRight />
           </Link>
-          <Link href="/prices" className="l-btn l-btn--ghost-ink l-btn--lg">View prices</Link>
+          <Link href="/prices" className="l-btn l-btn--line l-btn--lg">View prices</Link>
         </div>
         <p className="l-body" style={{ marginTop: 10, fontSize: 15 }}>
           See all reviews on{" "}
