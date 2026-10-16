@@ -61,7 +61,7 @@ export type EdtPackage = {
 export type EdtSession = {
   id: string;
   package_id: string;
-  slot_id: string;
+  slot_id: string | null; // null once the slot is deleted (migration 010)
   session_number: number;
   status: "scheduled" | "completed" | "cancelled";
   created_at: string;
