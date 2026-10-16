@@ -5,10 +5,10 @@ import { ArrowRight } from "@/components/lton/Icons";
 export default function NotFound() {
   return (
     <section className="l-page l-result">
-      <div className="l-result__mark" aria-hidden="true" style={{ color: "var(--red)", fontWeight: 900, fontSize: 40 }}>
+      <div className="l-result__mark" aria-hidden="true" style={{ color: "var(--red)", font: "700 36px/1 var(--display)" }}>
         ?
       </div>
-      <h1 className="l-display l-h2">Wrong turn.</h1>
+      <h1 className="l-h2">Wrong turn.</h1>
       <p className="l-lede">This page could not be found.</p>
       <div className="l-result__actions">
         <Link href="/" className="l-btn l-btn--red l-btn--lg">

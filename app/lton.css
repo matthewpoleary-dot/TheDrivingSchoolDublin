@@ -855,3 +855,7 @@ select.l-input {
   .l-offer:hover, .l-rating:hover { transform: none; }
   .l-nav__shell { transition: none; }
 }
+
+/* Centred result screens (loading, 404-like and end states) centre their mark too */
+.l-result[style*="center"] .l-result__mark,
+.l-result[style*="center"] .l-flip { margin-left: auto; margin-right: auto; }
