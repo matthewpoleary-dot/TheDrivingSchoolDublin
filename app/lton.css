@@ -646,20 +646,28 @@ select.l-input {
 .l-hint { font-size: 14px; color: var(--grey-600); line-height: 1.5; }
 
 /* ─── Contact options ───────────────────────────────────────────────────── */
-.l-options { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; container-type: inline-size; }
+/* Contact options: ruled rows; WhatsApp is the one red button, the rest are links */
+.l-options { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); container-type: inline-size; }
 .l-option {
-  display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 4px 16px; align-items: start;
-  padding: 20px; border-radius: var(--r); background: var(--mist);
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 16px; align-items: start;
+  padding: 22px 0; border-bottom: var(--line);
 }
-.l-option__icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: var(--pill); background: var(--paper); color: var(--ink); }
+.l-option__icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--pill); box-shadow: 0 0 0 1px var(--grey-300); color: var(--ink); }
 .l-option h3 { font: 700 20px/1.2 var(--display); letter-spacing: -0.02em; }
 .l-option__sub { font-size: 14px; color: var(--grey-600); margin-top: 2px; }
 .l-option__primary { font-size: 16px; font-weight: 600; margin-top: 8px; overflow-wrap: anywhere; }
 .l-option .l-btn { grid-column: 1 / -1; margin-top: 14px; width: 100%; }
-/* Button sits beside the text only when the list itself is wide enough */
+.l-option__link {
+  grid-column: 2; justify-self: start; display: inline-flex; align-items: center; min-height: 44px; margin-top: 2px;
+  font-size: 15px; font-weight: 600; color: var(--ink);
+  text-decoration: underline; text-decoration-color: var(--red); text-decoration-thickness: 2px; text-underline-offset: 5px;
+  transition: color 160ms;
+}
+@media (hover: hover) { .l-option__link:hover { color: var(--red); } }
+/* Action sits beside the text only when the list itself is wide enough */
 @container (min-width: 620px) {
-  .l-option { grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; }
-  .l-option .l-btn { grid-column: 3; margin-top: 0; width: auto; }
+  .l-option { grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; }
+  .l-option .l-btn, .l-option__link { grid-column: 3; margin-top: 0; width: auto; }
 }
 
 /* ═══ Booking flow ═══════════════════════════════════════════════════════ */

@@ -33,7 +33,7 @@ function Option({ icon, title, subtitle, primary, href, buttonLabel, red, extern
       <a
         href={href}
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className={`l-btn ${red ? "l-btn--red" : "l-btn--line"}`}
+        className={red ? "l-btn l-btn--red" : "l-option__link"}
       >
         {buttonLabel}
       </a>
@@ -57,7 +57,7 @@ export default function ContactOptions() {
       <Option
         icon={<svg width="20" height="20" viewBox="0 0 20 20"><path d="M5 2.5h3l1.5 4-2 1.5a10 10 0 0 0 4.5 4.5l1.5-2 4 1.5v3a2 2 0 0 1-2 2A15 15 0 0 1 3 4.5a2 2 0 0 1 2-2z" {...stroke} /></svg>}
         title="Call"
-        subtitle="Speak with the instructor · 9am to 6pm"
+        subtitle="Speak with the instructor · 8am to 6pm"
         primary={DISPLAY_PHONE}
         href={TEL_HREF}
         buttonLabel="Call now"
@@ -65,7 +65,7 @@ export default function ContactOptions() {
       <Option
         icon={<svg width="20" height="20" viewBox="0 0 20 20"><path d="M2.5 4.5h15v11h-15z M2.5 5l7.5 6 7.5-6" {...stroke} /></svg>}
         title="Email"
-        subtitle="Same-day reply"
+        subtitle="Usually within a few hours"
         primary={EMAIL}
         href={MAILTO}
         buttonLabel="Send an email"
