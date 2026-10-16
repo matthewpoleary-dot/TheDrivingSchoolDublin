@@ -106,6 +106,11 @@ try {
   browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   if (BYPASS) await page.goto(`${SITE}/?x-vercel-protection-bypass=${BYPASS}&x-vercel-set-bypass-cookie=samesitenone`);
+  // On a branch preview, Stripe sends the buyer back to NEXT_PUBLIC_SITE_URL, which can be a
+  // different preview. RETURN_SITE gives that origin the bypass cookie too.
+  if (BYPASS && process.env.RETURN_SITE) {
+    await page.goto(`${process.env.RETURN_SITE}/?x-vercel-protection-bypass=${BYPASS}&x-vercel-set-bypass-cookie=samesitenone`);
+  }
 
   await page.goto(`${SITE}/book?service=standard`);
   const [y, m, d] = dateA.split("-").map(Number);
