@@ -34,6 +34,7 @@ export default function PhotoSlot({ src, alt, wants, tone = "ink", plate = "L", 
       ) : (
         <div className="l-photo__fallback" aria-hidden="true">
           <span className="l-photo__road" />
+          {tone === "mist" && <span className="l-photo__logo" />}
           <span className="l-photo__plate"><span>{plate}</span></span>
         </div>
       )}
