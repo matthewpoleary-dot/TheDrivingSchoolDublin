@@ -46,6 +46,8 @@ export const STATES = [
     id: "home--review-2", path: "/",
     act: async (page, h) => { await page.getByRole("button", { name: "Review 2" }).click(); await h.tick(400); },
   },
+  // Hero "Next free lessons" card with nothing open in the next two weeks
+  { id: "home--no-slots", path: "/", api: { "GET /api/availability": () => [200, []] } },
   { id: "about", path: "/about" },
   { id: "prices", path: "/prices" },
   {
