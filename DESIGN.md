@@ -36,14 +36,16 @@ rounded:
 ## Overview
 
 **North star: a calm booking site.** The visitor is nervous about a test and comparing
-prices. The site lowers the pulse: generous white space, large soft media panels, a few
-clear words per section and one obvious way to book from anywhere. The reference for the
-feel was a modern experience-booking site (big image-led hero, simple bookable cards, pill
-buttons, quiet type); the content stays a driving school's: the ex-tester credential,
-prices up front, live availability.
+prices. The site lowers the pulse: generous white space, a few clear words per section and
+one obvious way to book from anywhere. The content is a driving school's: the ex-tester
+credential, prices up front, live availability.
 
-Every screen uses the same few materials: white paper, a neutral mist surface for cards
-and bands, ink for text and for the one dark panel per page, and brand red for action.
+**One rule: hairlines and type separate things; cards are only for things you press.**
+Lists (prices, services, reviews, FAQ, contact options, result facts) are ruled rows under
+an ink top rule, not stacks of grey cards. Pages are white; there are no dark panels. Ink
+is for text, the nav pill, the selected-slot bar and secondary buttons. Signature moments
+come from the driving school itself, not decoration: the three test centres set large as
+a ledger, the booking steps on a dashed road line, and the L plate that turns N.
 
 ## Colours
 
@@ -52,8 +54,8 @@ The palette is fixed: red `#C8102E`, ink `#0A0A0A`, white. Greys are neutrals on
 - **Red** is the action colour: primary buttons, the learner's own selection (calendar day,
   time, active step), stars, eyebrow markers, link underlines, focus rings. **Red press**
   is its hover. **Red mist** is a whisper of it behind step numbers, tags and focus halos.
-- **Ink** is text, the hero and closing panels, secondary buttons and the selected-slot bar.
-- **Mist** (`#F5F5F4`) is the card and band surface. Grey 100 to 300 are hairlines and
+- **Ink** is text, top rules on lists, secondary buttons, the nav pill and the selected-slot bar.
+- **Mist** (`#F5F5F4`) is a hover wash and the occasional quiet surface. Grey 100 to 300 are hairlines and
   borders; grey 600 is secondary text (6.6:1 on white).
 - **Status tones** (open green, pending amber, error) are muted and only carry meaning:
   calendar availability, notices, admin payment badges. They never decorate.
@@ -77,11 +79,12 @@ status tones), so Tailwind-styled screens inherit the brand by name.
 
 Mobile first at 390px, then 768px and 1440px. Content wraps at 1240px; the gutter is
 16px on phones, 32px from 768px, 48px from 1200px. Sections are spaced 72px apart on
-phones and 120px from 768px. Media panels (hero, ink band, close) run a little wider than
-the text column and carry a 28px radius.
+phones and 120px from 768px, with more air before the credential and the close. Photos carry
+a 12px radius; pills are for buttons and tags only.
 
-On phones a floating pill action bar (WhatsApp, Book now, Contact) slides up after 300px
-of scroll; the body reserves space for it. It is hidden from 768px.
+On phones a floating pill action bar slides up after 300px of scroll: a wide Book now with
+small labelled WhatsApp and Contact buttons either side. The body reserves space for it. It
+is hidden from 768px.
 
 ## Components
 
@@ -89,14 +92,22 @@ of scroll; the body reserves space for it. It is hidden from 768px.
   Wordmark recreates the logo (red L and N). The Book button is always present.
 - **Buttons:** pills. Red primary, ink secondary, white line, ghost on ink. 48px tall
   (56px large); arrows nudge right on hover; buttons compress slightly on press.
-- **Lesson cards** (`.l-offer`): mist cards with meta, name, short description, price and
-  one booking button. The EDT bundle is the ink card with the red button.
-- **Rows** (prices), **service choices** (booking), **FAQ** items and **contact options**
-  are mist cards that lift to white with a soft shadow on hover.
-- **Booking calendar:** white day cards with a green open dot; full days fade into mist;
-  the chosen day and time fill red. The selected slot rides in an ink pill above the thumb.
-- **Result screens:** a round status mark, a mist fact table, numbered next steps.
-- **Admin:** a working tool. Segmented pill tabs, mist info panels, soft cards, toasts.
+- **Price list** (`.l-pricelist`, home) and **rows** (`.l-rows`, /prices): ruled rows,
+  right-aligned tabular prices, an underlined "Book" link. EDT is marked by a red price.
+- **Service choices** (/book): ruled rows; the whole row is the button, the round arrow
+  fills red on hover.
+- **FAQ:** a ruled accordion; the plus turns into a cross on an ink disc.
+- **Reviews:** a ruled list on /reviews; on the homepage a carousel with swipe and a
+  visible Pause button.
+- **Contact options:** ruled rows. WhatsApp is the one red button; Call and Email are links.
+- **Closing section** (`.l-close`): on white, the L plate turns N as it scrolls in.
+- **Booking calendar:** a swipeable strip of days. Open days carry a hairline and a green
+  dot; full days are quiet text; the chosen day and time fill red. Arrows appear only for a
+  mouse from 640px. The selected slot rides in an ink pill above the thumb.
+- **Result screens:** a round status mark, a ruled fact list, next steps on outlined dots.
+  The EDT link page shows its counters as one hairline row, the remaining count in red.
+- **Admin:** a working tool. Segmented pill tabs, mist info panels, soft cards, toasts. On
+  phones the bookings table stacks into one block per booking.
 
 ## Photography
 
