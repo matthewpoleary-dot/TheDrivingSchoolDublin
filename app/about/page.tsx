@@ -2,11 +2,15 @@
 import Link from "next/link";
 import PhotoSlot from "@/components/lton/PhotoSlot";
 import { ArrowRight } from "@/components/lton/Icons";
+import { photo } from "@/components/lton/photos";
+
+// Fills itself once /public/photos/conor.jpg exists (see DESIGN.md).
+const CONOR_PHOTO = photo("conor.jpg");
 
 const CENTRES = [
   {
     name: "Dún Laoghaire",
-    text: "Years as an examiner. Every route, every junction, every common slip-up: he knows the lot.",
+    text: "Every route, every junction, every common slip-up: he knows the lot.",
   },
   {
     name: "Tallaght",
@@ -48,23 +52,24 @@ export default function About() {
         <p className="l-eyebrow">About</p>
         <h1 className="l-h1">Meet Conor.</h1>
         <p className="l-lede">
-          Your RSA-approved ADI, and a former driving tester at <strong>Dún Laoghaire</strong> and{" "}
-          <strong>Tallaght</strong>. He knows both routes inside out.
+          Your RSA-approved ADI, and a former driving tester at <strong>Dún Laoghaire</strong>,{" "}
+          <strong>Tallaght</strong> and the old <strong>Churchtown</strong> centre. He knows the
+          routes inside out.
         </p>
       </header>
 
       {/* ── Bio ─────────────────────────────────────────────────────────── */}
       <section className="l-group" aria-labelledby="bio-title">
-        <div className="l-split">
-          {/* Photo slot: a portrait of Conor (/public/photos/conor.jpg) */}
-          <PhotoSlot
-            className="l-reveal"
-            tone="mist"
-            plate="N"
-            alt="Conor, RSA-approved driving instructor"
-            wants="Portrait of Conor, /public/photos/conor.jpg"
-            style={{ aspectRatio: "4 / 5" }}
-          />
+        <div className={CONOR_PHOTO ? "l-split" : "l-solo"}>
+          {CONOR_PHOTO && (
+            <PhotoSlot
+              className="l-reveal l-photo--soft"
+              src={CONOR_PHOTO}
+              alt="Conor, RSA-approved driving instructor"
+              wants="Portrait of Conor, /public/photos/conor.jpg"
+              style={{ aspectRatio: "4 / 5" }}
+            />
+          )}
 
           <div>
             <h2 id="bio-title" className="l-h3" style={{ marginBottom: 22 }}>
@@ -103,21 +108,20 @@ export default function About() {
       </section>
 
       {/* ── Test centre expertise ───────────────────────────────────────── */}
-      <section className="l-band" aria-labelledby="centres-title">
-        <div style={{ display: "grid", gap: 14 }}>
-          <p className="l-eyebrow l-eyebrow--on-ink">Test centre expertise</p>
-          <h2 id="centres-title" className="l-h2">He used to conduct the test here.</h2>
+      <section className="l-group l-group--wide" aria-labelledby="centres-title">
+        <div className="l-ledger">
+          <div className="l-ledger__head">
+            <h2 id="centres-title" className="l-h2">He used to conduct the test here.</h2>
+          </div>
+          <ul className="l-centres l-centres--ledger l-centres--notes">
+            {CENTRES.map((c) => (
+              <li key={c.name}>
+                {c.name}
+                <p>{c.text}</p>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="l-centres">
-          {CENTRES.map((c) => (
-            <li key={c.name} style={{ display: "block" }}>
-              {c.name}
-              <p style={{ marginTop: 10, font: "400 16px/1.6 var(--text)", letterSpacing: 0 }}>
-                {c.text}
-              </p>
-            </li>
-          ))}
-        </ul>
       </section>
 
       <script
