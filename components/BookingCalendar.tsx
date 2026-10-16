@@ -1,8 +1,8 @@
 "use client";
-// components/BookingCalendar.tsx: plate date cards with muted open/full states
-import { useState, useEffect, useMemo } from "react";
+// components/BookingCalendar.tsx: a swipeable strip of days with muted open/full states, then times
+import { useState, useEffect, useMemo, useRef } from "react";
 import { format, addDays, addMonths, endOfMonth, startOfDay } from "date-fns";
-import { ArrowRight } from "@/components/lton/Icons";
+import { ArrowLeft, ArrowRight } from "@/components/lton/Icons";
 
 export type Slot = {
   id: string;
@@ -91,6 +91,26 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
     });
   }, [daysVisible, availableDates]);
 
+  // Bring the first open day into view once availability arrives. Scrolls the strip only,
+  // never the page, and never selects anything.
+  const stripRef = useRef<HTMLDivElement>(null);
+  const scrolledToOpen = useRef(false);
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip || scrolledToOpen.current || availableDates.size === 0) return;
+    const first = strip.querySelector<HTMLElement>(".l-day--open");
+    if (!first) return;
+    scrolledToOpen.current = true;
+    strip.scrollLeft = Math.max(0, first.offsetLeft - strip.offsetLeft - 8);
+  }, [availableDates]);
+
+  const scrollStrip = (dir: 1 | -1) => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    strip.scrollBy({ left: dir * strip.clientWidth * 0.8, behavior: reduce ? "auto" : "smooth" });
+  };
+
   const slotsForSelected = selectedDate
     ? futureSlots.filter((s) => s.date === selectedDate)
     : [];
@@ -103,44 +123,52 @@ export default function BookingCalendar({ serviceType, onSlotSelected }: Props) 
         </p>
       )}
 
-      {/* Date cards */}
-      <div className="l-cal-grid">
-        {dateCards.map(({ date, dateStr, available }) => {
-          const isSelected = selectedDate === dateStr;
-          return (
-            <button
-              key={dateStr}
-              disabled={!available}
-              onClick={() => {
-                setSelectedDate(dateStr);
-                setSelectedSlot(null);
-              }}
-              aria-pressed={isSelected}
-              className={`l-day ${available ? "l-day--open" : "l-day--full"}`}
-            >
-              <span className="l-day__dot" aria-hidden="true" />
-              <span className="l-day__dow">{format(date, "EEE")}</span>
-              <span className="l-day__num">{format(date, "d")}</span>
-              <span className="l-day__mon">{format(date, "MMM")}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Date strip: swipe on touch, arrows for a mouse */}
+      <div className="l-cal-strip">
+        <button type="button" className="l-cal-arrow l-cal-arrow--prev" aria-label="Earlier dates" onClick={() => scrollStrip(-1)}>
+          <ArrowLeft size={16} />
+        </button>
+        <div className="l-cal-grid" ref={stripRef}>
+          {dateCards.map(({ date, dateStr, available }) => {
+            const isSelected = selectedDate === dateStr;
+            return (
+              <button
+                key={dateStr}
+                disabled={!available}
+                onClick={() => {
+                  setSelectedDate(dateStr);
+                  setSelectedSlot(null);
+                }}
+                aria-pressed={isSelected}
+                className={`l-day ${available ? "l-day--open" : "l-day--full"}`}
+              >
+                <span className="l-day__dot" aria-hidden="true" />
+                <span className="l-day__dow">{format(date, "EEE")}</span>
+                <span className="l-day__num">{format(date, "d")}</span>
+                <span className="l-day__mon">{format(date, "MMM")}</span>
+              </button>
+            );
+          })}
 
-      {/* Show more dates */}
-      <div className="l-cal-more">
-        <button
-          onClick={() => {
-            setDaysVisible((n) => n + DAY_INCREMENT);
-            // If we run out of fetched availability, fetch the next month too
-            const today = startOfDay(new Date());
-            const lastVisible = addDays(today, daysVisible + DAY_INCREMENT);
-            const fetchedThrough = endOfMonth(addMonths(today, monthsLoaded - 1));
-            if (lastVisible > fetchedThrough) setMonthsLoaded((m) => m + 1);
-          }}
-          disabled={loading}
-        >
-          {loading ? "Loading…" : <>Show more dates <ArrowRight size={14} /></>}
+          {/* Show more dates: the last tile in the strip */}
+          <div className="l-cal-more">
+            <button
+              onClick={() => {
+                setDaysVisible((n) => n + DAY_INCREMENT);
+                // If we run out of fetched availability, fetch the next month too
+                const today = startOfDay(new Date());
+                const lastVisible = addDays(today, daysVisible + DAY_INCREMENT);
+                const fetchedThrough = endOfMonth(addMonths(today, monthsLoaded - 1));
+                if (lastVisible > fetchedThrough) setMonthsLoaded((m) => m + 1);
+              }}
+              disabled={loading}
+            >
+              {loading ? "Loading…" : <>Show more dates <ArrowRight size={14} /></>}
+            </button>
+          </div>
+        </div>
+        <button type="button" className="l-cal-arrow l-cal-arrow--next" aria-label="Later dates" onClick={() => scrollStrip(1)}>
+          <ArrowRight size={16} />
         </button>
       </div>
 

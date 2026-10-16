@@ -9,6 +9,14 @@ export function ArrowRight({ size = 18, className }: P) {
   );
 }
 
+export function ArrowLeft({ size = 18, className }: P) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M17 10H4M9 4.5 3.5 10 9 15.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" />
+    </svg>
+  );
+}
+
 export function Star({ size = 18, className }: P) {
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">

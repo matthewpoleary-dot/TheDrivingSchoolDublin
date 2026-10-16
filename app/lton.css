@@ -757,40 +757,63 @@ select.l-input {
 /* ═══ Booking calendar ═════════════════════════════════════════════════════
    Status colours are functional and muted: green means open, grey means full.
    Brand red is reserved for the learner's own selection. */
-.l-cal-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-@media (min-width: 640px) { .l-cal-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; } }
+/* A swipeable strip of days. Full days are quiet text, open days carry a hairline and
+   the green dot, the chosen day fills red. */
+.l-cal-strip { position: relative; margin: 0 -4px; }
+.l-cal-grid {
+  display: flex; gap: 6px; overflow-x: auto; padding: 4px 4px 10px;
+  scroll-snap-type: x mandatory; scroll-padding-inline: 4px; overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.l-cal-grid::-webkit-scrollbar { display: none; }
 .l-day {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
-  min-height: 92px; padding: 14px 6px 16px; border-radius: var(--r-sm);
+  position: relative; flex: 0 0 62px; scroll-snap-align: start;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-height: 84px; padding: 12px 4px 12px; border-radius: var(--r-sm);
   font-family: var(--text); background: var(--paper); color: var(--ink);
-  border: 1px solid var(--grey-200); cursor: pointer;
-  transition: background-color 180ms, border-color 180ms, color 180ms, transform 180ms var(--ease-out), box-shadow 180ms;
+  border: 1px solid var(--grey-300); cursor: pointer;
+  transition: background-color 180ms, border-color 180ms, color 180ms, transform 180ms var(--ease-out);
   -webkit-tap-highlight-color: transparent;
 }
-.l-day__dow, .l-day__mon { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--grey-600); }
-.l-day__num { font: 700 30px/1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.l-day__dot { position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
-@media (hover: hover) { .l-day--open:hover { border-color: var(--ok); background: var(--ok-soft); } }
+@media (min-width: 640px) { .l-day { flex-basis: 68px; } }
+.l-day__dow, .l-day__mon { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--grey-600); }
+.l-day__num { font: 700 26px/1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.l-day__dot { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+@media (hover: hover) { .l-day--open:hover { border-color: var(--ink); } }
 .l-day--open:active { transform: scale(0.96); }
-.l-day--full { background: var(--mist); border-color: transparent; color: #9A9A9A; cursor: not-allowed; }
-.l-day--full .l-day__dow, .l-day--full .l-day__mon { color: #9A9A9A; }
+.l-day--full { background: transparent; border-color: transparent; color: var(--grey-300); cursor: not-allowed; }
+.l-day--full .l-day__dow, .l-day--full .l-day__mon { color: var(--grey-300); }
 .l-day--full .l-day__dot { display: none; }
-.l-day[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 12px 24px -14px rgba(200, 16, 46, 0.8); }
+.l-day[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; }
 .l-day[aria-pressed="true"] .l-day__dow, .l-day[aria-pressed="true"] .l-day__mon { color: #FFE3E7; }
 .l-day[aria-pressed="true"] .l-day__dot { background: #fff; }
 
-.l-cal-more { display: flex; justify-content: center; margin-top: 16px; }
+.l-cal-more { flex: 0 0 auto; display: flex; align-items: stretch; scroll-snap-align: end; }
 .l-cal-more button {
-  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px; border-radius: var(--pill);
-  background: var(--mist); border: 0; cursor: pointer; font: 500 15px var(--text); color: var(--ink);
-  transition: background-color 160ms;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 84px; padding: 0 16px; border-radius: var(--r-sm);
+  background: transparent; border: 1px dashed var(--grey-300); cursor: pointer; font: 600 14px var(--text); color: var(--ink);
+  white-space: nowrap; transition: border-color 160ms;
 }
-@media (hover: hover) { .l-cal-more button:hover:not(:disabled) { background: var(--grey-100); } }
+@media (hover: hover) { .l-cal-more button:hover:not(:disabled) { border-color: var(--ink); } }
 .l-cal-more button:disabled { cursor: default; color: var(--grey-600); }
+/* Arrows only for a mouse; touch swipes */
+.l-cal-arrow { display: none; }
+@media (hover: hover) and (pointer: fine) and (min-width: 640px) {
+  .l-cal-strip { padding: 0 44px; margin: 0; }
+  .l-cal-arrow {
+    position: absolute; top: 24px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--pill);
+    background: var(--paper); border: 1px solid var(--grey-300); color: var(--ink); cursor: pointer; transition: border-color 160ms;
+  }
+  .l-cal-arrow:hover { border-color: var(--ink); }
+  .l-cal-arrow--prev { left: 0; }
+  .l-cal-arrow--next { right: 0; }
+}
 .l-legend { display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 13px; color: var(--grey-600); }
 .l-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.l-legend i { width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--ok); background: var(--ok-soft); }
-.l-legend i.full { border-color: transparent; background: var(--grey-100); }
+.l-legend i { position: relative; width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--grey-300); background: var(--paper); }
+.l-legend i::after { content: ""; position: absolute; top: 2px; right: 2px; width: 4px; height: 4px; border-radius: 50%; background: var(--ok); }
+.l-legend i.full { border-color: transparent; background: transparent; box-shadow: inset 0 0 0 1px var(--grey-100); }
+.l-legend i.full::after { display: none; }
 
 .l-times-head { display: flex; align-items: baseline; justify-content: space-between; margin: 32px 0 6px; }
 .l-times-head h3 { font: 700 22px/1.2 var(--display); letter-spacing: -0.02em; }
