@@ -5,8 +5,22 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { requireAdmin } from "@/lib/auth";
 import { emailOnStatusChange } from "@/lib/email";
 import { dublinLocalToUtcISO } from "@/lib/time";
+import { deleteCalendarEvent } from "@/lib/google-calendar";
 
 type PatchBody = { payment_status?: "cancelled" | "refunded" };
+
+// Free the slot and take the lesson out of the instructor's Google Calendar.
+async function releaseBooking(booking: { slot_id: string | null; google_calendar_event_id: string | null }) {
+  if (booking.slot_id) {
+    await supabaseServer
+      .from("availability_slots")
+      .update({ is_booked: false, booking_id: null })
+      .eq("id", booking.slot_id);
+  }
+  if (booking.google_calendar_event_id) {
+    await deleteCalendarEvent(booking.google_calendar_event_id);
+  }
+}
 
 export async function PATCH(
   req: Request,
@@ -28,7 +42,7 @@ export async function PATCH(
       .from("bookings")
       .select(`
         id, service_type, customer_name, customer_email, customer_phone, slot_id,
-        payment_status, stripe_payment_intent, stripe_refund_id, amount_pence,
+        payment_status, stripe_payment_intent, stripe_refund_id, amount_pence, google_calendar_event_id,
         slot:availability_slots(date, start_time)
       `)
       .eq("id", id)
@@ -80,13 +94,7 @@ export async function PATCH(
             { status: 402 }
           );
         }
-        // Free the slot
-        if (booking.slot_id) {
-          await supabaseServer
-            .from("availability_slots")
-            .update({ is_booked: false, booking_id: null })
-            .eq("id", booking.slot_id);
-        }
+        await releaseBooking(booking);
         return NextResponse.json({ ok: true });
       }
 
@@ -98,13 +106,7 @@ export async function PATCH(
 
       if (uErr) return NextResponse.json({ error: uErr.message }, { status: 500 });
 
-      // Free the slot
-      if (booking.slot_id) {
-        await supabaseServer
-          .from("availability_slots")
-          .update({ is_booked: false, booking_id: null })
-          .eq("id", booking.slot_id);
-      }
+      await releaseBooking(booking);
 
       // Send cancellation email (refund = cancelled from customer perspective)
       const slot = Array.isArray(booking.slot) ? (booking.slot[0] ?? null) : (booking.slot as { date: string; start_time: string } | null);
@@ -135,13 +137,7 @@ export async function PATCH(
 
     if (uErr) return NextResponse.json({ error: uErr.message }, { status: 500 });
 
-    // Free up the slot if cancelling
-    if (newStatus === "cancelled" && booking.slot_id) {
-      await supabaseServer
-        .from("availability_slots")
-        .update({ is_booked: false, booking_id: null })
-        .eq("id", booking.slot_id);
-    }
+    if (newStatus === "cancelled") await releaseBooking(booking);
 
     // Send status change emails
     const slot = Array.isArray(booking.slot) ? (booking.slot[0] ?? null) : (booking.slot as { date: string; start_time: string } | null);

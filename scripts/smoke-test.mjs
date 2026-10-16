@@ -134,6 +134,8 @@ try {
 
   await page.waitForURL(/\/book\/confirmation/, { timeout: 60_000 });
   check("payment lands on /book/confirmation", true);
+  // The page shows "Verifying your booking…" until it has fetched the Stripe session
+  await page.getByRole("heading", { name: /payment confirmed/i }).waitFor({ timeout: 20_000 }).catch(() => {});
   const confirmText = await page.locator("body").innerText();
   check("confirmation page names the lesson", /standard/i.test(confirmText));
 
