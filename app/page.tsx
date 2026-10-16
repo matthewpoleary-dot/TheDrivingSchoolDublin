@@ -6,6 +6,7 @@ import RotatingWord from "@/components/RotatingWord";
 import PriceTiles from "@/components/lton/PriceTiles";
 import FlipPlate from "@/components/lton/FlipPlate";
 import PhotoSlot from "@/components/lton/PhotoSlot";
+import NextSlots from "@/components/lton/NextSlots";
 import { ArrowRight, Star } from "@/components/lton/Icons";
 import { SERVICES, formatPrice } from "@/lib/pricing";
 
@@ -77,41 +78,42 @@ export default function Home() {
           alt="Conor's dual-control car on a Dublin road"
           wants="Wide photo of the dual-control car on a Dublin road, /public/photos/hero.jpg"
         >
-          <div className="l-hero__content">
-            <p className="l-eyebrow l-eyebrow--on-ink">RSA-approved driving instructor · Dublin</p>
-            <h1 id="hero-title" className="l-h1">
-              Taught by a former<br className="l-br-d" /> driving tester.
-            </h1>
-            <p className="l-lede l-hero__cred">
-              <strong>Conor worked as an RSA driving tester</strong> at Dún Laoghaire, Tallaght
-              and the old Churchtown centre. Now he&apos;s your instructor.
-              <span className="l-hero__rotate">
-                <span className="sr-only">Pass your test confidently, calmly, stress-free.</span>
-                <span aria-hidden="true">
-                  Pass your test{" "}
-                  <RotatingWord words={["confidently.", "calmly.", "stress-free."]} className="l-rotator" intervalMs={2600} />
+          <div className="l-hero__grid">
+            <div className="l-hero__content">
+              <p className="l-eyebrow l-eyebrow--on-ink">RSA-approved driving instructor · Dublin</p>
+              <h1 id="hero-title" className="l-h1">
+                Taught by a former<br className="l-br-d" /> driving tester.
+              </h1>
+              <p className="l-lede l-hero__cred">
+                <strong>Conor worked as an RSA driving tester</strong> at Dún Laoghaire, Tallaght
+                and the old Churchtown centre. Now he&apos;s your instructor.
+                <span className="l-hero__rotate">
+                  <span className="sr-only">Pass your test confidently, calmly, stress-free.</span>
+                  <span aria-hidden="true">
+                    Pass your test{" "}
+                    <RotatingWord words={["confidently.", "calmly.", "stress-free."]} className="l-rotator" intervalMs={2600} />
+                  </span>
                 </span>
-              </span>
-            </p>
+              </p>
 
-            <div className="l-hero__ctas">
-              <Link href="/book" className="l-btn l-btn--red l-btn--lg">
-                Book a lesson <ArrowRight />
-              </Link>
-              <Link href="/prices" className="l-btn l-btn--ghost-ink l-btn--lg">
-                View prices
-              </Link>
+              <div className="l-hero__ctas">
+                <Link href="/book" className="l-btn l-btn--red l-btn--lg">
+                  Book a lesson <ArrowRight />
+                </Link>
+                <Link href="/prices" className="l-btn l-btn--ghost-ink l-btn--lg">
+                  View prices
+                </Link>
+                <a className="l-rating l-hero__rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+                  <span className="l-rating__score l-num">5.0</span>
+                  <Stars />
+                  <span className="l-rating__count">
+                    54 Google reviews <span>Read them</span>
+                  </span>
+                </a>
+              </div>
             </div>
 
-            <div className="l-hero__rating">
-              <a className="l-rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-                <span className="l-rating__score l-num">5.0</span>
-                <Stars />
-                <span className="l-rating__count">
-                  54 Google reviews <span>Read them</span>
-                </span>
-              </a>
-            </div>
+            <NextSlots />
           </div>
         </PhotoSlot>
       </section>
