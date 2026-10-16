@@ -349,7 +349,7 @@ export default function AdminPage() {
   if (!isAuthed) {
     return (
       <div className="l-admin max-w-md mx-auto mt-6">
-        <div className="bg-white rounded-2xl shadow-lg ring-1 ring-slate-100 p-8 space-y-5">
+        <div className="bg-white rounded-2xl ring-1 ring-slate-200 p-8 space-y-5">
           <div className="space-y-1">
             <h1 className="text-3xl text-slate-900">Welcome back, Conor</h1>
             <p className="text-sm text-slate-500">Enter your admin password to manage bookings and your schedule.</p>
@@ -470,8 +470,8 @@ export default function AdminPage() {
           )}
 
           {filteredBookings.length > 0 && (
-            <div className="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-              <table className="min-w-full text-sm">
+            <div className="l-admin-bookings overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+              <table className="l-admin-table min-w-full text-sm">
                 <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Date / Time</th>

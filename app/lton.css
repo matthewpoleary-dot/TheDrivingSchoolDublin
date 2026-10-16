@@ -918,6 +918,26 @@ select.l-input {
 }
 
 /* ═══ Admin (a working tool on a phone: speed and legibility first) ═════ */
+/* Bookings list on a phone: each booking stacks instead of a table that runs off-screen.
+   Row 1 date and status, row 2 the customer, row 3 service and amount. */
+@media (max-width: 639px) {
+  .l-admin .l-admin-bookings { overflow: visible; border-radius: 0; box-shadow: none !important; background: transparent; }
+  .l-admin-table thead {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .l-admin-table, .l-admin-table tbody { display: block; }
+  .l-admin-table tbody { border-top: 1px solid var(--ink); }
+  .l-admin-table tr {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 14px 0;
+    border-top: 0 !important; border-bottom: var(--line);
+  }
+  .l-admin-table td { display: block; padding: 0 !important; }
+  .l-admin-table td:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .l-admin-table td:nth-child(5) { grid-column: 2; grid-row: 1; justify-self: end; }
+  .l-admin-table td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+  .l-admin-table td:nth-child(3) { grid-column: 1; grid-row: 3; }
+  .l-admin-table td:nth-child(4) { grid-column: 2; grid-row: 3; justify-self: end; }
+}
 .l-admin { font-family: var(--text); padding: 24px var(--gutter) 64px; }
 .l-admin:not(.max-w-md) { max-width: var(--wrap); margin-left: auto; margin-right: auto; }
 .l-admin h1 { font-family: var(--display); font-weight: 700; letter-spacing: -0.03em; }
