@@ -28,7 +28,7 @@ const ONLY = opt("only", "");
 export const WIDTHS = [390, 768, 1440];
 const HEIGHT = { 390: 844, 768: 1024, 1440: 900 };
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 const failures = [];
 const unmocked = new Set();
 
