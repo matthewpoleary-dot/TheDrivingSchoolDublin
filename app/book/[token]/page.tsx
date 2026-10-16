@@ -140,9 +140,9 @@ export default function EdtBookingPage({ params }: Props) {
     return (
       <section className="l-page l-result" style={{ textAlign: "center" }}>
         <FlipPlate />
-        <h1 className="l-display l-h2" style={{ marginTop: 26 }}>Package Complete!</h1>
+        <h1 className="l-display l-h2" style={{ marginTop: 26 }}>All lessons booked</h1>
         <p className="l-lede" style={{ margin: "0 auto" }}>
-          Hi {pkg.customer_name}, you&apos;ve completed all {pkg.lessons_total} EDT lessons. Well done!
+          Hi {pkg.customer_name}, you&apos;ve booked all {pkg.lessons_total} of your EDT lessons.
         </p>
         <div className="l-result__actions" style={{ justifyContent: "center" }}>
           <Link href="/contact" className="l-btn l-btn--red l-btn--lg">Book additional lessons</Link>
@@ -156,7 +156,7 @@ export default function EdtBookingPage({ params }: Props) {
       <section className="l-page l-result" style={{ textAlign: "center" }}>
         <h1 className="l-display l-h2">Ready for lessons 7 to 12?</h1>
         <p className="l-lede" style={{ margin: "0 auto" }}>
-          Hi {pkg.customer_name}, you&apos;ve completed your first 6 EDT lessons.
+          Hi {pkg.customer_name}, you&apos;ve booked your first 6 EDT lessons.
           Pay the second instalment to unlock lessons 7 to 12.
         </p>
         <div className="l-result__actions" style={{ justifyContent: "center", marginTop: 28 }}>
@@ -226,7 +226,7 @@ export default function EdtBookingPage({ params }: Props) {
         </div>
         <div>
           <strong>{pkg.lessons_used}</strong>
-          <span>completed</span>
+          <span>booked</span>
         </div>
         <div>
           <strong>{pkg.lessons_total}</strong>
