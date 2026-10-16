@@ -2,16 +2,23 @@
 import "./globals.css";
 import "./lton.css";
 import Link from "next/link";
-import { Archivo } from "next/font/google";
+import { Bricolage_Grotesque, Geist } from "next/font/google";
 import MorphingNav from "@/components/MorphingNav";
 
-const archivo = Archivo({
+// Display: a confident grotesque with optical sizes, close in spirit to the heavy logo.
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
-  axes: ["wdth"],
-  variable: "--font-archivo",
+  axes: ["opsz", "wdth"],
+  variable: "--font-display",
   display: "swap",
 });
 
+// Text: a quiet, very legible sans for body copy, forms and the admin tool.
+const text = Geist({
+  subsets: ["latin"],
+  variable: "--font-text",
+  display: "swap",
+});
 
 export const metadata = {
   title: "The Driving School Dublin",
@@ -60,27 +67,37 @@ const FOOTER_COLUMNS = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={archivo.variable}>
-      <body className={`${archivo.className} min-h-screen antialiased`}>
+    <html lang="en" className={`${display.variable} ${text.variable}`}>
+      <body className="min-h-screen antialiased">
 
         {/* ── Morphing nav ─────────────────────────────────────────────────── */}
         <MorphingNav />
 
         {/* ── Main content ─────────────────────────────────────────────────── */}
-        <main className="mx-auto" style={{ maxWidth: 1200 }}>
+        <main className="l-main">
           {children}
         </main>
 
         {/* ── Footer ───────────────────────────────────────────────────────── */}
         <footer className="l-footer">
           <div className="l-footer__inner">
-            <p className="l-footer__mark" aria-label="The Driving School Dublin">
-              The<br />Driving<br />Schoo<b>L</b><br />Dubli<b>N</b>
-            </p>
-            <p className="l-footer__tag">
-              RSA-approved ADI. Manual and automatic lessons across Dublin.
-              EDT programmes, pre-test sessions, and car hire.
-            </p>
+            <div className="l-footer__brand">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/Logo.jpg"
+                alt="The Driving School Dublin"
+                className="l-footer__logo"
+                width={132}
+                height={132}
+              />
+              <p className="l-footer__tag">
+                RSA-approved ADI. Manual and automatic lessons across Dublin.
+                EDT programmes, pre-test sessions and car hire.
+              </p>
+              <Link href="/book" className="l-btn l-btn--red">
+                Book a lesson
+              </Link>
+            </div>
 
             <div className="l-footer__cols">
               {FOOTER_COLUMNS.map((col) => (
