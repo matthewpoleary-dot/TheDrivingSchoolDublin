@@ -1,6 +1,7 @@
 "use client";
-// components/ReviewCarousel.tsx — rotating review quote, pauses on hover, focus and reduced motion
-import { useState, useEffect } from "react";
+// components/ReviewCarousel.tsx — rotating review quote. Swipe or tap a dot to move; a visible
+// pause button stops it (WCAG 2.2.2), and it also pauses on hover, focus and reduced motion.
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowRight } from "@/components/lton/Icons";
 
 const GOOGLE_REVIEWS_URL = "https://share.google/Gz174ck7VeSpDSx5L";
@@ -47,31 +48,56 @@ const REVIEWS = [
 export default function ReviewCarousel() {
   const [idx, setIdx] = useState(0);
   const [fading, setFading] = useState(false);
-  const [paused, setPaused] = useState(false);
+  // Hover and focus pause for as long as they last; the button (or a swipe) stops it for good.
+  const [hovered, setHovered] = useState(false);
+  const [stopped, setStopped] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
+  const swipeX = useRef<number | null>(null);
 
   useEffect(() => {
-    if (paused) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => {
-      setFading(true);
-      setTimeout(() => {
-        setIdx((i) => (i + 1) % REVIEWS.length);
-        setFading(false);
-      }, 350);
-    }, 5000);
+    setCanPlay(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
+  const goTo = useCallback((next: number) => {
+    setFading(true);
+    setTimeout(() => {
+      setIdx((next + REVIEWS.length) % REVIEWS.length);
+      setFading(false);
+    }, 350);
+  }, []);
+
+  const playing = canPlay && !stopped && !hovered;
+
+  useEffect(() => {
+    if (!playing) return;
+    const timer = setInterval(() => goTo(idx + 1), 5000);
     return () => clearInterval(timer);
-  }, [paused]);
+  }, [playing, idx, goTo]);
 
   const r = REVIEWS[idx];
 
   return (
     <div
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
     >
-      <figure className="l-quote-wrap" data-fading={fading} style={{ margin: 0 }}>
+      <figure
+        className="l-quote-wrap"
+        data-fading={fading}
+        style={{ margin: 0, touchAction: "pan-y" }}
+        onPointerDown={(e) => { if (e.pointerType !== "mouse") swipeX.current = e.clientX; }}
+        onPointerUp={(e) => {
+          if (swipeX.current === null) return;
+          const dx = e.clientX - swipeX.current;
+          swipeX.current = null;
+          if (Math.abs(dx) < 40) return;
+          setStopped(true);
+          goTo(idx + (dx < 0 ? 1 : -1));
+        }}
+        onPointerCancel={() => { swipeX.current = null; }}
+      >
         <blockquote className="l-quote">&ldquo;{r.quote}&rdquo;</blockquote>
         <figcaption className="l-cite">{r.attribution}</figcaption>
       </figure>
@@ -83,12 +109,21 @@ export default function ReviewCarousel() {
             type="button"
             className="l-dot"
             aria-current={i === idx}
-            onClick={() => { setFading(true); setTimeout(() => { setIdx(i); setFading(false); }, 350); }}
+            onClick={() => goTo(i)}
             aria-label={`Review ${i + 1}`}
           >
             <span />
           </button>
         ))}
+        {canPlay && (
+          <button
+            type="button"
+            className="l-carousel__pause"
+            onClick={() => setStopped((v) => !v)}
+          >
+            {stopped ? "Play" : "Pause"}
+          </button>
+        )}
       </div>
 
       <p style={{ marginTop: 20 }}>

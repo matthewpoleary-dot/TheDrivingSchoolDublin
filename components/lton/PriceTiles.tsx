@@ -1,5 +1,5 @@
-// components/lton/PriceTiles.tsx — "Choose your lesson": four booking cards, each with its
-// price up front and one button straight into the booking flow. Prices come from lib/pricing.
+// components/lton/PriceTiles.tsx — "Choose your lesson": a price list, one row per lesson with
+// its price up front. Each whole row goes straight into the booking flow. Prices come from lib/pricing.
 import Link from "next/link";
 import { SERVICES, formatPrice } from "@/lib/pricing";
 import { ArrowRight } from "./Icons";
@@ -66,22 +66,26 @@ const CARDS: Card[] = [
 
 export default function PriceTiles() {
   return (
-    <ul className="l-offers" role="list">
+    <ul className="l-pricelist" role="list">
       {CARDS.map((c) => (
-        <li key={c.id} className={`l-offer l-reveal${c.key ? " l-offer--key" : ""}`}>
-          <div className="l-offer__top">
-            <span className="l-offer__meta">{c.meta}</span>
-            {c.tag && <span className="l-tag">{c.tag}</span>}
-          </div>
-          <h3 className="l-offer__name">{c.name}</h3>
-          <p className="l-offer__desc">{c.desc}</p>
-          <p className="l-offer__price">
-            {c.from && <small>from</small>}
-            <strong className="l-num">{c.price}</strong>
-            <small>{c.unit}</small>
-          </p>
-          <Link href={c.href} className={`l-btn ${c.key ? "l-btn--red" : "l-btn--ink"}`}>
-            {c.cta} <ArrowRight size={16} />
+        <li key={c.id} className={`l-reveal${c.key ? " l-pricelist__key" : ""}`}>
+          <Link href={c.href} className="l-price">
+            <div className="l-price__what">
+              <span className="l-price__meta">
+                {c.meta}
+                {c.tag && <span className="l-tag">{c.tag}</span>}
+              </span>
+              <h3 className="l-price__name">{c.name}</h3>
+            </div>
+            <p className="l-price__desc">{c.desc}</p>
+            <p className="l-price__cost">
+              {c.from && <small>from </small>}
+              <strong className="l-num">{c.price}</strong>
+              <small>{c.unit}</small>
+            </p>
+            <span className="l-price__cta">
+              {c.cta} <ArrowRight size={16} />
+            </span>
           </Link>
         </li>
       ))}

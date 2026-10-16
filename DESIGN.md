@@ -105,24 +105,30 @@ frames each slot and renders a designed brand panel until a photo is supplied (i
 show a road and the L plate; mist slots show the real logo and the N plate). Each slot's
 `data-wants` attribute names the photo it is waiting for.
 
-To add photos, put them in `public/photos/` and pass `src` to the slot:
+On the homepage, photos are picked up automatically: drop the file into `public/photos/` and
+rebuild. `components/lton/photos.ts` checks for it at build time, so no code change is needed.
+Without a photo the homepage hero is type-led on white (never a dark panel) and the credential
+section shows only the ledger of test centres.
 
 | Slot | File | Where |
 |---|---|---|
-| Hero | `/photos/hero.jpg` (wide, the car on a Dublin road) | `app/page.tsx` |
-| Credential | `/photos/conor.jpg` (portrait beside the car) | `app/page.tsx` |
-| About | `/photos/conor.jpg` (portrait) | `app/about/page.tsx` |
+| Hero | `/photos/hero.jpg` (landscape, the car on a Dublin road; shown under the text on phones) | `app/page.tsx`, automatic |
+| Hero, desktop | `/photos/hero-portrait.jpg` (optional portrait crop for the tall column from 900px) | `app/page.tsx`, automatic |
+| Credential | `/photos/conor.jpg` (portrait beside the car) | `app/page.tsx`, automatic |
+| About | `/photos/conor.jpg` (portrait) | `app/about/page.tsx`, pass `src` to the slot |
 
-The hero already has a dark gradient scrim so white text stays legible over any photo.
+Shoot on the phone's 1x lens (not ultra-wide), in overcast or morning light, and keep the
+number plate unreadable.
 
 ## Motion
 
 - Nav morphs from bar to floating pill; mobile action bar slides up.
-- Hero word rotates once through three words; the review carousel fades every 5s and
-  pauses on hover and focus.
+- Hero word rotates once through three words; the review carousel fades every 5s, can be
+  swiped, pauses on hover and focus, and has a visible Pause button (WCAG 2.2.2).
 - Cards, steps and reviews rise in as they scroll into view (CSS scroll-driven
   animations; browsers without support simply show them).
 - The closing L plate turns into an N with scroll progress.
-- The hero's road line runs slowly.
-- Everything has a `prefers-reduced-motion` path: no reveals, no looping road, no rotating
+- On the homepage the three booking steps sit on one dashed road line that draws itself
+  as it scrolls into view.
+- Everything has a `prefers-reduced-motion` path: no reveals, road line shown fully drawn, no rotating
   word or carousel autoplay, no hover lifts.

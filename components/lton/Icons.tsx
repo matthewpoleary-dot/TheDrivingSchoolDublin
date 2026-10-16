@@ -35,3 +35,12 @@ export function Chat({ size = 18, className }: P) {
     </svg>
   );
 }
+
+export function Mail({ size = 18, className }: P) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M2.5 4.5h15v11h-15v-11z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M3 5l7 6 7-6" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}

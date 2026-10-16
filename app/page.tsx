@@ -6,8 +6,10 @@ import RotatingWord from "@/components/RotatingWord";
 import PriceTiles from "@/components/lton/PriceTiles";
 import FlipPlate from "@/components/lton/FlipPlate";
 import PhotoSlot from "@/components/lton/PhotoSlot";
+import HeroPhoto from "@/components/lton/HeroPhoto";
 import { ArrowRight, Star } from "@/components/lton/Icons";
 import { SERVICES, formatPrice } from "@/lib/pricing";
+import { photo } from "@/components/lton/photos";
 
 export const metadata = {
   title: "Driving Lessons Dublin | RSA-Approved ADI | The Driving School Dublin",
@@ -16,6 +18,11 @@ export const metadata = {
 };
 
 const GOOGLE_REVIEWS_URL = "https://share.google/Gz174ck7VeSpDSx5L";
+
+// Photos appear as soon as their files land in /public/photos/ (see DESIGN.md).
+const HERO_PHOTO = photo("hero.jpg");
+const HERO_PHOTO_TALL = photo("hero-portrait.jpg");
+const CONOR_PHOTO = photo("conor.jpg");
 
 const CENTRES = ["Dún Laoghaire", "Tallaght", "Churchtown"];
 
@@ -70,53 +77,52 @@ export default function Home() {
   return (
     <div className="l-page">
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="l-hero" aria-labelledby="hero-title">
-        {/* Photo slot: a wide shot of Conor's car on a Dublin road (/public/photos/hero.jpg) */}
-        <PhotoSlot
-          className="l-hero__media"
-          alt="Conor's dual-control car on a Dublin road"
-          wants="Wide photo of the dual-control car on a Dublin road, /public/photos/hero.jpg"
-        >
-          <div className="l-hero__content">
-            <p className="l-eyebrow l-eyebrow--on-ink">RSA-approved driving instructor · Dublin</p>
-            <h1 id="hero-title" className="l-h1">
-              Taught by a former<br className="l-br-d" /> driving tester.
-            </h1>
-            <p className="l-lede l-hero__cred">
-              <strong>Conor worked as an RSA driving tester</strong> at Dún Laoghaire, Tallaght
-              and the old Churchtown centre. Now he&apos;s your instructor.
-              <span className="l-hero__rotate">
-                <span className="sr-only">Pass your test confidently, calmly, stress-free.</span>
-                <span aria-hidden="true">
-                  Pass your test{" "}
-                  <RotatingWord words={["confidently.", "calmly.", "stress-free."]} className="l-rotator" intervalMs={2600} />
-                </span>
-              </span>
-            </p>
+      {/* Type-led on white. Once /public/photos/hero.jpg exists the photo joins it:
+          beside the text from 900px, below it on phones. */}
+      <section className={`l-hero${HERO_PHOTO ? " l-hero--photo" : ""}`} aria-labelledby="hero-title">
+        <div className="l-hero__content">
+          <p className="l-eyebrow">RSA-approved driving instructor · Dublin</p>
+          <h1 id="hero-title" className="l-h1">
+            Taught by a former<br className="l-br-d" /> driving tester.
+          </h1>
+          <p className="l-lede l-hero__cred">
+            <strong>Conor worked as an RSA driving tester</strong> at Dún Laoghaire, Tallaght
+            and the old Churchtown centre. Now he&apos;s your instructor.
+          </p>
+          <p className="l-hero__rotate">
+            <span className="sr-only">Pass your test confidently, calmly, stress-free.</span>
+            <span aria-hidden="true">
+              Pass your test{" "}
+              <RotatingWord words={["confidently.", "calmly.", "stress-free."]} className="l-rotator" intervalMs={2600} />
+            </span>
+          </p>
 
-            <div className="l-hero__ctas">
-              <Link href="/book" className="l-btn l-btn--red l-btn--lg">
-                Book a lesson <ArrowRight />
-              </Link>
-              <Link href="/prices" className="l-btn l-btn--ghost-ink l-btn--lg">
-                View prices
-              </Link>
-            </div>
-
-            <div className="l-hero__rating">
-              <a className="l-rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-                <span className="l-rating__score l-num">5.0</span>
-                <Stars />
-                <span className="l-rating__count">
-                  54 Google reviews <span>Read them</span>
-                </span>
-              </a>
-            </div>
+          <div className="l-hero__ctas">
+            <Link href="/book" className="l-btn l-btn--red l-btn--lg">
+              Book a lesson <ArrowRight />
+            </Link>
+            <Link href="/prices" className="l-btn l-btn--line l-btn--lg">
+              View prices
+            </Link>
           </div>
-        </PhotoSlot>
+
+          <a className="l-hero__rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+            <span className="l-hero__score l-num">5.0</span>
+            <Stars size={16} />
+            <span>54 Google reviews</span>
+          </a>
+        </div>
+
+        {HERO_PHOTO && (
+          <HeroPhoto
+            src={HERO_PHOTO}
+            tallSrc={HERO_PHOTO_TALL}
+            alt="Conor's dual-control car on a Dublin road"
+          />
+        )}
       </section>
 
-      {/* ── TRUST STRIP ───────────────────────────────────────────────────── */}
+      {/* ── AT A GLANCE ───────────────────────────────────────────────────── */}
       <ul className="l-trust" aria-label="At a glance">
         {TRUST.map((t) => (
           <li key={t.title}>
@@ -149,46 +155,45 @@ export default function Home() {
       </section>
 
       {/* ── CREDENTIAL ────────────────────────────────────────────────────── */}
-      <section className="l-section" aria-labelledby="cred-title">
-        <div className="l-feature">
-          {/* Photo slot: a portrait of Conor (/public/photos/conor.jpg) */}
-          <PhotoSlot
-            className="l-feature__media l-reveal"
-            tone="mist"
-            plate="N"
-            alt="Conor, former RSA driving tester"
-            wants="Portrait of Conor beside the car, /public/photos/conor.jpg"
-          />
-          <div className="l-feature__body">
-            <p className="l-eyebrow">Why Conor</p>
+      <section className="l-section l-section--cred" aria-labelledby="cred-title">
+        <div className={`l-ledger${CONOR_PHOTO ? " l-ledger--photo" : ""}`}>
+          {CONOR_PHOTO && (
+            <PhotoSlot
+              className="l-ledger__media l-reveal"
+              src={CONOR_PHOTO}
+              alt="Conor, former RSA driving tester"
+              wants="Portrait of Conor beside the car, /public/photos/conor.jpg"
+            />
+          )}
+          <div className="l-ledger__head">
             <h2 id="cred-title" className="l-h2">He used to conduct the test.</h2>
             <p className="l-lede">Now he prepares you for it.</p>
-            <ul className="l-centres">
-              {CENTRES.map((c) => (
-                <li key={c}>
-                  {c} <span>Former tester</span>
-                </li>
-              ))}
-            </ul>
             <p className="l-body">
               Now an RSA-approved driving instructor. Manual lessons in his dual-control car,
               or automatic in yours.
             </p>
             <p><Link href="/about" className="l-link">More about Conor</Link></p>
           </div>
+          <ul className="l-centres l-centres--ledger" aria-label="Test centres where Conor was a tester">
+            {CENTRES.map((c) => (
+              <li key={c}>
+                {c} <span>Former tester</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
       {/* ── PROCESS ───────────────────────────────────────────────────────── */}
       <section id="process" className="l-section" aria-labelledby="process-title">
         <div className="l-section__head">
-          <p className="l-eyebrow">How it works</p>
           <h2 id="process-title" className="l-h2">Booked in three steps.</h2>
         </div>
-        <ol className="l-steps">
+        {/* One road through three stops; the line draws itself as it scrolls in */}
+        <ol className="l-route">
           {STEPS.map((s, i) => (
-            <li key={s.title} className="l-step l-reveal">
-              <span className="l-step__n l-num" aria-hidden="true">{i + 1}</span>
+            <li key={s.title} className="l-route__stop">
+              <span className="l-route__dot l-num" aria-hidden="true">{i + 1}</span>
               <div>
                 <h3>{s.title}</h3>
                 <p className="l-body">{s.desc}</p>
@@ -201,19 +206,16 @@ export default function Home() {
       {/* ── REVIEWS ───────────────────────────────────────────────────────── */}
       <section id="reviews" className="l-section" aria-labelledby="reviews-title">
         <div className="l-section__head">
-          <p className="l-eyebrow">Reviews</p>
           <h2 id="reviews-title" className="l-h2">Rated 5.0 from 54 Google reviews.</h2>
         </div>
-        <div className="l-quote-panel l-reveal">
+        <div className="l-quotes">
           <Stars size={22} />
-          <div style={{ marginTop: 18 }}>
-            <ReviewCarousel />
-          </div>
+          <ReviewCarousel />
         </div>
       </section>
 
       {/* ── CLOSING CTA ───────────────────────────────────────────────────── */}
-      <section className="l-close" aria-labelledby="close-title">
+      <section className="l-close l-close--plate" aria-labelledby="close-title">
         <FlipPlate />
         <h2 id="close-title" className="l-h2">Next plate: N.</h2>
         <p className="l-body">Pick a time on the live calendar and pay online.</p>
