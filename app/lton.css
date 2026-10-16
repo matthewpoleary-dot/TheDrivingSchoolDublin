@@ -809,6 +809,7 @@ select.l-input {
 
 /* ═══ Admin (a working tool on a phone: speed and legibility first) ═════ */
 .l-admin { font-family: var(--text); padding: 24px var(--gutter) 64px; }
+.l-admin:not(.max-w-md) { max-width: var(--wrap); margin-left: auto; margin-right: auto; }
 .l-admin h1 { font-family: var(--display); font-weight: 700; letter-spacing: -0.03em; }
 .l-admin .rounded-2xl { border-radius: var(--r); }
 .l-admin .rounded-xl { border-radius: var(--r-sm); }

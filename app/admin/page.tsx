@@ -530,7 +530,7 @@ export default function AdminPage() {
       {tab === "calendar" && (
         <div className="space-y-6">
           {/* Quick-help banner */}
-          <div className="border-2 border-slate-900 rounded-[10px] p-5">
+          <div className="bg-slate-50 rounded-2xl p-5">
             <p className="font-bold text-slate-900">Your week at a glance</p>
             <p className="text-sm text-slate-600 mt-1">
               <span className="font-semibold text-red-700">Red</span> slots are confirmed lessons: tap one to see the customer&apos;s details.
@@ -671,7 +671,7 @@ export default function AdminPage() {
       {tab === "add-availability" && (
         <div className="space-y-6">
           {/* Quick-help banner */}
-          <div className="border-2 border-slate-900 rounded-[10px] p-5">
+          <div className="bg-slate-50 rounded-2xl p-5">
             <p className="font-bold text-slate-900">Add open slots for customers to book</p>
             <p className="text-sm text-slate-600 mt-1">
               Use <span className="font-semibold">Fill my schedule automatically</span> for the easiest setup. Pick a date range and your usual hours,
