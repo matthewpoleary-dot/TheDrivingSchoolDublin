@@ -106,8 +106,8 @@ export default function Home() {
             </Link>
           </div>
 
-          <a className="l-hero__rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-            <span className="l-hero__score l-num">5.0</span>
+          <a className="l-rating-line" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+            <span className="l-rating-line__score l-num">5.0</span>
             <Stars size={16} />
             <span>54 Google reviews</span>
           </a>

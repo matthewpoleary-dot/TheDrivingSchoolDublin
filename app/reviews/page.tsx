@@ -79,16 +79,14 @@ export default function ReviewsPage() {
         <p className="l-eyebrow">Reviews</p>
         <h1 className="l-h1">From real learners.</h1>
         <p className="l-lede">Verified Google reviews from Dublin learners who passed with Conor.</p>
-        <a className="l-rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" style={{ justifySelf: "start" }}>
-          <span className="l-rating__score l-num">5.0</span>
-          <Stars count={5} size={18} />
-          <span className="l-rating__count">
-            average <span>Sourced from Google</span>
-          </span>
+        <a className="l-rating-line" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+          <span className="l-rating-line__score l-num">5.0</span>
+          <Stars count={5} />
+          <span>average, sourced from Google</span>
         </a>
       </header>
 
-      <section className="l-group" aria-label="Reviews">
+      <section className="l-group l-reviews" aria-label="Reviews">
         {REVIEWS.map((r) => (
           <article key={r.name} className="l-review l-reveal">
             <div className="l-review__meta">
