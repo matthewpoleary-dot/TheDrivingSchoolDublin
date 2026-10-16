@@ -1,56 +1,62 @@
-"use client";
-// components/lton/PriceTiles.tsx — four plate tiles; each leads with its price and flips to its details
-import { useState } from "react";
+// components/lton/PriceTiles.tsx — "Choose your lesson": four booking cards, each with its
+// price up front and one button straight into the booking flow. Prices come from lib/pricing.
 import Link from "next/link";
 import { SERVICES, formatPrice } from "@/lib/pricing";
-import { Plus } from "./Icons";
+import { ArrowRight } from "./Icons";
 
-type Tile = {
+type Card = {
   id: string;
-  name: [string, string];
+  name: string;
   price: string;
   from?: boolean;
+  unit: string;
   meta: string;
+  tag?: string;
   desc: string;
   href: string;
   cta: string;
-  red?: boolean;
+  key?: boolean;
 };
 
-const TILES: Tile[] = [
+const CARDS: Card[] = [
   {
     id: "standard",
-    name: ["Standard", "lesson"],
+    name: "Standard lesson",
     price: formatPrice(SERVICES.standard.pricePence),
+    unit: "per lesson",
     meta: "60 minutes",
-    desc: "Manual in Conor's dual-control car, or he sits with you in your own automatic.",
+    desc: "One-to-one, manual in Conor's dual-control car, or automatic in your own.",
     href: "/book?service=standard",
-    cta: "Book this lesson",
+    cta: "Book a lesson",
   },
   {
     id: "pre-test",
-    name: ["Pre-test", "lesson"],
+    name: "Pre-test lesson",
     price: formatPrice(SERVICES["pre-test"].pricePence),
+    unit: "per session",
     meta: "Mock test route",
     desc: "Mock route, manoeuvres and examiner feedback, plus the exam questions and road signs.",
     href: "/book?service=pre-test",
-    cta: "Book this lesson",
+    cta: "Book a pre-test",
   },
   {
     id: "edt-bundle",
-    name: ["EDT, all", "12 lessons"],
+    name: "EDT, all 12 lessons",
     price: formatPrice(SERVICES["edt-bundle"].pricePence),
-    meta: `Or split, ${formatPrice(SERVICES["edt-split"].pricePence)} × 2`,
-    desc: "The full 12-lesson EDT programme, logbook included. Book each session from your own link.",
+    unit: "paid once",
+    meta: `Or ${formatPrice(SERVICES["edt-split"].pricePence)} × 2`,
+    tag: "Best value",
+    desc: "The full 12-lesson EDT programme. Book each session when it suits, from your own link.",
     href: "/book?service=edt-bundle",
     cta: "Book the bundle",
-    red: true,
+    key: true,
   },
   {
     id: "car-hire",
-    name: ["Car hire for", "your test"],
+    name: "Car hire for your test",
     price: formatPrice(SERVICES["car-hire-centre"].pricePence),
     from: true,
+    unit: "test day",
     meta: "Three options",
     desc: `At the test centre ${formatPrice(SERVICES["car-hire-centre"].pricePence)}, local pickup ${formatPrice(SERVICES["car-hire-local"].pricePence)}, or with a pre-test lesson ${formatPrice(SERVICES["car-hire-lesson"].pricePence)}.`,
     href: "/book",
@@ -59,45 +65,26 @@ const TILES: Tile[] = [
 ];
 
 export default function PriceTiles() {
-  const [open, setOpen] = useState<string | null>(null);
-
   return (
-    <ul className="l-tiles" role="list">
-      {TILES.map((t) => {
-        const isOpen = open === t.id;
-        return (
-          <li key={t.id} className={`l-tile${t.red ? " l-tile--red" : ""}`} data-open={isOpen}>
-            <button
-              type="button"
-              className="l-tile__toggle"
-              aria-expanded={isOpen}
-              aria-controls={`tile-${t.id}`}
-              aria-label={`${isOpen ? "Hide" : "Show"} details for ${t.name.join(" ")}`}
-              onClick={() => setOpen(isOpen ? null : t.id)}
-            >
-              <span><Plus /></span>
-            </button>
-            <div className="l-tile__inner">
-              <div className="l-tile__face" aria-hidden={isOpen}>
-                <h3 className="l-tile__name">{t.name[0]}<br />{t.name[1]}</h3>
-                <div>
-                  <p className="l-tile__price l-num">
-                    {t.from && <small>from</small>}
-                    {t.price}
-                  </p>
-                  <p className="l-tile__meta">{t.meta}</p>
-                </div>
-              </div>
-              <div className="l-tile__face l-tile__face--back" id={`tile-${t.id}`} aria-hidden={!isOpen}>
-                <p className="l-tile__desc">{t.desc}</p>
-                <Link href={t.href} className="l-tile__book" tabIndex={isOpen ? 0 : -1}>
-                  {t.cta}
-                </Link>
-              </div>
-            </div>
-          </li>
-        );
-      })}
+    <ul className="l-offers" role="list">
+      {CARDS.map((c) => (
+        <li key={c.id} className={`l-offer l-reveal${c.key ? " l-offer--key" : ""}`}>
+          <div className="l-offer__top">
+            <span className="l-offer__meta">{c.meta}</span>
+            {c.tag && <span className="l-tag">{c.tag}</span>}
+          </div>
+          <h3 className="l-offer__name">{c.name}</h3>
+          <p className="l-offer__desc">{c.desc}</p>
+          <p className="l-offer__price">
+            {c.from && <small>from</small>}
+            <strong className="l-num">{c.price}</strong>
+            <small>{c.unit}</small>
+          </p>
+          <Link href={c.href} className={`l-btn ${c.key ? "l-btn--red" : "l-btn--ink"}`}>
+            {c.cta} <ArrowRight size={16} />
+          </Link>
+        </li>
+      ))}
     </ul>
   );
 }

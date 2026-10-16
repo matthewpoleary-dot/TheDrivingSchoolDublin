@@ -75,9 +75,10 @@ export default function ReviewsPage() {
   return (
     <div className="l-page">
       <header className="l-intro">
-        <h1 className="l-display l-h1">From real learners.</h1>
+        <p className="l-eyebrow">Reviews</p>
+        <h1 className="l-h1">From real learners.</h1>
         <p className="l-lede">Verified Google reviews from Dublin learners who passed with Conor.</p>
-        <a className="l-rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" style={{ maxWidth: 520, marginBottom: 0 }}>
+        <a className="l-rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" style={{ justifySelf: "start" }}>
           <span className="l-rating__score l-num">5.0</span>
           <Stars count={5} size={18} />
           <span className="l-rating__count">
@@ -86,9 +87,9 @@ export default function ReviewsPage() {
         </a>
       </header>
 
-      <section className="l-group" style={{ paddingTop: 8 }} aria-label="Reviews">
+      <section className="l-group" aria-label="Reviews">
         {REVIEWS.map((r) => (
-          <article key={r.name} className="l-review">
+          <article key={r.name} className="l-review l-reveal">
             <div className="l-review__meta">
               <Stars count={r.rating} />
               <span>
@@ -105,14 +106,14 @@ export default function ReviewsPage() {
       </section>
 
       <section className="l-close" aria-labelledby="close-title">
-        <h2 id="close-title" className="l-display l-h2" style={{ marginTop: 0 }}>Ready to join them?</h2>
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 26 }}>
+        <h2 id="close-title" className="l-h2">Ready to join them?</h2>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 10 }}>
           <Link href="/book" className="l-btn l-btn--red l-btn--lg">
             Book a lesson <ArrowRight />
           </Link>
-          <Link href="/prices" className="l-btn l-btn--line l-btn--lg">View prices</Link>
+          <Link href="/prices" className="l-btn l-btn--ghost-ink l-btn--lg">View prices</Link>
         </div>
-        <p className="l-body" style={{ marginTop: 24, marginBottom: 0, fontSize: 15 }}>
+        <p className="l-body" style={{ marginTop: 10, fontSize: 15 }}>
           See all reviews on{" "}
           <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" className="l-link">Google</a>.
         </p>

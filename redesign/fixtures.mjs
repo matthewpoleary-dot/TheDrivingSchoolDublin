@@ -115,6 +115,8 @@ export function respond(method, url, overrides = {}) {
     if (m === method && new RegExp(`^${re}$`).test(p)) return fn(url);
   }
 
+  // The admin screen signs in through the server (sets the admin cookie); any password works here.
+  if (method === "POST" && p === "/api/admin/login") return [200, { ok: true }];
   if (method === "GET" && p === "/api/availability") return [200, AVAILABILITY];
   if (method === "GET" && p === "/api/admin/slots") return [200, ADMIN_SLOTS];
   if (method === "GET" && p === "/api/admin/bookings") return [200, ADMIN_BOOKINGS];

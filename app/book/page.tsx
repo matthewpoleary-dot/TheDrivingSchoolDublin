@@ -154,8 +154,8 @@ function BookPageInner() {
     return (
       <div className="l-page l-flow">
         <StepIndicator current="service" />
-        <h1 className="l-display l-h2">Book a lesson.</h1>
-        <p className="l-lede">Choose your lesson type to get started.</p>
+        <h1 className="l-h2">Book a lesson.</h1>
+        <p className="l-lede">Choose a lesson to get started. You&apos;ll pick a time next.</p>
 
         {cancelled && (
           <div className="l-notice" role="status" style={{ marginTop: 24 }}>
@@ -223,7 +223,6 @@ function BookPageInner() {
                   }}
                   aria-label="Continue with this car-hire option"
                   className="l-svc__go"
-                  style={{ cursor: "pointer", height: 50, width: 44 }}
                 >
                   <ArrowRight />
                 </button>
@@ -243,11 +242,11 @@ function BookPageInner() {
         <Back onClick={() => { setStep("service"); setSelectedSlot(null); }} />
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: "4px 16px", margin: "8px 0 24px" }}>
           <h1 className="l-h3" style={{ marginBottom: 0 }}>{serviceConfig.label}</h1>
-          <span className="l-svc__price l-num">{formatPrice(serviceConfig.pricePence)}</span>
+          <span className="l-svc__price l-num" style={{ fontSize: 30 }}>{formatPrice(serviceConfig.pricePence)}</span>
         </div>
 
         <div className="l-panel">
-          <p className="l-label" style={{ marginBottom: 16 }}>Select an available date and time:</p>
+          <p className="l-label" style={{ marginBottom: 16 }}>Choose a date, then a time</p>
           <BookingCalendar
             serviceType={service}
             onSlotSelected={(slot) => setSelectedSlot(slot)}

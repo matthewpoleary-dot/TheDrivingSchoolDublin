@@ -34,8 +34,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-archivo), -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: var(--font-instrument-serif), Georgia, serif;
+  --font-sans: var(--font-text), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-display), "Helvetica Neue", Arial, sans-serif;
 }
 
 html {

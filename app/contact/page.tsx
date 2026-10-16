@@ -23,14 +23,15 @@ export default function Contact() {
   return (
     <div className="l-page">
       <header className="l-intro">
-        <h1 className="l-display l-h1">Get in touch.</h1>
-        <p className="l-lede">Quick reply, usually within a few hours during business hours.</p>
+        <p className="l-eyebrow">Contact</p>
+        <h1 className="l-h1">Get in touch.</h1>
+        <p className="l-lede">A quick reply, usually within a few hours during business hours.</p>
       </header>
 
-      <section className="l-group" style={{ paddingTop: 0 }}>
+      <section className="l-group">
         <div className="l-split">
           <div className="l-panel">
-            <h2 className="l-h3" style={{ fontSize: 30 }}>Send us a message.</h2>
+            <h2 className="l-h3" style={{ fontSize: 28 }}>Send a message</h2>
             <p className="l-hint" style={{ margin: "8px 0 22px" }}>
               Fill out the form and we&apos;ll be in touch shortly.
             </p>
@@ -38,12 +39,12 @@ export default function Contact() {
           </div>
 
           <div>
-            <h2 className="l-h3" style={{ fontSize: 30 }}>Or reach out directly.</h2>
-            <p className="l-hint" style={{ margin: "8px 0 18px" }}>Skip the form and message us live.</p>
+            <h2 className="l-h3" style={{ fontSize: 28 }}>Or reach out directly</h2>
+            <p className="l-hint" style={{ margin: "8px 0 18px" }}>Skip the form and talk to us now.</p>
             <ContactOptions />
 
             <div style={{ marginTop: 28 }}>
-              <h3 className="l-label" style={{ fontSize: 17, marginBottom: 10 }}>Response times</h3>
+              <h3 className="l-label" style={{ fontSize: 16, marginBottom: 12 }}>Response times</h3>
               <ul className="l-list">
                 {RESPONSE_TIMES.map((r) => (
                   <li key={r.label}>

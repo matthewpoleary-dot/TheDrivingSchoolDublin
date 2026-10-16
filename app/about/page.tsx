@@ -1,5 +1,6 @@
 // app/about/page.tsx
 import Link from "next/link";
+import PhotoSlot from "@/components/lton/PhotoSlot";
 import { ArrowRight } from "@/components/lton/Icons";
 
 const CENTRES = [
@@ -44,55 +45,46 @@ export default function About() {
   return (
     <div className="l-page">
       <header className="l-intro">
-        <h1 className="l-display l-h1">Meet Conor.</h1>
+        <p className="l-eyebrow">About</p>
+        <h1 className="l-h1">Meet Conor.</h1>
         <p className="l-lede">
-          Your RSA-approved ADI and former driving tester at both <strong>Dún Laoghaire</strong> and{" "}
+          Your RSA-approved ADI, and a former driving tester at <strong>Dún Laoghaire</strong> and{" "}
           <strong>Tallaght</strong>. He knows both routes inside out.
         </p>
       </header>
 
-      {/* ── Test centre expertise: the one black field ─────────────────── */}
-      <section className="l-band" aria-labelledby="centres-title">
-        <div>
-          <h2 id="centres-title" className="l-display l-h2">Test centre expertise.</h2>
-          <p>He used to conduct the driving test at these centres.</p>
-        </div>
-        <ul className="l-centres" style={{ marginTop: 28 }}>
-          {CENTRES.map((c) => (
-            <li key={c.name} style={{ display: "block" }}>
-              {c.name}
-              <p style={{ marginTop: 10, fontSize: 16, fontWeight: 500, fontStretch: "100%", letterSpacing: 0, lineHeight: 1.5, color: "#D9D9D9" }}>
-                {c.text}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
       {/* ── Bio ─────────────────────────────────────────────────────────── */}
-      <section className="l-group" aria-labelledby="bio-title" style={{ paddingTop: 56 }}>
+      <section className="l-group" aria-labelledby="bio-title">
         <div className="l-split">
+          {/* Photo slot: a portrait of Conor (/public/photos/conor.jpg) */}
+          <PhotoSlot
+            className="l-reveal"
+            tone="mist"
+            plate="N"
+            alt="Conor, RSA-approved driving instructor"
+            wants="Portrait of Conor, /public/photos/conor.jpg"
+            style={{ aspectRatio: "4 / 5" }}
+          />
+
           <div>
             <h2 id="bio-title" className="l-h3" style={{ marginBottom: 22 }}>
-              An ex-tester in the driver&apos;s seat with you.
+              An ex-tester in the passenger seat beside you.
             </h2>
             <div className="l-prose">
               <p>
-                Conor is a highly experienced Approved Driving Instructor (ADI) and former RSA
-                driving tester. Having worked in test centres across <strong>Tallaght</strong>,{" "}
-                <strong>Dún Laoghaire</strong>, and the old <strong>Churchtown</strong> centre,
-                he brings deep insight into what examiners look for on the day.
+                Conor is an Approved Driving Instructor (ADI) and a former RSA driving tester.
+                Having worked in test centres across <strong>Tallaght</strong>,{" "}
+                <strong>Dún Laoghaire</strong> and the old <strong>Churchtown</strong> centre,
+                he knows exactly what examiners look for on the day.
               </p>
               <p>
-                With years in the industry, Conor combines professional standards with a calm,
-                supportive teaching style. His background as an ex-tester means every lesson is
-                focused not just on safe driving, but on preparing you to succeed under exam
-                conditions.
+                He pairs professional standards with a calm, supportive teaching style. Every
+                lesson builds safe driving and gets you ready to perform under test conditions.
               </p>
               <p>
                 Whether you&apos;re completing your <strong>EDT programme</strong>, booking{" "}
-                <strong>pre-test lessons</strong>, or looking for refresher sessions, every lesson
-                is tailored to your goals and confidence level.
+                <strong>pre-test lessons</strong> or coming back for a refresher, each lesson is
+                shaped around your goals and your confidence.
               </p>
             </div>
 
@@ -107,17 +99,25 @@ export default function About() {
               <Link href="/prices" className="l-btn l-btn--line l-btn--lg">View prices</Link>
             </div>
           </div>
-
-          {/* Image slot: swap in a headshot at /public/conor.jpg when one exists */}
-          <figure className="l-panel" style={{ margin: 0, aspectRatio: "4 / 5", display: "grid", placeItems: "center", padding: 40 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/Logo.jpg"
-              alt="The Driving School Dublin"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-            />
-          </figure>
         </div>
+      </section>
+
+      {/* ── Test centre expertise ───────────────────────────────────────── */}
+      <section className="l-band" aria-labelledby="centres-title">
+        <div style={{ display: "grid", gap: 14 }}>
+          <p className="l-eyebrow l-eyebrow--on-ink">Test centre expertise</p>
+          <h2 id="centres-title" className="l-h2">He used to conduct the test here.</h2>
+        </div>
+        <ul className="l-centres">
+          {CENTRES.map((c) => (
+            <li key={c.name} style={{ display: "block" }}>
+              {c.name}
+              <p style={{ marginTop: 10, font: "400 16px/1.6 var(--text)", letterSpacing: 0 }}>
+                {c.text}
+              </p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <script

@@ -129,20 +129,27 @@ export default function PricesPage() {
   return (
     <div className="l-page">
       <header className="l-intro">
-        <h1 className="l-display l-h1">Transparent pricing.</h1>
-        <p className="l-lede">Clear hourly rates and package deals. Pay securely online.</p>
+        <p className="l-eyebrow">Prices</p>
+        <h1 className="l-h1">Every price, up front.</h1>
+        <p className="l-lede">Clear hourly rates and package deals. Pick one and pay securely online.</p>
+        <nav className="l-jump" aria-label="Jump to">
+          <a href="#lessons">Lessons</a>
+          <a href="#edt">EDT programmes</a>
+          <a href="#car-hire">Car hire</a>
+          <a href="#faq">FAQ</a>
+        </nav>
       </header>
 
-      <section className="l-group" aria-labelledby="lessons-title">
+      <section id="lessons" className="l-group" aria-labelledby="lessons-title" style={{ scrollMarginTop: 96 }}>
         <div className="l-group__head">
-          <h2 id="lessons-title" className="l-h3">Lessons.</h2>
+          <h2 id="lessons-title" className="l-h3">Lessons</h2>
         </div>
         <Rows rows={PRIMARY} />
       </section>
 
-      <section className="l-group" aria-labelledby="edt-title">
+      <section id="edt" className="l-group" aria-labelledby="edt-title" style={{ scrollMarginTop: 96 }}>
         <div className="l-group__head">
-          <h2 id="edt-title" className="l-h3">Essential Driver Training.</h2>
+          <h2 id="edt-title" className="l-h3">Essential Driver Training</h2>
           <p className="l-body">
             The 12-lesson EDT programme is mandatory for new learner drivers in Ireland.
             We also offer the reduced 6-lesson option for eligible drivers.
@@ -151,9 +158,9 @@ export default function PricesPage() {
         <Rows rows={EDT_OPTIONS} />
       </section>
 
-      <section className="l-group" aria-labelledby="hire-title">
+      <section id="car-hire" className="l-group" aria-labelledby="hire-title" style={{ scrollMarginTop: 96 }}>
         <div className="l-group__head">
-          <h2 id="hire-title" className="l-h3">Car hire for your test.</h2>
+          <h2 id="hire-title" className="l-h3">Car hire for your test</h2>
           <p className="l-body">
             Roadworthy, fully insured car. Three options to suit you. Mon to Fri tests, Saturday on request.
           </p>
@@ -161,17 +168,17 @@ export default function PricesPage() {
         <Rows rows={CAR_HIRE} />
       </section>
 
-      <div className="l-group" style={{ paddingTop: 56 }}>
+      <div id="faq" className="l-group" style={{ scrollMarginTop: 96 }}>
         <FAQ />
       </div>
 
       <section className="l-close" aria-labelledby="close-title">
-        <h2 id="close-title" className="l-display l-h2" style={{ marginTop: 0 }}>Ready to book?</h2>
+        <h2 id="close-title" className="l-h2">Ready to book?</h2>
         <p className="l-body">Pick your lesson, choose a slot, pay securely online.</p>
         <Link href="/book" className="l-btn l-btn--red l-btn--lg">
           Book a lesson <ArrowRight />
         </Link>
-        <p className="l-body" style={{ marginTop: 22, marginBottom: 0, fontSize: 15, color: "var(--grey-600)" }}>
+        <p className="l-body" style={{ marginTop: 6, fontSize: 15 }}>
           Prices include VAT where applicable. Questions?{" "}
           <Link href="/contact" className="l-link">Get in touch</Link>.
         </p>
