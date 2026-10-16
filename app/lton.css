@@ -570,7 +570,7 @@ select.l-input {
 .l-hint { font-size: 14px; color: var(--grey-600); line-height: 1.5; }
 
 /* ─── Contact options ───────────────────────────────────────────────────── */
-.l-options { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.l-options { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; container-type: inline-size; }
 .l-option {
   display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 4px 16px; align-items: start;
   padding: 20px; border-radius: var(--r); background: var(--mist);
@@ -580,7 +580,8 @@ select.l-input {
 .l-option__sub { font-size: 14px; color: var(--grey-600); margin-top: 2px; }
 .l-option__primary { font-size: 16px; font-weight: 600; margin-top: 8px; overflow-wrap: anywhere; }
 .l-option .l-btn { grid-column: 1 / -1; margin-top: 14px; width: 100%; }
-@media (min-width: 560px) {
+/* Button sits beside the text only when the list itself is wide enough */
+@container (min-width: 620px) {
   .l-option { grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; }
   .l-option .l-btn { grid-column: 3; margin-top: 0; width: auto; }
 }
