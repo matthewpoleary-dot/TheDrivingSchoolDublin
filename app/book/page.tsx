@@ -3,6 +3,7 @@
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { ArrowRight, Chat } from "@/components/lton/Icons";
 
 const DISPLAY_PHONE = "+353 86 0235 666";
 const TEL_HREF = "tel:+353860235666";
@@ -76,107 +77,95 @@ export default function BookPage() {
 
   if (status === "success") {
     return (
-      <section className="mx-auto max-w-2xl space-y-6">
-        <div className="rounded-2xl border bg-green-50 p-8 text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-4">Request Sent!</h1>
-          <p className="text-gray-700 mb-6">
-            Thank you for your request. We&apos;ll get back to you the same day to confirm your lesson time.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/" className="btn-primary">
-              Back to home
-            </Link>
-            <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="btn-outline">
-              WhatsApp us
-            </a>
-          </div>
+      <section className="l-page l-result">
+        <div className="l-result__mark l-result__mark--ok" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+            <path d="M6 18l7.5 7L28 9" stroke="currentColor" strokeWidth="4.5" />
+          </svg>
+        </div>
+        <h1 className="l-h2">Request sent!</h1>
+        <p className="l-lede">
+          Thank you for your request. We&apos;ll get back to you the same day to confirm your lesson time.
+        </p>
+        <div className="l-result__actions">
+          <Link href="/" className="l-btn l-btn--red l-btn--lg">
+            Back to home <ArrowRight />
+          </Link>
+          <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="l-btn l-btn--line l-btn--lg">
+            <Chat size={16} /> WhatsApp us
+          </a>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-2xl space-y-8">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">Request a Lesson</h1>
-        <p className="text-gray-700">
-          Fill out the form below and we&apos;ll get back to you the same day to confirm your lesson time.
-        </p>
-      </div>
+    <div className="l-page l-flow l-flow--narrow">
+      <p className="l-eyebrow">Lesson request</p>
+      <h1 className="l-h2" style={{ marginTop: 14 }}>Request a lesson.</h1>
+      <p className="l-lede">
+        Fill out the form below and we&apos;ll get back to you the same day to confirm your lesson time.
+      </p>
 
       {/* Quick contact options */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <a
-          href={WHATSAPP_HREF}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-lg border bg-green-600 px-4 py-3 text-center font-medium text-white hover:bg-green-700 transition"
-        >
-          WhatsApp us
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, margin: "24px 0 28px" }}>
+        <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" className="l-btn l-btn--ink l-btn--lg">
+          <Chat size={16} /> WhatsApp us
         </a>
-        <a
-          href={TEL_HREF}
-          className="rounded-lg border bg-gray-900 px-4 py-3 text-center font-medium text-white hover:bg-black transition"
-        >
+        <a href={TEL_HREF} className="l-btn l-btn--line l-btn--lg">
           Call {DISPLAY_PHONE}
         </a>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-1">
-            Full Name <span className="text-red-600">*</span>
-          </label>
+      <form onSubmit={handleSubmit} className="l-form l-panel">
+        <div className="l-field">
+          <label htmlFor="name" className="l-label">Full Name <i aria-hidden="true">*</i></label>
           <input
             type="text"
             id="name"
             required
+            autoComplete="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+            className="l-input"
           />
         </div>
 
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-900 mb-1">
-            Phone Number <span className="text-red-600">*</span>
-          </label>
+        <div className="l-field">
+          <label htmlFor="phone" className="l-label">Phone Number <i aria-hidden="true">*</i></label>
           <input
             type="tel"
             id="phone"
             required
+            autoComplete="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+            className="l-input"
             placeholder="+353 86 123 4567"
           />
         </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-1">
-            Email Address <span className="text-red-600">*</span>
-          </label>
+        <div className="l-field">
+          <label htmlFor="email" className="l-label">Email Address <i aria-hidden="true">*</i></label>
           <input
             type="email"
             id="email"
             required
+            autoComplete="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+            className="l-input"
           />
         </div>
 
-        <div>
-          <label htmlFor="carType" className="block text-sm font-medium text-gray-900 mb-1">
-            Car Type <span className="text-red-600">*</span>
-          </label>
+        <div className="l-field">
+          <label htmlFor="carType" className="l-label">Car Type <i aria-hidden="true">*</i></label>
           <select
             id="carType"
             required
             value={formData.carType}
             onChange={(e) => setFormData({ ...formData, carType: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+            className="l-input"
           >
             <option value="">Select...</option>
             <option value="manual">Manual</option>
@@ -185,16 +174,14 @@ export default function BookPage() {
           </select>
         </div>
 
-        <div>
-          <label htmlFor="lessonType" className="block text-sm font-medium text-gray-900 mb-1">
-            Lesson Type <span className="text-red-600">*</span>
-          </label>
+        <div className="l-field">
+          <label htmlFor="lessonType" className="l-label">Lesson Type <i aria-hidden="true">*</i></label>
           <select
             id="lessonType"
             required
             value={formData.lessonType}
             onChange={(e) => setFormData({ ...formData, lessonType: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+            className="l-input"
           >
             <option value="">Select...</option>
             <option value="standard">Standard Lesson</option>
@@ -206,64 +193,59 @@ export default function BookPage() {
           </select>
         </div>
 
-        <div>
-          <label htmlFor="area" className="block text-sm font-medium text-gray-900 mb-1">
-            Preferred Area
-          </label>
+        <div className="l-field">
+          <label htmlFor="area" className="l-label">Preferred Area</label>
           <input
             type="text"
             id="area"
             value={formData.area}
             onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+            className="l-input"
             placeholder="e.g., Tallaght, Dún Laoghaire, Churchtown"
           />
         </div>
 
-        <div>
-          <label htmlFor="availability" className="block text-sm font-medium text-gray-900 mb-1">
-            Your Availability <span className="text-red-600">*</span>
-          </label>
+        <div className="l-field">
+          <label htmlFor="availability" className="l-label">Your Availability <i aria-hidden="true">*</i></label>
           <textarea
             id="availability"
             required
             rows={4}
             value={formData.availability}
             onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/20"
+            className="l-input"
             placeholder="e.g., Weekday evenings after 6pm, Saturday mornings..."
           />
         </div>
 
-        <div className="flex items-start gap-2">
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
           <input
             type="checkbox"
             id="consent"
             required
             checked={formData.consent}
             onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"
+            style={{ marginTop: 3, width: 18, height: 18, flexShrink: 0 }}
           />
-          <label htmlFor="consent" className="text-sm text-gray-700">
-            I consent to being contacted about my lesson request <span className="text-red-600">*</span>
+          <label htmlFor="consent" className="l-hint" style={{ color: "var(--ink-2)" }}>
+            I consent to being contacted about my lesson request <i aria-hidden="true" style={{ fontStyle: "normal", color: "var(--red)" }}>*</i>
           </label>
         </div>
 
         {status === "error" && (
-          <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-800">
+          <p className="l-notice l-notice--error" role="alert">
             Something went wrong. Please try again or contact us directly via WhatsApp or phone.
-          </div>
+          </p>
         )}
 
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          className="l-btn l-btn--red l-btn--lg l-btn--block"
         >
           {status === "submitting" ? "Sending..." : "Submit Request"}
         </button>
       </form>
-    </section>
+    </div>
   );
 }
-

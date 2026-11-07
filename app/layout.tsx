@@ -1,6 +1,24 @@
 // app/layout.tsx
 import "./globals.css";
+import "./lton.css";
 import Link from "next/link";
+import { Bricolage_Grotesque, Geist } from "next/font/google";
+import MorphingNav from "@/components/MorphingNav";
+
+// Display: a confident grotesque with optical sizes, close in spirit to the heavy logo.
+const display = Bricolage_Grotesque({
+  subsets: ["latin"],
+  axes: ["opsz", "wdth"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+// Text: a quiet, very legible sans for body copy and forms.
+const text = Geist({
+  subsets: ["latin"],
+  variable: "--font-text",
+  display: "swap",
+});
 
 export const metadata = {
   title: "The Driving School Dublin",
@@ -15,91 +33,90 @@ export const metadata = {
   },
 };
 
+const WHATSAPP_HREF =
+  "https://wa.me/353860235666?text=" + encodeURIComponent("Hi! I'd like to arrange a driving lesson.");
+
+const FOOTER_COLUMNS = [
+  {
+    label: "Lessons",
+    links: [
+      { label: "Prices", href: "/prices" },
+      { label: "Lessons", href: "/#lessons" },
+      { label: "Reviews", href: "/reviews" },
+    ],
+  },
+  {
+    label: "Company",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    label: "Contact",
+    links: [
+      { label: "+353 86 0235 666", href: "tel:+353860235666" },
+      { label: "Email", href: "mailto:thedrivingschooldublin@gmail.com" },
+      { label: "WhatsApp", href: WHATSAPP_HREF },
+    ],
+  },
+  {
+    label: "Hours",
+    links: [{ label: "Mon to Sat, 8am to 6pm", href: "/contact" }],
+  },
+];
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-white text-gray-900">
-        <header className="border-b bg-white">
-          <nav className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-            <Link
-              href="/"
-              className="text-xl font-extrabold tracking-tight"
-              aria-label="Home"
-            >
-              <span className="text-gray-900">The</span>{" "}
-              <span className="text-red-600">Driving</span>{" "}
-              <span className="text-gray-900">School</span>{" "}
-              <span className="text-gray-900">Dublin</span>
-            </Link>
+    <html lang="en" className={`${display.variable} ${text.variable}`}>
+      <body className="min-h-screen antialiased">
 
-            <div className="flex items-center gap-5">
-              <div className="space-x-5 text-sm font-medium hidden md:flex">
-                <Link href="/prices" className="nav-link">Prices</Link>
-                <Link href="/reviews" className="nav-link">Reviews</Link>
-                <Link href="/about" className="nav-link">About</Link>
-              </div>
-              <Link href="/contact" className="btn-primary text-sm">
+        <MorphingNav />
+
+        <main className="l-main">{children}</main>
+
+        <footer className="l-footer">
+          <div className="l-footer__inner">
+            <div className="l-footer__brand">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/Logo.jpg"
+                alt="The Driving School Dublin"
+                className="l-footer__logo"
+                width={132}
+                height={132}
+              />
+              <p className="l-footer__tag">
+                RSA-approved ADI providing professional driving lessons across Dublin.
+                Manual and automatic, EDT programmes, pre-test sessions and car hire.
+              </p>
+              <Link href="/contact" className="l-btn l-btn--red">
                 Contact us
               </Link>
             </div>
-          </nav>
-        </header>
 
-        <main className="mx-auto max-w-5xl px-4 py-10">{children}</main>
-
-        <footer className="mt-16 border-t bg-gray-50">
-          <div className="mx-auto max-w-5xl px-4 py-10">
-            <div className="grid gap-8 md:grid-cols-3 mb-8">
-              <div>
-                <h3 className="font-extrabold text-gray-900 mb-3">The Driving School Dublin</h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  RSA-approved ADI providing professional driving lessons across Dublin.
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Hours:</strong> Mon–Sat, 8am–6pm
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
-                <ul className="space-y-2 text-sm">
-                  <li><Link href="/prices" className="text-gray-600 hover:text-red-600">Prices</Link></li>
-                  <li><Link href="/reviews" className="text-gray-600 hover:text-red-600">Reviews</Link></li>
-                  <li><Link href="/about" className="text-gray-600 hover:text-red-600">About</Link></li>
-                  <li><Link href="/contact" className="text-gray-600 hover:text-red-600">Contact</Link></li> */
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Contact</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>
-                    <a href="tel:+353860235666" className="hover:text-red-600">+353 86 0235 666</a>
-                  </li>
-                  <li>
-                    <a href="mailto:thedrivingschooldublin@gmail.com" className="hover:text-red-600">
-                      thedrivingschooldublin@gmail.com
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://wa.me/353860235666?text=Hi!%20I'd%20like%20to%20arrange%20a%20driving%20lesson."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-red-600"
-                    >
-                      WhatsApp us
-                    </a>
-                  </li>
-                </ul>
-              </div>
+            <div className="l-footer__cols">
+              {FOOTER_COLUMNS.map((col) => (
+                <div key={col.label}>
+                  <p className="l-footer__label">{col.label}</p>
+                  <ul>
+                    {col.links.map((l) => (
+                      <li key={l.href + l.label}>
+                        <Link href={l.href}>{l.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-            <div className="border-t pt-6 text-sm text-gray-600 flex flex-col md:flex-row items-center justify-between gap-4">
+
+            <div className="l-footer__base">
               <p>© {new Date().getFullYear()} The Driving School Dublin. All rights reserved.</p>
-              <p>
-                Made with <span className="text-red-600">♥</span> in Ireland
-              </p>
+              <p>RSA-approved Approved Driving Instructor · Dublin, Ireland</p>
             </div>
           </div>
         </footer>
+
       </body>
     </html>
   );
