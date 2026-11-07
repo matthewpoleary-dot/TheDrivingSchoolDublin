@@ -3,188 +3,168 @@
 // the contact conversation — do not restore them thinking it's a bug.
 import Link from "next/link";
 import FAQ from "@/components/FAQ";
+import { ArrowRight } from "@/components/lton/Icons";
+
+type PriceRow = {
+  title: string;
+  description: string;
+  price: string;
+  unit: string;
+  tag?: string;
+  notes?: string[];
+};
+
+const LESSONS: PriceRow[] = [
+  {
+    title: "Standard Lesson",
+    description: "One-to-one tuition in a fully-equipped dual-control car. Monday to Friday.",
+    price: "€80",
+    unit: "per hour",
+    notes: ["Evening and weekend slots available on request, limited availability."],
+  },
+  {
+    title: "Pre-Test Lesson",
+    description: "Full pre-test preparation: mock test route, manoeuvres, and examiner feedback style. Monday to Friday.",
+    price: "€100",
+    unit: "per session",
+    notes: ["Weekend sessions on request, subject to availability."],
+  },
+  {
+    title: "Refresher Lessons",
+    description: "For licensed drivers returning to the wheel after a break. Monday to Friday.",
+    price: "€80",
+    unit: "per hour",
+    notes: ["Weekend slots on request."],
+  },
+];
+
+const EDT: PriceRow[] = [
+  {
+    title: "EDT Bundle (12 lessons)",
+    description: "Our most popular package for learners completing full EDT. Monday to Friday.",
+    price: "€905",
+    unit: "12 lessons",
+    tag: "Most popular",
+    notes: [
+      "Works out at €75.42 per hour, cheaper than booking hourly.",
+      "Split payments available (Mon to Fri): pay €455 on the first lesson and €450 on the 7th lesson.",
+      "Weekend scheduling available on request.",
+    ],
+  },
+  {
+    title: "6 Reduced EDT Lessons",
+    description: "Completes the reduced EDT syllabus over six structured hours. Monday to Friday.",
+    price: "€455",
+    unit: "6 lessons",
+    notes: ["Weekend scheduling available on request."],
+  },
+];
+
+const CAR_HIRE: PriceRow[] = [
+  { title: "At the test centre", description: "Meet at the test centre.", price: "€150", unit: "from" },
+  { title: "Local pickup & drop-off", description: "Picked up and dropped back home.", price: "€200", unit: "from" },
+  { title: "Car hire + pre-test lesson", description: "A pre-test lesson, then the car for your test.", price: "€245", unit: "from" },
+];
+
+function Rows({ rows, cta = "Contact us" }: { rows: PriceRow[]; cta?: string }) {
+  return (
+    <ul className="l-rows">
+      {rows.map((row) => (
+        <li key={row.title} className="l-row l-reveal">
+          <div>
+            <h3 className="l-row__name">
+              {row.title}
+              {row.tag && <span className="l-tag">{row.tag}</span>}
+            </h3>
+            <p className="l-row__desc">{row.description}</p>
+            {row.notes?.map((n) => <p key={n} className="l-row__note">{n}</p>)}
+          </div>
+          <div className="l-row__price">
+            {row.unit === "from" ? (
+              <>
+                <span style={{ marginTop: 0, marginBottom: 6 }}>from</span>
+                <strong className="l-num">{row.price}</strong>
+              </>
+            ) : (
+              <>
+                <strong className="l-num">{row.price}</strong>
+                <span>{row.unit}</span>
+              </>
+            )}
+          </div>
+          <div className="l-row__cta">
+            <Link href="/contact" className="l-btn l-btn--line l-row__book">
+              {cta} <ArrowRight size={16} />
+            </Link>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function PricesPage() {
   return (
-    <section className="mx-auto max-w-5xl">
-      <h1 className="text-3xl font-extrabold tracking-tight mb-6">Prices</h1>
+    <div className="l-page">
+      <header className="l-intro">
+        <p className="l-eyebrow">Prices</p>
+        <h1 className="l-h1">Clear prices, no hidden fees.</h1>
+        <p className="l-lede">Every lesson and package, Monday to Friday. Get in touch to arrange yours.</p>
+        <nav className="l-jump" aria-label="Jump to">
+          <a href="#lessons">Lessons</a>
+          <a href="#edt">EDT</a>
+          <a href="#car-hire">Car hire</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+      </header>
 
-      {/* Standard + Pre-Test side by side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Standard Lesson */}
-        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold">Standard Lesson</h3>
-            <div className="mt-4">
-              <p className="text-3xl font-extrabold text-red-600">€80 / hour</p>
-              <p className="text-sm text-gray-500 mt-1">Monday to Friday</p>
-            </div>
-            <p className="mt-3 text-sm text-gray-700">One-to-one tuition in a fully-equipped dual-control car.</p>
-            <p className="mt-3 text-xs text-gray-500">Evening &amp; weekend slots available on request — limited availability.</p>
-          </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+      <section id="lessons" className="l-group" aria-labelledby="lessons-title" style={{ scrollMarginTop: 96 }}>
+        <div className="l-group__head">
+          <h2 id="lessons-title" className="l-h3">Lessons</h2>
         </div>
+        <Rows rows={LESSONS} />
+      </section>
 
-        {/* Pre-Test Lesson */}
-        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold">Pre-Test Lesson</h3>
-            <div className="mt-4">
-              <p className="text-3xl font-extrabold text-red-600">€100 per session</p>
-              <p className="text-sm text-gray-500 mt-1">Monday to Friday</p>
-            </div>
-            <p className="mt-3 text-sm text-gray-700">Full pre-test preparation: mock test route, manoeuvres, and examiner feedback style.</p>
-            <p className="mt-3 text-xs text-gray-500">Weekend sessions on request — subject to availability.</p>
-          </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
+      <section id="edt" className="l-group" aria-labelledby="edt-title" style={{ scrollMarginTop: 96 }}>
+        <div className="l-group__head">
+          <h2 id="edt-title" className="l-h3">Essential Driver Training</h2>
+          <p className="l-body">
+            Single EDT lessons are available too. <Link href="/contact" className="l-link">Contact us</Link> to arrange one.
+          </p>
         </div>
-      </div>
+        <Rows rows={EDT} />
+      </section>
 
-      {/* Car Hire for Test — full width */}
-      <div className="mt-6 border rounded-2xl p-6 bg-white shadow-sm">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">Car Hire for Test</h3>
-          <p className="text-sm text-gray-500 mt-1">Priced for Monday–Friday tests. Saturday test dates on request. Not available Sundays.</p>
+      <section id="car-hire" className="l-group" aria-labelledby="hire-title" style={{ scrollMarginTop: 96 }}>
+        <div className="l-group__head">
+          <h2 id="hire-title" className="l-h3">Car hire for your test</h2>
+          <p className="l-body">
+            Priced for Monday to Friday tests. Saturday test dates on request. Not available Sundays.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { opt: "1", desc: "At the test centre", price: "from €150" },
-            { opt: "2", desc: "Local pickup & drop-off", price: "from €200" },
-            { opt: "3", desc: "Car hire + pre-test lesson", price: "from €245" },
-          ].map(({ opt, desc, price }) => (
-            <div key={opt} className="rounded-xl border p-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Option {opt}</p>
-              <p className="text-sm text-gray-700 mb-3">{desc}</p>
-              <p className="text-2xl font-extrabold text-red-600">{price}</p>
-            </div>
-          ))}
-        </div>
-        <ul className="mt-4 flex flex-wrap gap-x-8 gap-y-1 text-sm text-gray-700 list-disc list-inside">
+        <Rows rows={CAR_HIRE} />
+        <ul className="l-list" style={{ marginTop: 20 }}>
           <li>Roadworthy, fully insured vehicle</li>
           <li>Arrive early, paperwork checked</li>
-          <li>Instructor support before &amp; after test</li>
+          <li>Instructor support before and after the test</li>
         </ul>
-        <Link
-          href="/contact"
-          className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition w-full"
-        >
-          Contact us
-        </Link>
-      </div>
+      </section>
 
-      {/* Refresher & 6 Reduced EDT row */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Refresher Lessons */}
-        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold">Refresher Lessons</h3>
-            <div className="mt-4">
-              <p className="text-3xl font-extrabold text-red-600">€80 / hour</p>
-              <p className="text-sm text-gray-500 mt-1">Monday to Friday</p>
-            </div>
-            <p className="mt-3 text-sm text-gray-700">For licensed drivers returning to the wheel after a break.</p>
-            <p className="mt-3 text-xs text-gray-500">Weekend slots on request.</p>
-          </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
-        </div>
-
-        {/* 6 Reduced EDT Lessons */}
-        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold">6 Reduced EDT Lessons</h3>
-            <div className="mt-4">
-              <p className="text-3xl font-extrabold text-red-600">€455</p>
-              <p className="text-sm text-gray-500 mt-1">Monday to Friday</p>
-            </div>
-            <p className="mt-3 text-sm text-gray-700">Completes the reduced EDT syllabus over six structured hours.</p>
-            <p className="mt-3 text-xs text-gray-500">Weekend scheduling available on request.</p>
-          </div>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-          >
-            Contact us
-          </Link>
-        </div>
-      </div>
-
-      {/* EDT Bundle — full width */}
-      <div className="mt-8">
-        <div className="flex flex-col border rounded-2xl p-6 bg-white shadow-sm">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h3 className="text-lg font-semibold">EDT Bundle (12 lessons)</h3>
-              <span className="text-xs font-semibold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Most popular</span>
-            </div>
-            <div className="mt-4">
-              <p className="text-3xl font-extrabold text-red-600">€905</p>
-              <p className="text-sm text-gray-500 mt-1">Monday to Friday</p>
-            </div>
-            <p className="mt-3 text-sm text-gray-700">Our most popular package for learners completing full EDT.</p>
-            <p className="mt-2 text-sm font-medium text-gray-700">Works out at €75.42 per hour — cheaper than booking hourly.</p>
-            <ul className="mt-4 space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Split payments available (Mon–Fri):</li>
-              <li className="ml-4">
-                Pay <strong>€455</strong> on the <strong>first</strong> lesson
-              </li>
-              <li className="ml-4">
-                Pay <strong>€450</strong> on the <strong>7th</strong> lesson
-              </li>
-            </ul>
-            <p className="mt-3 text-xs text-gray-500">Weekend scheduling available on request.</p>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-3 font-medium text-white hover:bg-red-700 transition"
-            >
-              Contact us about bundle
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50 transition"
-            >
-              Contact us about single EDT lesson
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <p className="mt-8 text-sm text-gray-600">
-        Prices include VAT where applicable. For questions, use the contact link in the header.
+      <p className="l-group l-body" style={{ paddingTop: 24, fontSize: 15 }}>
+        Prices include VAT where applicable.
       </p>
 
-      {/* FAQ Section */}
-      <div className="mt-16">
+      <div id="faq" className="l-group" style={{ scrollMarginTop: 96 }}>
         <FAQ />
       </div>
 
-      {/* CTA Section */}
-      <div className="mt-12 rounded-2xl border bg-gradient-to-br from-red-50 to-gray-50 p-8 text-center">
-        <h2 className="text-2xl font-extrabold tracking-tight mb-4">Ready to book your lesson?</h2>
-        <p className="text-gray-700 mb-6">
-          Contact us today and we&apos;ll get back to you the same day.
-        </p>
-        <Link href="/contact" className="btn-primary">
-          Contact us
+      <section className="l-close" aria-labelledby="close-title">
+        <h2 id="close-title" className="l-h2">Ready to book your lesson?</h2>
+        <p className="l-body">Contact us today and we&apos;ll get back to you the same day.</p>
+        <Link href="/contact" className="l-btn l-btn--red l-btn--lg">
+          Contact us <ArrowRight />
         </Link>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

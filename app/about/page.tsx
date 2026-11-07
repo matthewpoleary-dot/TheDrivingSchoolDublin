@@ -1,5 +1,29 @@
 // app/about/page.tsx
-import Image from "next/image";
+import Link from "next/link";
+import PhotoSlot from "@/components/lton/PhotoSlot";
+import { ArrowRight } from "@/components/lton/Icons";
+
+const CENTRES = [
+  {
+    name: "Tallaght",
+    text: "He knows the routes, the traffic patterns and what examiners watch for.",
+  },
+  {
+    name: "Dún Laoghaire",
+    text: "Every route, every junction and the slip-ups that cost learners marks.",
+  },
+  {
+    name: "Churchtown",
+    text: "He also worked at the old Churchtown test centre.",
+  },
+];
+
+const HIGHLIGHTS = [
+  "Patient, structured instruction",
+  "Manual lessons in dual-control instructor car",
+  "Specialist in EDT and pre-tests",
+  "Flexible scheduling across South Dublin",
+];
 
 export default function About() {
   const jsonLd = {
@@ -22,76 +46,88 @@ export default function About() {
   };
 
   return (
-    <>
-      <section className="mx-auto max-w-6xl space-y-12">
-      {/* Hero heading */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-extrabold tracking-tight">
-          About <span className="text-red-600">Us</span>
-        </h1>
-        <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-          Meet Conor – your RSA-approved ADI and former driving tester, with years
-          of experience helping learners succeed across Dublin.
+    <div className="l-page">
+      <header className="l-intro">
+        <p className="l-eyebrow">About</p>
+        <h1 className="l-h1">Meet Conor.</h1>
+        <p className="l-lede">
+          Your RSA-approved ADI and former driving tester, with years of experience helping
+          learners succeed across Dublin.
         </p>
-      </div>
+      </header>
 
-      {/* Instructor bio card */}
-      <div className="grid md:grid-cols-2 gap-10 items-center bg-white shadow-md rounded-2xl p-8">
-        {/* Text */}
-        <div className="space-y-5">
-          <h2 className="text-2xl font-bold">Meet Your ADI – Conor</h2>
-          <p className="text-gray-700 leading-relaxed">
-            Conor is a highly experienced Approved Driving Instructor (ADI) and
-            former RSA driving tester. Having worked in test centres across{" "}
-            <strong>Tallaght</strong>, <strong>Dún Laoghaire</strong>, and the old{" "}
-            <strong>Churchtown</strong> test centre, he brings deep insight into what
-            examiners look for on the day of your test.
-          </p>
-          <p className="text-gray-700 leading-relaxed">
-            With years of experience in the industry, Conor combines professional
-            standards with a calm, supportive teaching style. His background as an
-            ex-tester means every lesson is focused not just on safe driving, but also
-            on preparing you to succeed under exam conditions.
-          </p>
-          <p className="text-gray-700 leading-relaxed">
-            Whether you’re completing your <strong>EDT programme</strong>, booking{" "}
-            <strong>pre-test lessons</strong>, or looking for refresher sessions,
-            Conor tailors each lesson to your goals and confidence level.
-          </p>
+      {/* ── Bio ─────────────────────────────────────────────────────────── */}
+      <section className="l-group" aria-labelledby="bio-title">
+        <div className="l-split">
+          {/* Photo slot: a portrait of Conor (/public/photos/conor.jpg) */}
+          <PhotoSlot
+            className="l-reveal"
+            tone="mist"
+            plate="N"
+            alt="Conor, RSA-approved driving instructor"
+            wants="Portrait of Conor, /public/photos/conor.jpg"
+            style={{ aspectRatio: "4 / 5" }}
+          />
 
-          {/* Highlights grid */}
-          <div className="grid sm:grid-cols-2 gap-4 mt-6">
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Patient, structured instruction
+          <div>
+            <h2 id="bio-title" className="l-h3" style={{ marginBottom: 22 }}>
+              An ex-tester in the passenger seat beside you.
+            </h2>
+            <div className="l-prose">
+              <p>
+                Conor is an Approved Driving Instructor (ADI) and a former RSA driving tester.
+                Having worked in test centres across <strong>Tallaght</strong>,{" "}
+                <strong>Dún Laoghaire</strong> and the old <strong>Churchtown</strong> centre,
+                he knows exactly what examiners look for on the day of your test.
+              </p>
+              <p>
+                With years of experience in the industry, he pairs professional standards with
+                a calm, supportive teaching style. Every lesson builds safe driving and gets you
+                ready to perform under test conditions.
+              </p>
+              <p>
+                Whether you&apos;re completing your <strong>EDT programme</strong>, booking{" "}
+                <strong>pre-test lessons</strong> or coming back for a refresher, each lesson is
+                shaped around your goals and your confidence.
+              </p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Manual lessons in dual-control instructor car
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Specialist in EDT and pre-tests
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg text-gray-800">
-              ✓ Flexible scheduling across South Dublin
+
+            <ul className="l-list" style={{ marginTop: 32 }}>
+              {HIGHLIGHTS.map((h) => <li key={h}>{h}</li>)}
+            </ul>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 32 }}>
+              <Link href="/contact" className="l-btn l-btn--red l-btn--lg">
+                Contact us <ArrowRight />
+              </Link>
+              <Link href="/prices" className="l-btn l-btn--line l-btn--lg">View prices</Link>
             </div>
           </div>
         </div>
-
-        {/* Image */}
-        <div className="rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center h-96">
-          <Image
-            src="/instructor-placeholder.jpg"
-            alt="ADI Conor"
-            width={450}
-            height={450}
-            className="object-cover h-full w-full"
-          />
-        </div>
-      </div>
       </section>
+
+      {/* ── Test centre expertise ───────────────────────────────────────── */}
+      <section className="l-band" aria-labelledby="centres-title">
+        <div style={{ display: "grid", gap: 14 }}>
+          <p className="l-eyebrow l-eyebrow--on-ink">Test centre expertise</p>
+          <h2 id="centres-title" className="l-h2">He used to conduct the test here.</h2>
+        </div>
+        <ul className="l-centres">
+          {CENTRES.map((c) => (
+            <li key={c.name} style={{ display: "block" }}>
+              {c.name}
+              <p style={{ marginTop: 10, font: "400 16px/1.6 var(--text)", letterSpacing: 0 }}>
+                {c.text}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </>
+    </div>
   );
 }

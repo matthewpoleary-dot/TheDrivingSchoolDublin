@@ -129,7 +129,7 @@ export default function AdminPage() {
 
   if (!isAuthed) {
     return (
-      <div className="max-w-md mx-auto">
+      <div className="l-admin max-w-md mx-auto">
         <h1 className="text-2xl font-semibold mb-4">Admin login</h1>
         <p className="text-sm text-gray-600 mb-3">
           Enter your admin token to manage bookings.
@@ -155,7 +155,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="l-admin space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Admin — Bookings</h1>
         <div className="flex items-center gap-2">

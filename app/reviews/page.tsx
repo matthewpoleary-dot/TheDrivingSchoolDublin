@@ -1,64 +1,65 @@
 // app/reviews/page.tsx
 import Link from "next/link";
+import { ArrowRight, Star } from "@/components/lton/Icons";
 
 type Review = {
   name: string;
-  date: string; // ISO or readable
-  rating: number; // 1..5
+  badge?: string;     // e.g. "Local Guide"
+  date: string;       // yyyy-mm-dd
+  rating: number;
   text: string;
 };
 
+const GOOGLE_REVIEWS_URL = "https://share.google/Gz174ck7VeSpDSx5L";
+
 const REVIEWS: Review[] = [
-  { name: "Aisling M.", date: "2025-07-18", rating: 5, text: "Conor is brilliant — super calm and gave me clear, actionable feedback every lesson. Passed first time in Tallaght." },
-  { name: "Dylan O.", date: "2025-06-30", rating: 5, text: "Best instructor I’ve had. Pre‑test session covered exactly what the examiner looked for on the day." },
-  { name: "Aoife K.", date: "2025-06-02", rating: 5, text: "Patient and professional. The EDT plan was structured and I felt my confidence build each week." },
-  { name: "Cian R.", date: "2025-05-20", rating: 5, text: "Knows the Churchtown and Dún Laoghaire routes inside out. Tips were spot on. Highly recommend." },
-  { name: "Laura F.", date: "2025-05-01", rating: 5, text: "Booked a refresher before my test — invaluable. Clear coaching and zero waffle." },
-  { name: "Mark S.", date: "2025-04-15", rating: 5, text: "Great communication and flexible scheduling. Lessons were focused and efficient." },
-  // Add more if you want; the header below uses the fixed reviewCount = 36
+  {
+    name: "Awais Aitmad",
+    badge: "Local Guide",
+    date: "2026-01-05",
+    rating: 5,
+    text:
+      "Conor is a fantastic driving instructor who made the whole process of learning and passing my test so much easier. He knows the test inside out and gives you clear, practical guidance on exactly what examiners are looking for, while also making sure you're learning the skills you'll actually need to be a safe, confident driver in everyday life. His patience and calm approach mean you never feel pressured: mistakes are just opportunities to learn, and he explains everything in a way that sticks. Each lesson was well-structured, packed with useful tips, and his mock tests were so accurate they made the real exam feel familiar. Thanks to his expert teaching I passed first time. If you're looking for someone who'll not only get you through the test but also teach you how to drive properly for the long run, Conor is the instructor you want.",
+  },
+  {
+    name: "David Downes",
+    date: "2026-02-10",
+    rating: 5,
+    text:
+      "Conor is a very experienced & patient driving instructor that helped me go from zero driving experience to fully licenced. He was a massive help to me across the 12 lessons, gave me the confidence & tools to practice driving before the test. When the test date arrived he set me up for success with as well the knowledge of whats under the bonnet & required to know on the day. I highly recommend Conor.",
+  },
+  {
+    name: "Robbie Glynn",
+    date: "2025-07-10",
+    rating: 5,
+    text:
+      "The best Driving Instructor you could ask for. After trying a few instructors out over a long period of time, I found The Driving School Dublin. Conor had me ready for the test in a few short lessons. A complete professional and made sure that when I went to sit the test I arrived confident and assured with each element. I could not recommend him more highly.",
+  },
 ];
 
-// Fixed public rating stats (as requested)
-const PUBLIC_RATING_VALUE = 5.0;
-const PUBLIC_REVIEW_COUNT = 36;
+export const metadata = {
+  title: "Reviews | The Driving School Dublin",
+  description:
+    "Real Google reviews from Dublin learners who passed their test with Conor at The Driving School Dublin.",
+};
 
-function Stars({ rating = 5, size = "text-xl" }: { rating?: number; size?: string }) {
-  const full = Math.round(rating);
+function Stars({ count, size = 16 }: { count: number; size?: number }) {
   return (
-    <div className={`flex ${size}`} aria-label={`${rating.toFixed(1)} out of 5 stars`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} viewBox="0 0 24 24" className={`h-6 w-6 ${i < full ? "fill-red-600" : "fill-gray-200"}`} aria-hidden="true">
-          <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-function ReviewCard({ r }: { r: Review }) {
-  return (
-    <article className="rounded-2xl border shadow-sm p-6 bg-white flex flex-col gap-3">
-      <Stars rating={r.rating} size="text-base" />
-      <p className="text-gray-800 leading-relaxed">{r.text}</p>
-      <div className="mt-2 text-sm text-gray-600">
-        <span className="font-medium">{r.name}</span>
-        <span className="mx-2">•</span>
-        <time>{new Date(r.date).toLocaleDateString()}</time>
-      </div>
-    </article>
+    <span className="l-rating__stars" role="img" aria-label={`${count} out of 5 stars`}>
+      {Array.from({ length: count }).map((_, i) => <Star key={i} size={size} />)}
+    </span>
   );
 }
 
 export default function ReviewsPage() {
-  // SEO structured data
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: "The Driving School Dublin",
     aggregateRating: {
       "@type": "AggregateRating",
-      ratingValue: PUBLIC_RATING_VALUE.toFixed(1),
-      reviewCount: PUBLIC_REVIEW_COUNT,
+      ratingValue: "5.0",
+      reviewCount: REVIEWS.length,
       bestRating: "5",
       worstRating: "1",
     },
@@ -72,60 +73,53 @@ export default function ReviewsPage() {
   };
 
   return (
-    <section className="mx-auto max-w-6xl space-y-10">
-      {/* Header / score */}
-      <div className="space-y-3 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight">Reviews</h1>
-        <div className="flex items-center justify-center gap-3">
-          <Stars rating={PUBLIC_RATING_VALUE} />
-          <div className="text-lg font-semibold text-gray-900">
-            <span className="text-red-600">{PUBLIC_RATING_VALUE.toFixed(1)}</span> out of 5
-            <span className="text-gray-500"> — based on {PUBLIC_REVIEW_COUNT} reviews</span>
-          </div>
-        </div>
-        <p className="text-gray-700 max-w-2xl mx-auto">
-          Real feedback from learners across Dublin — Tallaght, Dún Laoghaire, and the old Churchtown routes.
-        </p>
-      </div>
+    <div className="l-page">
+      <header className="l-intro">
+        <p className="l-eyebrow">Reviews</p>
+        <h1 className="l-h1">From real learners.</h1>
+        <p className="l-lede">Verified Google reviews from Dublin learners who passed with Conor.</p>
+        <a className="l-rating" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" style={{ justifySelf: "start" }}>
+          <span className="l-rating__score l-num">5.0</span>
+          <Stars count={5} size={18} />
+          <span className="l-rating__count">
+            average <span>Sourced from Google</span>
+          </span>
+        </a>
+      </header>
 
-      {/* Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {REVIEWS.map((r, i) => (
-          <ReviewCard r={r} key={i} />
+      <section className="l-group" aria-label="Reviews">
+        {REVIEWS.map((r) => (
+          <article key={r.name} className="l-review l-reveal">
+            <div className="l-review__meta">
+              <Stars count={r.rating} />
+              <span>
+                {new Date(r.date).toLocaleDateString("en-IE", { month: "long", year: "numeric" })}
+              </span>
+            </div>
+            <p className="l-review__text">&ldquo;{r.text}&rdquo;</p>
+            <p className="l-review__who">
+              {r.name}
+              {r.badge && <span className="l-tag">{r.badge}</span>}
+            </p>
+          </article>
         ))}
-      </div>
+      </section>
 
-      {/* CTA row */}
-      <div className="flex flex-wrap gap-3 justify-center">
-        <Link href="/contact" className="btn-primary">Contact us</Link>
-        <Link href="/prices" className="btn-outline">See prices</Link>
-      </div>
+      <section className="l-close" aria-labelledby="close-title">
+        <h2 id="close-title" className="l-h2">Ready to join them?</h2>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 10 }}>
+          <Link href="/contact" className="l-btn l-btn--red l-btn--lg">
+            Contact us <ArrowRight />
+          </Link>
+          <Link href="/prices" className="l-btn l-btn--ghost-ink l-btn--lg">View prices</Link>
+        </div>
+        <p className="l-body" style={{ marginTop: 10, fontSize: 15 }}>
+          See all reviews on{" "}
+          <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" className="l-link">Google</a>.
+        </p>
+      </section>
 
-      {/* Read more on Google */}
-      <div className="text-center text-sm text-gray-700">
-        All reviews are verified and sourced from{" "}
-        <a
-          className="underline text-red-600 hover:text-red-700"
-          href="https://share.google/Gz174ck7VeSpDSx5L"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Google Reviews
-        </a>
-        . Want to see more?{" "}
-        <a
-          className="underline text-red-600 hover:text-red-700"
-          href="https://share.google/Gz174ck7VeSpDSx5L"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Read all reviews on Google
-        </a>
-        .
-      </div>
-
-      {/* JSON-LD */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-    </section>
+    </div>
   );
 }

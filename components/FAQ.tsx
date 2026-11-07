@@ -1,4 +1,6 @@
-// components/FAQ.tsx
+// components/FAQ.tsx: ruled accordion rows with a +/× toggle
+
+import { Plus } from "@/components/lton/Icons";
 
 type FAQItem = {
   question: string;
@@ -24,31 +26,31 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: "Do you offer weekend lessons?",
-    answer: "Yes — we run weekend and evening lessons subject to availability. Weekend slots are in high demand and priced at a premium rate reflecting limited instructor availability. Contact us for current rates and availability.",
+    answer: "Yes, we run weekend and evening lessons subject to availability. Weekend slots are in high demand and priced at a premium rate reflecting limited instructor availability. Contact us for current rates and availability.",
   },
   {
     question: "Do you provide a car for the test?",
-    answer: "Yes, we offer car hire for your test day. We have three options: meet at the test centre (from €150), local pick-up and drop-off (from €200), or car hire plus a pre-test lesson (from €245). Prices shown are for Monday–Friday tests; Saturday test dates are available on request. The car is fully insured and roadworthy, and we'll arrive early to ensure everything is ready.",
+    answer: "Yes, we offer car hire for your test day. We have three options: meet at the test centre (from €150), local pick-up and drop-off (from €200), or car hire plus a pre-test lesson (from €245). Prices shown are for Monday to Friday tests. Saturday test dates are available on request. The car is fully insured and roadworthy, and we'll arrive early to ensure everything is ready.",
   },
 ];
 
 export default function FAQ() {
   return (
-    <section className="space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-extrabold tracking-tight">Frequently Asked Questions</h2>
-        <p className="text-gray-700">Everything you need to know about our lessons</p>
+    <section aria-labelledby="faq-title">
+      <div className="l-group__head">
+        <p className="l-eyebrow">FAQ</p>
+        <h2 id="faq-title" className="l-h2">Asked, answered.</h2>
+        <p className="l-body">Everything you need to know about our lessons.</p>
       </div>
-      <div className="space-y-4">
-        {FAQ_ITEMS.map((item, i) => (
-          <details key={i} className="rounded-lg border bg-white p-6 shadow-sm">
-            <summary className="font-semibold text-gray-900 cursor-pointer list-none">
-              <span className="flex items-center justify-between">
-                {item.question}
-                <span className="text-red-600 ml-2">+</span>
-              </span>
+
+      <div className="l-faq">
+        {FAQ_ITEMS.map((item) => (
+          <details key={item.question} className="faq-row">
+            <summary>
+              <span>{item.question}</span>
+              <span className="l-faq__icon" aria-hidden="true"><Plus /></span>
             </summary>
-            <p className="mt-4 text-gray-700 leading-relaxed">{item.answer}</p>
+            <p className="l-faq__answer">{item.answer}</p>
           </details>
         ))}
       </div>
